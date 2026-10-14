@@ -1,0 +1,24 @@
+# Normaliza finais de linha entre Windows/Linux/Mac
+* text=auto eol=lf
+
+# Scripts de shell/Windows precisam de EOL do seu sistema
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# Binários (não mexer)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.jar binary
+*.keystore binary
+*.jks binary
+*.zip binary
+
+# Linguagens
+*.kt  text
+*.kts text
+*.md  text
+*.xml text
+*.toml text
+*.properties text
