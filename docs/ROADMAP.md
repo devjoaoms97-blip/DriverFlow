@@ -6,18 +6,20 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ✅ Projeto Gradle, dependências e tema
 - ✅ Entidades, DAOs, banco Room, repositório
 - ✅ Cálculos de domínio + testes unitários
-- 🟡 Formulário de ganho/despesa (data fixa em hoje; sem foto)
-- ⬜ Seletor de data
-- ⬜ Editar/excluir lançamentos
+- ✅ Formulário de ganho/despesa
+- ✅ Seletor de data (calendário + atalhos Hoje/Ontem)
+- ✅ Editar e excluir lançamentos (com confirmação)
 - ⬜ Anexar foto do comprovante
 
 ## Etapa 2: Início e histórico
 - 🟡 Tela inicial (hoje e mês; falta semana)
-- ⬜ Histórico com filtros por período, plataforma e categoria
+- ✅ Histórico por mês, agrupado por dia, com filtro Todos/Ganhos/Despesas
+- ⬜ Filtros por plataforma e categoria
 
 ## Etapa 3: Veículo
 - 🟡 Cálculo de km/l e custo por km (lógica pronta, sem tela)
 - ⬜ Tela de abastecimentos e formulário
+- ⬜ Edição/exclusão de despesas geradas por abastecimento e manutenção (hoje só aparecem no histórico, sem edição)
 - ⬜ Depreciação por km nas configurações (DataStore)
 
 ## Etapa 4: Manutenção e reservas

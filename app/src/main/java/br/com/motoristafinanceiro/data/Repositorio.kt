@@ -20,6 +20,8 @@ class Repositorio(private val db: AppDatabase) {
     fun ganhos(inicio: LocalDate, fim: LocalDate): Flow<List<Ganho>> =
         db.ganhoDao().observarPorPeriodo(inicio, fim)
 
+    suspend fun ganhoPorId(id: Long): Ganho? = db.ganhoDao().buscarPorId(id)
+
     suspend fun salvarGanho(ganho: Ganho) {
         if (ganho.id == 0L) db.ganhoDao().inserir(ganho) else db.ganhoDao().atualizar(ganho)
     }
@@ -29,6 +31,8 @@ class Repositorio(private val db: AppDatabase) {
     // ---- Despesas ----
     fun despesas(inicio: LocalDate, fim: LocalDate): Flow<List<Despesa>> =
         db.despesaDao().observarPorPeriodo(inicio, fim)
+
+    suspend fun despesaPorId(id: Long): Despesa? = db.despesaDao().buscarPorId(id)
 
     suspend fun salvarDespesa(despesa: Despesa) {
         if (despesa.id == 0L) db.despesaDao().inserir(despesa) else db.despesaDao().atualizar(despesa)

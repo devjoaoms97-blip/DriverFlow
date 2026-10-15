@@ -22,6 +22,9 @@ interface GanhoDao {
     @Update suspend fun atualizar(ganho: Ganho)
     @Delete suspend fun excluir(ganho: Ganho)
 
+    @Query("SELECT * FROM ganhos WHERE id = :id")
+    suspend fun buscarPorId(id: Long): Ganho?
+
     @Query("SELECT * FROM ganhos WHERE data BETWEEN :inicio AND :fim ORDER BY data DESC, id DESC")
     fun observarPorPeriodo(inicio: LocalDate, fim: LocalDate): Flow<List<Ganho>>
 }
@@ -31,6 +34,9 @@ interface DespesaDao {
     @Insert suspend fun inserir(despesa: Despesa): Long
     @Update suspend fun atualizar(despesa: Despesa)
     @Delete suspend fun excluir(despesa: Despesa)
+
+    @Query("SELECT * FROM despesas WHERE id = :id")
+    suspend fun buscarPorId(id: Long): Despesa?
 
     @Query("DELETE FROM despesas WHERE origem = :origem AND origemId = :origemId")
     suspend fun excluirPorOrigem(origem: OrigemDespesa, origemId: Long)

@@ -2,63 +2,132 @@ package br.com.motoristafinanceiro.ui.lancamento
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.motoristafinanceiro.data.model.CategoriaDespesa
+import br.com.motoristafinanceiro.data.model.Despesa
+import br.com.motoristafinanceiro.data.model.Ganho
 import br.com.motoristafinanceiro.data.model.Plataforma
+import br.com.motoristafinanceiro.util.minutosParaHorasTexto
+import br.com.motoristafinanceiro.util.paraTextoNumero
+import br.com.motoristafinanceiro.util.paraTextoReais
 import br.com.motoristafinanceiro.util.reaisParaCentavos
 import java.time.LocalDate
+import kotlin.math.roundToInt
+
+/**
+ * Tela única para novo lançamento (tipo = null, com abas) e para editar/excluir
+ * um ganho ou uma despesa existente (tipo + id).
+ */
+@Composable
+fun NovoLancamentoScreen(tipo: TipoLancamento?, id: Long, onConcluir: () -> Unit) {
+    val vm: NovoLancamentoViewModel = viewModel(
+        key = "lancamento-$tipo-$id",
+        factory = NovoLancamentoViewModel.factory(tipo, id),
+    )
+    val ganhoOriginal = vm.ganhoOriginal
+    val despesaOriginal = vm.despesaOriginal
+
+    when {
+        vm.carregando -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        tipo == TipoLancamento.GANHO && ganhoOriginal == null -> NaoEncontrado(onConcluir)
+        tipo == TipoLancamento.DESPESA && despesaOriginal == null -> NaoEncontrado(onConcluir)
+        tipo == TipoLancamento.GANHO -> Column {
+            Cabecalho("Editar ganho")
+            FormGanho(vm, ganhoOriginal, onConcluir)
+        }
+        tipo == TipoLancamento.DESPESA -> Column {
+            Cabecalho("Editar despesa")
+            FormDespesa(vm, despesaOriginal, onConcluir)
+        }
+        else -> NovoComAbas(vm, onConcluir)
+    }
+}
 
 @Composable
-fun NovoLancamentoScreen(
-    onConcluir: () -> Unit,
-    vm: NovoLancamentoViewModel = viewModel(factory = NovoLancamentoViewModel.Factory),
-) {
+private fun NovoComAbas(vm: NovoLancamentoViewModel, onConcluir: () -> Unit) {
     var aba by remember { mutableIntStateOf(0) }
-
     Column {
         TabRow(selectedTabIndex = aba) {
             Tab(selected = aba == 0, onClick = { aba = 0 }, text = { Text("Ganho") })
             Tab(selected = aba == 1, onClick = { aba = 1 }, text = { Text("Despesa") })
         }
-        // TODO: seletor de data (hoje por padrão) e edição de lançamentos existentes.
         when (aba) {
-            0 -> FormGanho(vm, onConcluir)
-            else -> FormDespesa(vm, onConcluir)
+            0 -> FormGanho(vm, null, onConcluir)
+            else -> FormDespesa(vm, null, onConcluir)
         }
+    }
+}
+
+@Composable
+private fun Cabecalho(titulo: String) {
+    Text(
+        titulo,
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
+    )
+}
+
+@Composable
+private fun NaoEncontrado(onVoltar: () -> Unit) {
+    Column(
+        Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("Lançamento não encontrado")
+        Button(onClick = onVoltar, modifier = Modifier.padding(top = 12.dp)) { Text("Voltar") }
     }
 }
 
 private val teclaNumerica = KeyboardOptions(keyboardType = KeyboardType.Decimal)
 
 @Composable
-private fun FormGanho(vm: NovoLancamentoViewModel, onConcluir: () -> Unit) {
-    var plataforma by remember { mutableStateOf(Plataforma.UBER) }
-    var valor by remember { mutableStateOf("") }
-    var gorjeta by remember { mutableStateOf("") }
-    var km by remember { mutableStateOf("") }
-    var horas by remember { mutableStateOf("") }
+private fun FormGanho(vm: NovoLancamentoViewModel, original: Ganho?, onConcluir: () -> Unit) {
+    var data by remember { mutableStateOf(original?.data ?: LocalDate.now()) }
+    var plataforma by remember { mutableStateOf(original?.plataforma ?: Plataforma.UBER) }
+    var valor by remember { mutableStateOf(original?.valorCentavos?.paraTextoReais() ?: "") }
+    var gorjeta by remember {
+        mutableStateOf(original?.gorjetaBonusCentavos?.takeIf { it > 0 }?.paraTextoReais() ?: "")
+    }
+    var km by remember { mutableStateOf(original?.km?.takeIf { it > 0 }?.paraTextoNumero() ?: "") }
+    var horas by remember {
+        mutableStateOf(original?.minutosOnline?.takeIf { it > 0 }?.minutosParaHorasTexto() ?: "")
+    }
+    var obs by remember { mutableStateOf(original?.observacao ?: "") }
+    var confirmarExclusao by remember { mutableStateOf(false) }
 
     val valorCentavos = valor.reaisParaCentavos()
 
@@ -66,6 +135,7 @@ private fun FormGanho(vm: NovoLancamentoViewModel, onConcluir: () -> Unit) {
         Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        CampoData(data, { data = it })
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Plataforma.entries.forEach {
                 FilterChip(selected = plataforma == it, onClick = { plataforma = it }, label = { Text(it.rotulo) })
@@ -79,30 +149,48 @@ private fun FormGanho(vm: NovoLancamentoViewModel, onConcluir: () -> Unit) {
             keyboardOptions = teclaNumerica, singleLine = true, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(horas, { horas = it }, label = { Text("Horas online (ex.: 6,5)") },
             keyboardOptions = teclaNumerica, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(obs, { obs = it }, label = { Text("Observação (opcional)") },
+            modifier = Modifier.fillMaxWidth())
 
         Button(
             enabled = valorCentavos != null && valorCentavos > 0,
             onClick = {
+                val base = original ?: Ganho(data = data, plataforma = plataforma, valorCentavos = 0)
                 vm.salvarGanho(
-                    data = LocalDate.now(),
-                    plataforma = plataforma,
-                    valorCentavos = valorCentavos ?: 0,
-                    gorjetaBonusCentavos = gorjeta.reaisParaCentavos() ?: 0,
-                    km = km.replace(',', '.').toDoubleOrNull() ?: 0.0,
-                    minutosOnline = ((horas.replace(',', '.').toDoubleOrNull() ?: 0.0) * 60).toInt(),
-                    aoConcluir = onConcluir,
+                    base.copy(
+                        data = data,
+                        plataforma = plataforma,
+                        valorCentavos = valorCentavos ?: 0,
+                        gorjetaBonusCentavos = (gorjeta.reaisParaCentavos() ?: 0).coerceAtLeast(0),
+                        km = (km.replace(',', '.').toDoubleOrNull() ?: 0.0).coerceAtLeast(0.0),
+                        minutosOnline = ((horas.replace(',', '.').toDoubleOrNull() ?: 0.0) * 60)
+                            .roundToInt().coerceAtLeast(0),
+                        observacao = obs.ifBlank { null },
+                    ),
+                    onConcluir,
                 )
             },
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Salvar ganho") }
+        ) { Text(if (original == null) "Salvar ganho" else "Salvar alterações") }
+
+        if (original != null) BotaoExcluir { confirmarExclusao = true }
+    }
+
+    if (confirmarExclusao && original != null) {
+        DialogoExcluir(
+            onConfirmar = { vm.excluirGanho(original, onConcluir) },
+            onCancelar = { confirmarExclusao = false },
+        )
     }
 }
 
 @Composable
-private fun FormDespesa(vm: NovoLancamentoViewModel, onConcluir: () -> Unit) {
-    var categoria by remember { mutableStateOf(CategoriaDespesa.COMBUSTIVEL) }
-    var valor by remember { mutableStateOf("") }
-    var obs by remember { mutableStateOf("") }
+private fun FormDespesa(vm: NovoLancamentoViewModel, original: Despesa?, onConcluir: () -> Unit) {
+    var data by remember { mutableStateOf(original?.data ?: LocalDate.now()) }
+    var categoria by remember { mutableStateOf(original?.categoria ?: CategoriaDespesa.COMBUSTIVEL) }
+    var valor by remember { mutableStateOf(original?.valorCentavos?.paraTextoReais() ?: "") }
+    var obs by remember { mutableStateOf(original?.observacao ?: "") }
+    var confirmarExclusao by remember { mutableStateOf(false) }
 
     val valorCentavos = valor.reaisParaCentavos()
 
@@ -110,6 +198,7 @@ private fun FormDespesa(vm: NovoLancamentoViewModel, onConcluir: () -> Unit) {
         Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        CampoData(data, { data = it })
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CategoriaDespesa.entries.forEach {
                 FilterChip(selected = categoria == it, onClick = { categoria = it }, label = { Text(it.rotulo) })
@@ -124,15 +213,47 @@ private fun FormDespesa(vm: NovoLancamentoViewModel, onConcluir: () -> Unit) {
         Button(
             enabled = valorCentavos != null && valorCentavos > 0,
             onClick = {
+                val base = original ?: Despesa(data = data, categoria = categoria, valorCentavos = 0)
                 vm.salvarDespesa(
-                    data = LocalDate.now(),
-                    categoria = categoria,
-                    valorCentavos = valorCentavos ?: 0,
-                    observacao = obs.ifBlank { null },
-                    aoConcluir = onConcluir,
+                    base.copy(
+                        data = data,
+                        categoria = categoria,
+                        valorCentavos = valorCentavos ?: 0,
+                        observacao = obs.ifBlank { null },
+                    ),
+                    onConcluir,
                 )
             },
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Salvar despesa") }
+        ) { Text(if (original == null) "Salvar despesa" else "Salvar alterações") }
+
+        if (original != null) BotaoExcluir { confirmarExclusao = true }
     }
+
+    if (confirmarExclusao && original != null) {
+        DialogoExcluir(
+            onConfirmar = { vm.excluirDespesa(original, onConcluir) },
+            onCancelar = { confirmarExclusao = false },
+        )
+    }
+}
+
+@Composable
+private fun BotaoExcluir(onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+    ) { Text("Excluir lançamento") }
+}
+
+@Composable
+private fun DialogoExcluir(onConfirmar: () -> Unit, onCancelar: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onCancelar,
+        title = { Text("Excluir lançamento?") },
+        text = { Text("Essa ação não pode ser desfeita.") },
+        confirmButton = { TextButton(onClick = onConfirmar) { Text("Excluir") } },
+        dismissButton = { TextButton(onClick = onCancelar) { Text("Cancelar") } },
+    )
 }

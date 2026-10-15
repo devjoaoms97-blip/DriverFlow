@@ -4,12 +4,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -22,12 +22,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import br.com.motoristafinanceiro.ui.historico.HistoricoScreen
 import br.com.motoristafinanceiro.ui.home.HomeScreen
 import br.com.motoristafinanceiro.ui.lancamento.NovoLancamentoScreen
+import br.com.motoristafinanceiro.ui.lancamento.TipoLancamento
 
 private data class Destino(val rota: String, val rotulo: String, val icone: ImageVector)
 
@@ -40,16 +44,20 @@ private val destinos = listOf(
 )
 
 private const val ROTA_NOVO = "novo"
+private const val ROTA_GANHO = "ganho/{id}"
+private const val ROTA_DESPESA = "despesa/{id}"
+private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA)
 
 @Composable
 fun AppNav() {
     val nav = rememberNavController()
-    val entrada by nav.currentBackStackEntryAsState()
-    val rotaAtual = entrada?.destination?.route
+    val pilha by nav.currentBackStackEntryAsState()
+    val rotaAtual = pilha?.destination?.route
+    val emFormulario = rotaAtual in rotasFormulario
 
     Scaffold(
         bottomBar = {
-            if (rotaAtual != ROTA_NOVO) {
+            if (!emFormulario) {
                 NavigationBar {
                     destinos.forEach { d ->
                         NavigationBarItem(
@@ -69,7 +77,7 @@ fun AppNav() {
             }
         },
         floatingActionButton = {
-            if (rotaAtual != ROTA_NOVO) {
+            if (!emFormulario) {
                 FloatingActionButton(onClick = { nav.navigate(ROTA_NOVO) }) {
                     Icon(Icons.Filled.Add, contentDescription = "Novo lançamento")
                 }
@@ -78,11 +86,39 @@ fun AppNav() {
     ) { padding ->
         NavHost(nav, startDestination = "inicio", modifier = Modifier.padding(padding)) {
             composable("inicio") { HomeScreen() }
-            composable("historico") { EmConstrucao("Histórico") }
+            composable("historico") {
+                HistoricoScreen(
+                    onEditarGanho = { nav.navigate("ganho/$it") },
+                    onEditarDespesa = { nav.navigate("despesa/$it") },
+                )
+            }
             composable("veiculo") { EmConstrucao("Veículo") }
             composable("reservas") { EmConstrucao("Reservas") }
             composable("analises") { EmConstrucao("Análises") }
-            composable(ROTA_NOVO) { NovoLancamentoScreen(onConcluir = { nav.popBackStack() }) }
+
+            composable(ROTA_NOVO) {
+                NovoLancamentoScreen(tipo = null, id = 0L, onConcluir = { nav.popBackStack() })
+            }
+            composable(
+                ROTA_GANHO,
+                arguments = listOf(navArgument("id") { type = NavType.LongType }),
+            ) { e ->
+                NovoLancamentoScreen(
+                    tipo = TipoLancamento.GANHO,
+                    id = e.arguments?.getLong("id") ?: 0L,
+                    onConcluir = { nav.popBackStack() },
+                )
+            }
+            composable(
+                ROTA_DESPESA,
+                arguments = listOf(navArgument("id") { type = NavType.LongType }),
+            ) { e ->
+                NovoLancamentoScreen(
+                    tipo = TipoLancamento.DESPESA,
+                    id = e.arguments?.getLong("id") ?: 0L,
+                    onConcluir = { nav.popBackStack() },
+                )
+            }
         }
     }
 }
