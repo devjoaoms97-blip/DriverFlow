@@ -1,4 +1,38 @@
-We need answer only code. Need apply suggested edit to original code. Need output complete modified file. The original code is .gitignore? It lists patterns. Suggested edit is full replacement? Instruction: Apply SUGGESTED EDIT to ORIGINAL CODE. Output complete modified file. Likely just output suggested edit as final .gitignore? Need preserve unchanged code? Original has patterns. Suggested edit includes comments and reorganizes. We need produce complete modified file. Typically for such tasks, apply suggested edit meaning replace original with suggested? The suggested edit block is a full new content. Need output only code. No explanations.
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
 
-Need be careful: Original code:
+# Android Studio / IntelliJ
+*.iml
+/.idea/
+local.properties
+captures/
 
+# NDK / nativo
+.externalNativeBuild/
+.cxx/
+
+# Artefatos gerados
+*.apk
+*.aab
+*.ap_
+*.dex
+bin/
+gen/
+out/
+release/
+
+# Assinatura / segredos
+*.keystore
+*.jks
+keystore.properties
+
+# Logs e temporarios
+*.log
+*.hprof
+.DS_Store
+Thumbs.db
+
+# Room: mantem o schema versionado (app/schemas/)
+*.lock
