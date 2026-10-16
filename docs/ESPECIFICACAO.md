@@ -121,4 +121,4 @@ Exportar todas as tabelas em um único `.json` com campo `versaoSchema`, usando 
 
 - Lançamento por corrida individual além do lançamento por turno?
 - Definição exata de "semana" (segunda a domingo é a sugestão)
-- Valor padrão de depreciação por km
+- ~~Valor padrão de depreciação por km~~ **Resolvido:** começa em R$ 0,00/km (ignorada) e o usuário define em Ajustes; teto de R$ 10,00/km

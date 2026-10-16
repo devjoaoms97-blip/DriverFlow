@@ -25,7 +25,8 @@ class HomeEstadoTest {
         meta: Meta? = null,
         abastecimentos: List<Abastecimento> = emptyList(),
         manutencoes: List<Manutencao> = emptyList(),
-    ) = montarEstadoHome(ganhos, despesas, meta, abastecimentos, manutencoes, hoje)
+        depreciacaoPorKmCentavos: Long = 0,
+    ) = montarEstadoHome(ganhos, despesas, meta, abastecimentos, manutencoes, hoje, depreciacaoPorKmCentavos)
 
     @Test
     fun hojeFiltraSoODiaEMesSomaTudo() {
@@ -67,5 +68,39 @@ class HomeEstadoTest {
     @Test
     fun semDados_semAlertas() {
         assertTrue(montar().alertasUrgentes.isEmpty())
+    }
+
+    @Test
+    fun depreciacao_eAplicadaEmHojeENoMes() {
+        val ganhos = listOf(
+            Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 10_000, km = 100.0),
+            Ganho(data = ontem, plataforma = Plataforma.UBER, valorCentavos = 5_000, km = 50.0),
+        )
+
+        val s = montar(ganhos = ganhos, depreciacaoPorKmCentavos = 30)
+
+        assertEquals(3_000L, s.hoje.depreciacaoCentavos)   // 100 km x 30
+        assertEquals(4_500L, s.mes.depreciacaoCentavos)    // 150 km x 30
+        assertEquals(7_000L, s.hoje.lucroAposDepreciacaoCentavos) // 10000 - 3000
+        assertEquals(30L, s.hoje.custoPorKmCentavos)       // 3000 / 100 km
+    }
+
+    @Test
+    fun depreciacao_naoMudaOLucroLiquido() {
+        val ganhos = listOf(Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 10_000, km = 100.0))
+        val despesas = listOf(Despesa(data = hoje, categoria = CategoriaDespesa.LAVAGEM, valorCentavos = 2_000))
+
+        val com = montar(ganhos, despesas, depreciacaoPorKmCentavos = 30)
+        val sem = montar(ganhos, despesas)
+
+        assertEquals(sem.hoje.lucroLiquidoCentavos, com.hoje.lucroLiquidoCentavos)
+        assertEquals(8_000L, com.hoje.lucroLiquidoCentavos)
+        assertEquals(5_000L, com.hoje.lucroAposDepreciacaoCentavos)
+    }
+
+    @Test
+    fun semDepreciacao_ficaZero() {
+        val ganhos = listOf(Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 10_000, km = 100.0))
+        assertEquals(0L, montar(ganhos = ganhos).mes.depreciacaoCentavos)
     }
 }

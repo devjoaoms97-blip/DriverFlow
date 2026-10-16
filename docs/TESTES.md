@@ -19,6 +19,8 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 |---|---|---|
 | Cálculos (lucro, km/l, reserva, alertas de manutenção, resumo do veículo) | `app/src/test/.../domain` | JUnit puro |
 | Formatação e conversões | `app/src/test/.../util`, `.../data/db` | JUnit puro |
+| Configurações (DataStore) | `app/src/test/.../data/ConfiguracoesTest` | JUnit puro, arquivo temporário |
+| Ícone e manifest (arquivos de recurso presentes e referenciados) | `app/src/test/.../app/IconeDoAppTest` | JUnit puro |
 | Estado e regras das telas (início, histórico, veículo, alertas) | `app/src/test/.../ui/...` | JUnit puro |
 | Repositório + Room (CRUD, vínculos, período) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
 
@@ -79,3 +81,14 @@ testImplementation("androidx.test:core:1.6.1")
 13. **Vínculo da manutenção:** no Histórico a despesa aparece com "Manutenção"; tocar abre o formulário da
     manutenção. Mudar o valor e conferir que a despesa acompanha
 14. **Excluir manutenção:** excluir e conferir que a despesa e o alerta sumiram
+15. **Ajustes:** no Início, tocar na engrenagem, informar depreciação de 0,25 e salvar
+16. **Depreciação no Início:** com apenas o ganho de R$ 100,00 / 50 km e a despesa de R$ 30,00 do passo 1
+    lançados hoje, o card "Hoje" deve mostrar depreciação estimada R$ 12,50, lucro após depreciação R$ 57,50
+    e custo por km R$ 0,85, com o lucro líquido continuando R$ 70,00
+17. **Depreciação no Veículo:** o custo por km do mês também passa a incluir a depreciação, com o aviso no
+    resumo. Voltar o ajuste para vazio ou 0 e conferir que tudo volta ao valor de antes
+18. **Validação e persistência:** digitar texto inválido (ex.: "abc") mostra o erro e desabilita Salvar;
+    fechar e reabrir o app mantém o valor salvo
+19. **Ícone:** na tela inicial do celular, o app aparece como uma moeda dourada com um volante sobre fundo
+    verde, com o nome "Motorista Financeiro". Em Android 13 ou mais novo com ícones temáticos ligados,
+    o ícone assume as cores do tema do aparelho

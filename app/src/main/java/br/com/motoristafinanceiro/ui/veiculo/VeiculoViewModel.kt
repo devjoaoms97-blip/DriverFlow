@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.motoristafinanceiro.MotoristaApp
+import br.com.motoristafinanceiro.data.Configuracoes
 import br.com.motoristafinanceiro.data.Repositorio
 import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.Despesa
@@ -30,6 +31,8 @@ data class VeiculoUiState(
     val manutencoes: List<Manutencao> = emptyList(),
     /** Um por serviço, mais urgentes primeiro. */
     val alertas: List<AlertaManutencao> = emptyList(),
+    /** Depreciação por km usada no custo por km (0 = ignorada). */
+    val depreciacaoPorKmCentavos: Long = 0,
 )
 
 /** Regra pura da tela (sem Android), coberta por testes. */
@@ -38,8 +41,13 @@ internal fun montarEstadoVeiculo(
     manutencoes: List<Manutencao>,
     ganhosMes: List<Ganho>,
     despesasMes: List<Despesa>,
+    depreciacaoPorKmCentavos: Long = 0,
 ): VeiculoUiState {
-    val resumo = calcularResumoVeiculo(abastecimentos, manutencoes, calcularEstatisticas(ganhosMes, despesasMes))
+    val resumo = calcularResumoVeiculo(
+        abastecimentos,
+        manutencoes,
+        calcularEstatisticas(ganhosMes, despesasMes, depreciacaoPorKmCentavos),
+    )
     val odometro = resumo.odometroAtualKm
     return VeiculoUiState(
         resumo = resumo,
@@ -50,10 +58,11 @@ internal fun montarEstadoVeiculo(
             compareByDescending<Manutencao> { it.data.toEpochDay() }.thenByDescending { it.odometroKm }
         ),
         alertas = if (odometro != null) calcularAlertas(manutencoes, odometro) else emptyList(),
+        depreciacaoPorKmCentavos = depreciacaoPorKmCentavos,
     )
 }
 
-class VeiculoViewModel(repo: Repositorio) : ViewModel() {
+class VeiculoViewModel(repo: Repositorio, configuracoes: Configuracoes) : ViewModel() {
 
     private val mes = YearMonth.now()
 
@@ -62,13 +71,17 @@ class VeiculoViewModel(repo: Repositorio) : ViewModel() {
         repo.manutencoes(),
         repo.ganhos(mes.atDay(1), mes.atEndOfMonth()),
         repo.despesas(mes.atDay(1), mes.atEndOfMonth()),
-    ) { abastecimentos, manutencoes, ganhos, despesas ->
-        montarEstadoVeiculo(abastecimentos, manutencoes, ganhos, despesas)
+        configuracoes.depreciacaoPorKmCentavos,
+    ) { abastecimentos, manutencoes, ganhos, despesas, depreciacao ->
+        montarEstadoVeiculo(abastecimentos, manutencoes, ganhos, despesas, depreciacao)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), VeiculoUiState())
 
     companion object {
         val Factory = viewModelFactory {
-            initializer { VeiculoViewModel((this[APPLICATION_KEY] as MotoristaApp).repositorio) }
+            initializer {
+                val app = this[APPLICATION_KEY] as MotoristaApp
+                VeiculoViewModel(app.repositorio, app.configuracoes)
+            }
         }
     }
 }

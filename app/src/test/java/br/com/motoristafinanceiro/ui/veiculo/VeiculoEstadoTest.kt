@@ -83,4 +83,26 @@ class VeiculoEstadoTest {
         val s = montarEstadoVeiculo(emptyList(), emptyList(), emptyList(), emptyList())
         assertTrue(s.alertas.isEmpty())
     }
+
+    @Test
+    fun depreciacao_entraNoCustoPorKmDoMes() {
+        val ganhos = listOf(Ganho(data = d2, plataforma = Plataforma.UBER, valorCentavos = 20_000, km = 100.0))
+        val despesas = listOf(Despesa(data = d2, categoria = CategoriaDespesa.COMBUSTIVEL, valorCentavos = 6_000))
+
+        val s = montarEstadoVeiculo(listOf(a1, a2), emptyList(), ganhos, despesas, depreciacaoPorKmCentavos = 25)
+
+        assertEquals(85L, s.resumo.custoPorKmMesCentavos) // (6000 + 100 km x 25) / 100 km
+        assertEquals(25L, s.depreciacaoPorKmCentavos)
+    }
+
+    @Test
+    fun semDepreciacao_estadoPadraoZeroEMantemOCustoDeAntes() {
+        val ganhos = listOf(Ganho(data = d2, plataforma = Plataforma.UBER, valorCentavos = 20_000, km = 100.0))
+        val despesas = listOf(Despesa(data = d2, categoria = CategoriaDespesa.COMBUSTIVEL, valorCentavos = 6_000))
+
+        val s = montarEstadoVeiculo(listOf(a1, a2), emptyList(), ganhos, despesas)
+
+        assertEquals(0L, s.depreciacaoPorKmCentavos)
+        assertEquals(60L, s.resumo.custoPorKmMesCentavos)
+    }
 }

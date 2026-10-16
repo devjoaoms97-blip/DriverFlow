@@ -7,6 +7,10 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ✅ Testes de domínio, formatação, estado das telas e Repositório/Room
 - ⬜ Testes de interface (Compose) para os fluxos principais, quando o app estiver mais estável
 
+## Identidade visual
+- ✅ Ícone adaptativo do app (moeda com volante), com versão monocromática para ícones temáticos
+- ⬜ Nome e tela de abertura (splash) personalizados, se quiser
+
 ## Etapa 1: Base, ganhos e despesas
 - ✅ Projeto Gradle, dependências e tema
 - ✅ Entidades, DAOs, banco Room, repositório
@@ -26,7 +30,7 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ✅ Tela Veículo: consumo médio (km/l), odômetro atual, último litro, custo por km do mês
 - ✅ Registrar, editar e excluir abastecimentos (a despesa de combustível acompanha)
 - ✅ Despesa de abastecimento no Histórico abre o formulário do abastecimento
-- ⬜ Depreciação por km nas configurações (DataStore) e no custo por km
+- ✅ Depreciação por km nas configurações (DataStore): entra no custo por km e no lucro após depreciação
 
 ## Etapa 4: Manutenção e reservas
 - ✅ Registrar, editar e excluir manutenções (a despesa acompanha), com intervalo em km sugerido por tipo
@@ -44,4 +48,4 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ⬜ Ganho por hora por dia da semana/horário
 - ⬜ Comparativo Uber × 99
 - ⬜ Backup/restauração JSON
-- ⬜ Tela de Ajustes
+- 🟡 Tela de Ajustes (só a depreciação por km por enquanto; falta o backup)

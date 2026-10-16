@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.motoristafinanceiro.MotoristaApp
+import br.com.motoristafinanceiro.data.Configuracoes
 import br.com.motoristafinanceiro.data.Repositorio
 import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.Despesa
@@ -41,6 +42,7 @@ internal fun montarEstadoHome(
     abastecimentos: List<Abastecimento>,
     manutencoes: List<Manutencao>,
     hoje: LocalDate = LocalDate.now(),
+    depreciacaoPorKmCentavos: Long = 0,
 ): HomeUiState {
     val odometro = odometroAtual(abastecimentos, manutencoes)
     val alertas = if (odometro == null) {
@@ -49,31 +51,55 @@ internal fun montarEstadoHome(
         calcularAlertas(manutencoes, odometro).filter { it.status != StatusAlerta.EM_DIA }
     }
     return HomeUiState(
-        hoje = calcularEstatisticas(ganhosMes.filter { it.data == hoje }, despesasMes.filter { it.data == hoje }),
-        mes = calcularEstatisticas(ganhosMes, despesasMes),
+        hoje = calcularEstatisticas(
+            ganhosMes.filter { it.data == hoje },
+            despesasMes.filter { it.data == hoje },
+            depreciacaoPorKmCentavos,
+        ),
+        mes = calcularEstatisticas(ganhosMes, despesasMes, depreciacaoPorKmCentavos),
         metaCentavos = meta?.valorAlvoLucroCentavos,
         alertasUrgentes = alertas,
     )
 }
 
-class HomeViewModel(repo: Repositorio) : ViewModel() {
+private data class DadosHome(
+    val ganhos: List<Ganho>,
+    val despesas: List<Despesa>,
+    val meta: Meta?,
+    val abastecimentos: List<Abastecimento>,
+    val manutencoes: List<Manutencao>,
+)
+
+class HomeViewModel(repo: Repositorio, configuracoes: Configuracoes) : ViewModel() {
 
     private val mesAtual = YearMonth.now()
 
-    // TODO: ler a depreciação por km das configurações (DataStore) em vez de 0.
-    val uiState: StateFlow<HomeUiState> = combine(
+    private val dados = combine(
         repo.ganhos(mesAtual.atDay(1), mesAtual.atEndOfMonth()),
         repo.despesas(mesAtual.atDay(1), mesAtual.atEndOfMonth()),
         repo.meta(mesAtual.toString()),
         repo.abastecimentos(),
         repo.manutencoes(),
     ) { ganhos, despesas, meta, abastecimentos, manutencoes ->
-        montarEstadoHome(ganhos, despesas, meta, abastecimentos, manutencoes)
+        DadosHome(ganhos, despesas, meta, abastecimentos, manutencoes)
+    }
+
+    val uiState: StateFlow<HomeUiState> = combine(
+        dados,
+        configuracoes.depreciacaoPorKmCentavos,
+    ) { d, depreciacao ->
+        montarEstadoHome(
+            d.ganhos, d.despesas, d.meta, d.abastecimentos, d.manutencoes,
+            depreciacaoPorKmCentavos = depreciacao,
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
     companion object {
         val Factory = viewModelFactory {
-            initializer { HomeViewModel((this[APPLICATION_KEY] as MotoristaApp).repositorio) }
+            initializer {
+                val app = this[APPLICATION_KEY] as MotoristaApp
+                HomeViewModel(app.repositorio, app.configuracoes)
+            }
         }
     }
 }

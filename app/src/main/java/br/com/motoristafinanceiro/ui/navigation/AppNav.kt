@@ -33,6 +33,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import br.com.motoristafinanceiro.ui.ajustes.AjustesScreen
 import br.com.motoristafinanceiro.ui.historico.HistoricoScreen
 import br.com.motoristafinanceiro.ui.home.HomeScreen
 import br.com.motoristafinanceiro.ui.lancamento.NovoLancamentoScreen
@@ -57,7 +58,8 @@ private const val ROTA_GANHO = "ganho/{id}"
 private const val ROTA_DESPESA = "despesa/{id}"
 private const val ROTA_ABASTECIMENTO = "abastecimento/{id}"
 private const val ROTA_MANUTENCAO = "manutencao/{id}"
-private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO)
+private const val ROTA_AJUSTES = "ajustes"
+private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO, ROTA_AJUSTES)
 
 @Composable
 fun AppNav() {
@@ -104,7 +106,8 @@ fun AppNav() {
         },
     ) { padding ->
         NavHost(nav, startDestination = "inicio", modifier = Modifier.padding(padding)) {
-            composable("inicio") { HomeScreen() }
+            composable("inicio") { HomeScreen(onAbrirAjustes = { nav.navigate(ROTA_AJUSTES) }) }
+            composable(ROTA_AJUSTES) { AjustesScreen(onVoltar = { nav.popBackStack() }) }
             composable("historico") {
                 HistoricoScreen(
                     onEditarGanho = { nav.navigate("ganho/$it") },

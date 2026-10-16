@@ -46,7 +46,7 @@ fun VeiculoScreen(
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        item { CartaoResumo(state.resumo) }
+        item { CartaoResumo(state.resumo, state.depreciacaoPorKmCentavos) }
 
         if (state.alertas.isNotEmpty()) {
             item {
@@ -85,7 +85,7 @@ private fun Titulo(texto: String) {
 }
 
 @Composable
-private fun CartaoResumo(r: ResumoVeiculo) {
+private fun CartaoResumo(r: ResumoVeiculo, depreciacaoPorKmCentavos: Long) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Resumo do veículo", style = MaterialTheme.typography.titleMedium)
@@ -93,6 +93,14 @@ private fun CartaoResumo(r: ResumoVeiculo) {
             Linha("Odômetro atual", r.odometroAtualKm?.formatarKm() ?: "—")
             Linha("Último litro", r.precoUltimoLitroCentavos?.let { it.formatarReais() + "/L" } ?: "—")
             Linha("Custo por km (mês)", r.custoPorKmMesCentavos?.let { it.formatarReais() + "/km" } ?: "—")
+            if (depreciacaoPorKmCentavos > 0) {
+                Text(
+                    "O custo por km inclui depreciação de " + depreciacaoPorKmCentavos.formatarReais() +
+                        "/km (ajuste na engrenagem do Início).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             if (r.consumoMedioKmPorLitro == null) {
                 Text(
                     "O consumo aparece depois de 2 abastecimentos com tanque cheio.",

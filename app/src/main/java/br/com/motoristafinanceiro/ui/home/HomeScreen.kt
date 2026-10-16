@@ -7,12 +7,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -22,13 +27,27 @@ import br.com.motoristafinanceiro.ui.veiculo.ListaAlertas
 import br.com.motoristafinanceiro.util.formatarReais
 
 @Composable
-fun HomeScreen(vm: HomeViewModel = viewModel(factory = HomeViewModel.Factory)) {
+fun HomeScreen(
+    onAbrirAjustes: () -> Unit,
+    vm: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
+) {
     val state by vm.uiState.collectAsStateWithLifecycle()
 
     Column(
         Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Início", style = MaterialTheme.typography.titleLarge)
+            IconButton(onClick = onAbrirAjustes) {
+                Icon(Icons.Filled.Settings, contentDescription = "Ajustes")
+            }
+        }
+
         if (state.alertasUrgentes.isNotEmpty()) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -72,6 +91,10 @@ private fun CartaoResumo(titulo: String, e: Estatisticas) {
             Linha("Ganho por km", e.ganhoPorKmCentavos?.formatarReais() ?: "—")
             Linha("Ganho por hora", e.ganhoPorHoraCentavos?.formatarReais() ?: "—")
             Linha("Custo por km", e.custoPorKmCentavos?.formatarReais() ?: "—")
+            if (e.depreciacaoCentavos > 0) {
+                Linha("Depreciação estimada", e.depreciacaoCentavos.formatarReais())
+                Linha("Lucro após depreciação", e.lucroAposDepreciacaoCentavos.formatarReais())
+            }
         }
     }
 }
