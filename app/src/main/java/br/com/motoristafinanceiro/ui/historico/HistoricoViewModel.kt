@@ -58,6 +58,38 @@ data class HistoricoUiState(
     val podeAvancar: Boolean = false,
 )
 
+/** Regra pura do histórico (sem Android), coberta por testes. */
+internal fun montarEstadoHistorico(
+    mes: YearMonth,
+    filtro: FiltroHistorico,
+    ganhos: List<Ganho>,
+    despesas: List<Despesa>,
+    mesAtual: YearMonth = YearMonth.now(),
+): HistoricoUiState {
+    val itens = buildList<ItemHistorico> {
+        if (filtro != FiltroHistorico.DESPESAS) ganhos.forEach { add(ItemHistorico.DeGanho(it)) }
+        if (filtro != FiltroHistorico.GANHOS) despesas.forEach { add(ItemHistorico.DeDespesa(it)) }
+    }
+    val dias = itens.groupBy { it.data }.entries
+        .sortedByDescending { it.key.toEpochDay() }
+        .map { (data, lista) ->
+            val saldo = lista.sumOf {
+                when (it) {
+                    is ItemHistorico.DeGanho -> it.ganho.totalCentavos
+                    is ItemHistorico.DeDespesa -> -it.despesa.valorCentavos
+                }
+            }
+            DiaHistorico(data, lista, saldo)
+        }
+    return HistoricoUiState(
+        mes = mes,
+        filtro = filtro,
+        dias = dias,
+        resumo = calcularEstatisticas(ganhos, despesas),
+        podeAvancar = mes < mesAtual,
+    )
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class HistoricoViewModel(private val repo: Repositorio) : ViewModel() {
 
@@ -69,7 +101,7 @@ class HistoricoViewModel(private val repo: Repositorio) : ViewModel() {
             repo.ganhos(m.atDay(1), m.atEndOfMonth()),
             repo.despesas(m.atDay(1), m.atEndOfMonth()),
             filtro,
-        ) { ganhos, despesas, f -> montarEstado(m, f, ganhos, despesas) }
+        ) { ganhos, despesas, f -> montarEstadoHistorico(m, f, ganhos, despesas) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HistoricoUiState())
 
     fun mesAnterior() {
@@ -82,36 +114,6 @@ class HistoricoViewModel(private val repo: Repositorio) : ViewModel() {
 
     fun filtrar(novo: FiltroHistorico) {
         filtro.value = novo
-    }
-
-    private fun montarEstado(
-        m: YearMonth,
-        f: FiltroHistorico,
-        ganhos: List<Ganho>,
-        despesas: List<Despesa>,
-    ): HistoricoUiState {
-        val itens = buildList<ItemHistorico> {
-            if (f != FiltroHistorico.DESPESAS) ganhos.forEach { add(ItemHistorico.DeGanho(it)) }
-            if (f != FiltroHistorico.GANHOS) despesas.forEach { add(ItemHistorico.DeDespesa(it)) }
-        }
-        val dias = itens.groupBy { it.data }.entries
-            .sortedByDescending { it.key.toEpochDay() }
-            .map { (data, lista) ->
-                val saldo = lista.sumOf {
-                    when (it) {
-                        is ItemHistorico.DeGanho -> it.ganho.totalCentavos
-                        is ItemHistorico.DeDespesa -> -it.despesa.valorCentavos
-                    }
-                }
-                DiaHistorico(data, lista, saldo)
-            }
-        return HistoricoUiState(
-            mes = m,
-            filtro = f,
-            dias = dias,
-            resumo = calcularEstatisticas(ganhos, despesas),
-            podeAvancar = m < YearMonth.now(),
-        )
     }
 
     companion object {

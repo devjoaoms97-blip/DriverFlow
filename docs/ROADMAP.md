@@ -2,6 +2,11 @@
 
 Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 
+## Qualidade (vale para todas as etapas)
+- ✅ Política de testes de regressão: ver [`TESTES.md`](TESTES.md)
+- ✅ Testes de domínio, formatação, estado do histórico e Repositório/Room
+- ⬜ Testes de interface (Compose) para os fluxos principais, quando o app estiver mais estável
+
 ## Etapa 1: Base, ganhos e despesas
 - ✅ Projeto Gradle, dependências e tema
 - ✅ Entidades, DAOs, banco Room, repositório
@@ -17,13 +22,13 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ⬜ Filtros por plataforma e categoria
 
 ## Etapa 3: Veículo
-- 🟡 Cálculo de km/l e custo por km (lógica pronta, sem tela)
+- 🟡 Cálculo de km/l e custo por km (lógica pronta e testada, sem tela)
 - ⬜ Tela de abastecimentos e formulário
 - ⬜ Edição/exclusão de despesas geradas por abastecimento e manutenção (hoje só aparecem no histórico, sem edição)
 - ⬜ Depreciação por km nas configurações (DataStore)
 
 ## Etapa 4: Manutenção e reservas
-- 🟡 Lógica de km restantes e reserva diária (sem tela)
+- 🟡 Lógica de km restantes e reserva diária (pronta e testada, sem tela)
 - ⬜ Telas e formulários de manutenção e reservas
 - ⬜ Notificações com WorkManager
 
