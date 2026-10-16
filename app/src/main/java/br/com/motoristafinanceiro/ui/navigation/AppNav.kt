@@ -32,6 +32,8 @@ import br.com.motoristafinanceiro.ui.historico.HistoricoScreen
 import br.com.motoristafinanceiro.ui.home.HomeScreen
 import br.com.motoristafinanceiro.ui.lancamento.NovoLancamentoScreen
 import br.com.motoristafinanceiro.ui.lancamento.TipoLancamento
+import br.com.motoristafinanceiro.ui.veiculo.AbastecimentoScreen
+import br.com.motoristafinanceiro.ui.veiculo.VeiculoScreen
 
 private data class Destino(val rota: String, val rotulo: String, val icone: ImageVector)
 
@@ -43,10 +45,12 @@ private val destinos = listOf(
     Destino("analises", "Análises", Icons.Filled.Star),
 )
 
+private const val ROTA_VEICULO = "veiculo"
 private const val ROTA_NOVO = "novo"
 private const val ROTA_GANHO = "ganho/{id}"
 private const val ROTA_DESPESA = "despesa/{id}"
-private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA)
+private const val ROTA_ABASTECIMENTO = "abastecimento/{id}"
+private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO)
 
 @Composable
 fun AppNav() {
@@ -54,6 +58,7 @@ fun AppNav() {
     val pilha by nav.currentBackStackEntryAsState()
     val rotaAtual = pilha?.destination?.route
     val emFormulario = rotaAtual in rotasFormulario
+    val naTelaVeiculo = rotaAtual == ROTA_VEICULO
 
     Scaffold(
         bottomBar = {
@@ -78,8 +83,14 @@ fun AppNav() {
         },
         floatingActionButton = {
             if (!emFormulario) {
-                FloatingActionButton(onClick = { nav.navigate(ROTA_NOVO) }) {
-                    Icon(Icons.Filled.Add, contentDescription = "Novo lançamento")
+                // Na aba Veículo o botão + registra um abastecimento; nas demais, ganho/despesa.
+                FloatingActionButton(
+                    onClick = { nav.navigate(if (naTelaVeiculo) "abastecimento/0" else ROTA_NOVO) },
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = if (naTelaVeiculo) "Novo abastecimento" else "Novo lançamento",
+                    )
                 }
             }
         },
@@ -90,9 +101,12 @@ fun AppNav() {
                 HistoricoScreen(
                     onEditarGanho = { nav.navigate("ganho/$it") },
                     onEditarDespesa = { nav.navigate("despesa/$it") },
+                    onEditarAbastecimento = { nav.navigate("abastecimento/$it") },
                 )
             }
-            composable("veiculo") { EmConstrucao("Veículo") }
+            composable(ROTA_VEICULO) {
+                VeiculoScreen(onEditarAbastecimento = { nav.navigate("abastecimento/$it") })
+            }
             composable("reservas") { EmConstrucao("Reservas") }
             composable("analises") { EmConstrucao("Análises") }
 
@@ -115,6 +129,15 @@ fun AppNav() {
             ) { e ->
                 NovoLancamentoScreen(
                     tipo = TipoLancamento.DESPESA,
+                    id = e.arguments?.getLong("id") ?: 0L,
+                    onConcluir = { nav.popBackStack() },
+                )
+            }
+            composable(
+                ROTA_ABASTECIMENTO,
+                arguments = listOf(navArgument("id") { type = NavType.LongType }),
+            ) { e ->
+                AbastecimentoScreen(
                     id = e.arguments?.getLong("id") ?: 0L,
                     onConcluir = { nav.popBackStack() },
                 )

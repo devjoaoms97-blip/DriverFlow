@@ -1,25 +1,25 @@
-﻿# PolÃ­tica de testes (regressÃ£o)
+# Política de testes (regressão)
 
 **Regra do projeto:** tudo o que for implementado e validado ganha teste automatizado, para que
-mudanÃ§as futuras nÃ£o quebrem o que jÃ¡ funciona. Isso vale para todas as etapas.
+mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapas.
 
-## DefiniÃ§Ã£o de pronto de uma funcionalidade
+## Definição de pronto de uma funcionalidade
 
-1. Regra de negÃ³cio nova â†’ teste unitÃ¡rio em `domain/` ou na funÃ§Ã£o pura correspondente
-2. Acesso a dados novo (DAO/RepositÃ³rio) â†’ teste com Room em memÃ³ria (`RepositorioTest`)
-3. LÃ³gica de estado de tela â†’ extrair para funÃ§Ã£o pura e testar (ex.: `montarEstadoHistorico`)
-4. Bug encontrado â†’ primeiro um teste que reproduz o bug, depois a correÃ§Ã£o
+1. Regra de negócio nova → teste unitário em `domain/` ou na função pura correspondente
+2. Acesso a dados novo (DAO/Repositório) → teste com Room em memória (`Repositorio*Test`)
+3. Lógica de estado de tela → extrair para função pura e testar (ex.: `montarEstadoHistorico`, `montarEstadoVeiculo`)
+4. Bug encontrado → primeiro um teste que reproduz o bug, depois a correção
 5. `.\gradlew test` verde **antes** de cada commit
 6. Itens de interface passam pelo roteiro manual abaixo
 
-## Onde cada coisa Ã© testada
+## Onde cada coisa é testada
 
-| O quÃª | Onde | Como roda |
+| O quê | Onde | Como roda |
 |---|---|---|
-| CÃ¡lculos (lucro, km/l, reserva, alertas) | `app/src/test/.../domain` | JUnit puro |
-| FormataÃ§Ã£o e conversÃµes | `app/src/test/.../util`, `.../data/db` | JUnit puro |
-| Estado das telas (histÃ³rico etc.) | `app/src/test/.../ui/...` | JUnit puro |
-| RepositÃ³rio + Room (CRUD, vÃ­nculos, perÃ­odo) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
+| Cálculos (lucro, km/l, reserva, alertas, resumo do veículo) | `app/src/test/.../domain` | JUnit puro |
+| Formatação e conversões | `app/src/test/.../util`, `.../data/db` | JUnit puro |
+| Estado e regras das telas (histórico, veículo) | `app/src/test/.../ui/...` | JUnit puro |
+| Repositório + Room (CRUD, vínculos, período) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
 
 ## Como rodar
 
@@ -30,13 +30,13 @@ $env:GRADLE_USER_HOME = "D:\gradle-home"
 .\gradlew test
 ```
 
-RelatÃ³rio HTML: `app\build\reports\tests\testDebugUnitTest\index.html`.
-Na primeira execuÃ§Ã£o o Robolectric baixa o Android SDK simulado (alguns minutos).
+Relatório HTML: `app\build\reports\tests\testDebugUnitTest\index.html`.
+Para forçar a execução do zero: `.\gradlew :app:testDebugUnitTest --rerun`.
 
-> **NÃ£o use `connectedAndroidTest` no celular com dados reais.** O Gradle desinstala o app ao final
-> dos testes instrumentados, o que apaga os lanÃ§amentos guardados no aparelho.
+> **Não use `connectedAndroidTest` no celular com dados reais.** O Gradle desinstala o app ao final
+> dos testes instrumentados, o que apaga os lançamentos guardados no aparelho.
 
-## ConfiguraÃ§Ã£o necessÃ¡ria em `app/build.gradle.kts`
+## Configuração necessária em `app/build.gradle.kts`
 
 Dentro de `android { ... }`:
 
@@ -53,12 +53,19 @@ testImplementation("org.robolectric:robolectric:4.13")
 testImplementation("androidx.test:core:1.6.1")
 ```
 
-## Roteiro manual de validaÃ§Ã£o (interface), a repetir a cada etapa
+## Roteiro manual de validação (interface), a repetir a cada etapa
 
-1. **CÃ¡lculo:** lanÃ§ar ganho Uber R$ 100,00 / 50 km / 4 h e despesa de R$ 30,00. InÃ­cio deve mostrar
+1. **Cálculo:** lançar ganho Uber R$ 100,00 / 50 km / 4 h e despesa de R$ 30,00. Início deve mostrar
    lucro R$ 70,00, ganho por km R$ 2,00, ganho por hora R$ 25,00 e custo por km R$ 0,60
-2. **Data:** lanÃ§ar ganho com data de ontem e conferir em "Ontem" no HistÃ³rico
-3. **Editar:** abrir um lanÃ§amento, alterar o valor, salvar e conferir o InÃ­cio
-4. **Excluir:** excluir um lanÃ§amento (com confirmaÃ§Ã£o) e conferir que sumiu
-5. **Filtros:** no HistÃ³rico, alternar Todos/Ganhos/Despesas e trocar de mÃªs
-6. **PersistÃªncia:** fechar e reabrir o app; os dados continuam lÃ¡
+2. **Data:** lançar ganho com data de ontem e conferir em "Ontem" no Histórico
+3. **Editar:** abrir um lançamento, alterar o valor, salvar e conferir o Início
+4. **Excluir:** excluir um lançamento (com confirmação) e conferir que sumiu
+5. **Filtros:** no Histórico, alternar Todos/Ganhos/Despesas e trocar de mês
+6. **Persistência:** fechar e reabrir o app; os dados continuam lá
+7. **Abastecimento:** na aba Veículo, tocar em + e registrar 40 L, R$ 240,00, odômetro 10.000 (tanque cheio);
+   depois 30 L, R$ 195,00, odômetro 10.400 (tanque cheio). O resumo deve mostrar consumo 13,3 km/l,
+   odômetro 10.400 km e último litro R$ 6,50/L
+8. **Vínculo:** no Histórico, a despesa de combustível aparece com "Abastecimento"; tocar nela abre o
+   formulário do abastecimento (e não o de despesa)
+9. **Editar abastecimento:** mudar o valor e conferir que a despesa no Histórico e o lucro no Início mudaram junto
+10. **Excluir abastecimento:** excluir e conferir que a despesa de combustível também sumiu

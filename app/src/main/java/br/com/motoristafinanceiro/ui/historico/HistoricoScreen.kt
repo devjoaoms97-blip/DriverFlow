@@ -58,6 +58,7 @@ private fun LocalDate.rotuloDia(): String {
 fun HistoricoScreen(
     onEditarGanho: (Long) -> Unit,
     onEditarDespesa: (Long) -> Unit,
+    onEditarAbastecimento: (Long) -> Unit,
     vm: HistoricoViewModel = viewModel(factory = HistoricoViewModel.Factory),
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
@@ -109,7 +110,13 @@ fun HistoricoScreen(
                             is ItemHistorico.DeGanho ->
                                 LinhaGanho(item.ganho) { onEditarGanho(item.ganho.id) }
                             is ItemHistorico.DeDespesa ->
-                                LinhaDespesa(item.despesa) { onEditarDespesa(item.despesa.id) }
+                                LinhaDespesa(item.despesa) { destino ->
+                                    when (destino) {
+                                        is DestinoEdicao.EditarDespesa -> onEditarDespesa(destino.id)
+                                        is DestinoEdicao.EditarAbastecimento -> onEditarAbastecimento(destino.id)
+                                        DestinoEdicao.SemEdicao -> Unit
+                                    }
+                                }
                         }
                     }
                 }
@@ -155,20 +162,23 @@ private fun LinhaGanho(ganho: Ganho, onClick: () -> Unit) {
 }
 
 @Composable
-private fun LinhaDespesa(despesa: Despesa, onClick: () -> Unit) {
-    // Despesas geradas por abastecimento/manutenção serão editadas na tela Veículo (ainda não existe).
-    val editavel = despesa.origem == OrigemDespesa.MANUAL
-    val detalhes = listOfNotNull(
-        despesa.observacao?.takeIf { it.isNotBlank() },
-        if (editavel) null else "Gerada automaticamente",
-    ).joinToString(" · ")
+private fun LinhaDespesa(despesa: Despesa, onEditar: (DestinoEdicao) -> Unit) {
+    val destino = destinoEdicao(despesa)
+    val origem = when (despesa.origem) {
+        OrigemDespesa.MANUAL -> null
+        OrigemDespesa.ABASTECIMENTO -> "Abastecimento"
+        OrigemDespesa.MANUTENCAO -> "Gerada automaticamente"
+    }
+    val detalhes = listOfNotNull(despesa.observacao?.takeIf { it.isNotBlank() }, origem).joinToString(" · ")
+    val aoClicar: (() -> Unit)? =
+        if (destino is DestinoEdicao.SemEdicao) null else ({ onEditar(destino) })
 
     LinhaBase(
         titulo = despesa.categoria.rotulo,
         subtitulo = detalhes,
         valor = "−" + despesa.valorCentavos.formatarReais(),
         cor = MaterialTheme.colorScheme.error,
-        onClick = if (editavel) onClick else null,
+        onClick = aoClicar,
     )
 }
 

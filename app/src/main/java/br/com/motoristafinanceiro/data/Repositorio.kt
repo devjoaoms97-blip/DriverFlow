@@ -43,6 +43,8 @@ class Repositorio(private val db: AppDatabase) {
     // ---- Abastecimento (gera a despesa de combustível automaticamente) ----
     fun abastecimentos(): Flow<List<Abastecimento>> = db.abastecimentoDao().observarTodos()
 
+    suspend fun abastecimentoPorId(id: Long): Abastecimento? = db.abastecimentoDao().buscarPorId(id)
+
     suspend fun registrarAbastecimento(a: Abastecimento) = db.withTransaction {
         val id = db.abastecimentoDao().inserir(a)
         db.despesaDao().inserir(
@@ -54,6 +56,17 @@ class Repositorio(private val db: AppDatabase) {
                 origemId = id,
             )
         )
+    }
+
+    /** Atualiza o abastecimento e a despesa de combustível vinculada, na mesma transação. */
+    suspend fun atualizarAbastecimento(a: Abastecimento) = db.withTransaction {
+        db.abastecimentoDao().atualizar(a)
+        db.despesaDao().atualizarPorOrigem(OrigemDespesa.ABASTECIMENTO, a.id, a.data, a.valorTotalCentavos)
+    }
+
+    /** Novo (id = 0) ou existente. */
+    suspend fun salvarAbastecimento(a: Abastecimento) {
+        if (a.id == 0L) registrarAbastecimento(a) else atualizarAbastecimento(a)
     }
 
     suspend fun excluirAbastecimento(a: Abastecimento) = db.withTransaction {

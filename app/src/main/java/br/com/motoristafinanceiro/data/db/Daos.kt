@@ -41,6 +41,13 @@ interface DespesaDao {
     @Query("DELETE FROM despesas WHERE origem = :origem AND origemId = :origemId")
     suspend fun excluirPorOrigem(origem: OrigemDespesa, origemId: Long)
 
+    /** Mantém a despesa gerada (abastecimento/manutenção) em sincronia com o registro de origem. */
+    @Query(
+        "UPDATE despesas SET data = :data, valorCentavos = :valorCentavos " +
+            "WHERE origem = :origem AND origemId = :origemId"
+    )
+    suspend fun atualizarPorOrigem(origem: OrigemDespesa, origemId: Long, data: LocalDate, valorCentavos: Long)
+
     @Query("SELECT * FROM despesas WHERE data BETWEEN :inicio AND :fim ORDER BY data DESC, id DESC")
     fun observarPorPeriodo(inicio: LocalDate, fim: LocalDate): Flow<List<Despesa>>
 }
@@ -48,7 +55,11 @@ interface DespesaDao {
 @Dao
 interface AbastecimentoDao {
     @Insert suspend fun inserir(abastecimento: Abastecimento): Long
+    @Update suspend fun atualizar(abastecimento: Abastecimento)
     @Delete suspend fun excluir(abastecimento: Abastecimento)
+
+    @Query("SELECT * FROM abastecimentos WHERE id = :id")
+    suspend fun buscarPorId(id: Long): Abastecimento?
 
     @Query("SELECT * FROM abastecimentos ORDER BY odometroKm ASC")
     fun observarTodos(): Flow<List<Abastecimento>>

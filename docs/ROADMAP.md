@@ -4,7 +4,7 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 
 ## Qualidade (vale para todas as etapas)
 - ✅ Política de testes de regressão: ver [`TESTES.md`](TESTES.md)
-- ✅ Testes de domínio, formatação, estado do histórico e Repositório/Room
+- ✅ Testes de domínio, formatação, estado das telas e Repositório/Room
 - ⬜ Testes de interface (Compose) para os fluxos principais, quando o app estiver mais estável
 
 ## Etapa 1: Base, ganhos e despesas
@@ -22,14 +22,14 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ⬜ Filtros por plataforma e categoria
 
 ## Etapa 3: Veículo
-- 🟡 Cálculo de km/l e custo por km (lógica pronta e testada, sem tela)
-- ⬜ Tela de abastecimentos e formulário
-- ⬜ Edição/exclusão de despesas geradas por abastecimento e manutenção (hoje só aparecem no histórico, sem edição)
-- ⬜ Depreciação por km nas configurações (DataStore)
+- ✅ Tela Veículo: consumo médio (km/l), odômetro atual, último litro, custo por km do mês
+- ✅ Registrar, editar e excluir abastecimentos (a despesa de combustível acompanha)
+- ✅ Despesa de abastecimento no Histórico abre o formulário do abastecimento
+- ⬜ Depreciação por km nas configurações (DataStore) e no custo por km
 
 ## Etapa 4: Manutenção e reservas
 - 🟡 Lógica de km restantes e reserva diária (pronta e testada, sem tela)
-- ⬜ Telas e formulários de manutenção e reservas
+- ⬜ Telas e formulários de manutenção e reservas (inclui editar/excluir a despesa gerada pela manutenção)
 - ⬜ Notificações com WorkManager
 
 ## Etapa 5: Metas
