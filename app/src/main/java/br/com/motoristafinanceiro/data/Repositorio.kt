@@ -10,6 +10,7 @@ import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.OrigemDespesa
 import br.com.motoristafinanceiro.data.model.ReservaDespesa
+import br.com.motoristafinanceiro.domain.descricaoManutencao
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -61,7 +62,7 @@ class Repositorio(private val db: AppDatabase) {
     /** Atualiza o abastecimento e a despesa de combustível vinculada, na mesma transação. */
     suspend fun atualizarAbastecimento(a: Abastecimento) = db.withTransaction {
         db.abastecimentoDao().atualizar(a)
-        db.despesaDao().atualizarPorOrigem(OrigemDespesa.ABASTECIMENTO, a.id, a.data, a.valorTotalCentavos)
+        db.despesaDao().atualizarPorOrigem(OrigemDespesa.ABASTECIMENTO, a.id, a.data, a.valorTotalCentavos, null)
     }
 
     /** Novo (id = 0) ou existente. */
@@ -77,6 +78,8 @@ class Repositorio(private val db: AppDatabase) {
     // ---- Manutenção (gera a despesa de manutenção automaticamente) ----
     fun manutencoes(): Flow<List<Manutencao>> = db.manutencaoDao().observarTodas()
 
+    suspend fun manutencaoPorId(id: Long): Manutencao? = db.manutencaoDao().buscarPorId(id)
+
     suspend fun registrarManutencao(m: Manutencao) = db.withTransaction {
         val id = db.manutencaoDao().inserir(m)
         db.despesaDao().inserir(
@@ -84,11 +87,24 @@ class Repositorio(private val db: AppDatabase) {
                 data = m.data,
                 categoria = CategoriaDespesa.MANUTENCAO,
                 valorCentavos = m.valorCentavos,
-                observacao = m.tipo.rotulo,
+                observacao = descricaoManutencao(m),
                 origem = OrigemDespesa.MANUTENCAO,
                 origemId = id,
             )
         )
+    }
+
+    /** Atualiza a manutenção e a despesa vinculada, na mesma transação. */
+    suspend fun atualizarManutencao(m: Manutencao) = db.withTransaction {
+        db.manutencaoDao().atualizar(m)
+        db.despesaDao().atualizarPorOrigem(
+            OrigemDespesa.MANUTENCAO, m.id, m.data, m.valorCentavos, descricaoManutencao(m)
+        )
+    }
+
+    /** Nova (id = 0) ou existente. */
+    suspend fun salvarManutencao(m: Manutencao) {
+        if (m.id == 0L) registrarManutencao(m) else atualizarManutencao(m)
     }
 
     suspend fun excluirManutencao(m: Manutencao) = db.withTransaction {

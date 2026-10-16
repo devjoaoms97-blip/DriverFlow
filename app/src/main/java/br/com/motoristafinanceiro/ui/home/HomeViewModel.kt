@@ -7,8 +7,17 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.motoristafinanceiro.MotoristaApp
 import br.com.motoristafinanceiro.data.Repositorio
+import br.com.motoristafinanceiro.data.model.Abastecimento
+import br.com.motoristafinanceiro.data.model.Despesa
+import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.Manutencao
+import br.com.motoristafinanceiro.data.model.Meta
+import br.com.motoristafinanceiro.domain.AlertaManutencao
 import br.com.motoristafinanceiro.domain.Estatisticas
+import br.com.motoristafinanceiro.domain.StatusAlerta
+import br.com.motoristafinanceiro.domain.calcularAlertas
 import br.com.motoristafinanceiro.domain.calcularEstatisticas
+import br.com.motoristafinanceiro.domain.odometroAtual
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -20,7 +29,32 @@ data class HomeUiState(
     val hoje: Estatisticas = Estatisticas(),
     val mes: Estatisticas = Estatisticas(),
     val metaCentavos: Long? = null,
+    /** Manutenções atrasadas ou próximas (as em dia não aparecem no Início). */
+    val alertasUrgentes: List<AlertaManutencao> = emptyList(),
 )
+
+/** Regra pura do Início (sem Android), coberta por testes. */
+internal fun montarEstadoHome(
+    ganhosMes: List<Ganho>,
+    despesasMes: List<Despesa>,
+    meta: Meta?,
+    abastecimentos: List<Abastecimento>,
+    manutencoes: List<Manutencao>,
+    hoje: LocalDate = LocalDate.now(),
+): HomeUiState {
+    val odometro = odometroAtual(abastecimentos, manutencoes)
+    val alertas = if (odometro == null) {
+        emptyList()
+    } else {
+        calcularAlertas(manutencoes, odometro).filter { it.status != StatusAlerta.EM_DIA }
+    }
+    return HomeUiState(
+        hoje = calcularEstatisticas(ganhosMes.filter { it.data == hoje }, despesasMes.filter { it.data == hoje }),
+        mes = calcularEstatisticas(ganhosMes, despesasMes),
+        metaCentavos = meta?.valorAlvoLucroCentavos,
+        alertasUrgentes = alertas,
+    )
+}
 
 class HomeViewModel(repo: Repositorio) : ViewModel() {
 
@@ -31,13 +65,10 @@ class HomeViewModel(repo: Repositorio) : ViewModel() {
         repo.ganhos(mesAtual.atDay(1), mesAtual.atEndOfMonth()),
         repo.despesas(mesAtual.atDay(1), mesAtual.atEndOfMonth()),
         repo.meta(mesAtual.toString()),
-    ) { ganhos, despesas, meta ->
-        val hoje = LocalDate.now()
-        HomeUiState(
-            hoje = calcularEstatisticas(ganhos.filter { it.data == hoje }, despesas.filter { it.data == hoje }),
-            mes = calcularEstatisticas(ganhos, despesas),
-            metaCentavos = meta?.valorAlvoLucroCentavos,
-        )
+        repo.abastecimentos(),
+        repo.manutencoes(),
+    ) { ganhos, despesas, meta, abastecimentos, manutencoes ->
+        montarEstadoHome(ganhos, despesas, meta, abastecimentos, manutencoes)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
     companion object {

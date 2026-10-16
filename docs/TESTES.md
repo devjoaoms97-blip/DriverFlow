@@ -7,18 +7,19 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 
 1. Regra de negócio nova → teste unitário em `domain/` ou na função pura correspondente
 2. Acesso a dados novo (DAO/Repositório) → teste com Room em memória (`Repositorio*Test`)
-3. Lógica de estado de tela → extrair para função pura e testar (ex.: `montarEstadoHistorico`, `montarEstadoVeiculo`)
+3. Lógica de estado de tela → extrair para função pura e testar (ex.: `montarEstadoHistorico`, `montarEstadoVeiculo`, `montarEstadoHome`)
 4. Bug encontrado → primeiro um teste que reproduz o bug, depois a correção
 5. `.\gradlew test` verde **antes** de cada commit
 6. Itens de interface passam pelo roteiro manual abaixo
+7. Quando uma regra muda de propósito, o teste antigo é atualizado no mesmo commit, dizendo o porquê
 
 ## Onde cada coisa é testada
 
 | O quê | Onde | Como roda |
 |---|---|---|
-| Cálculos (lucro, km/l, reserva, alertas, resumo do veículo) | `app/src/test/.../domain` | JUnit puro |
+| Cálculos (lucro, km/l, reserva, alertas de manutenção, resumo do veículo) | `app/src/test/.../domain` | JUnit puro |
 | Formatação e conversões | `app/src/test/.../util`, `.../data/db` | JUnit puro |
-| Estado e regras das telas (histórico, veículo) | `app/src/test/.../ui/...` | JUnit puro |
+| Estado e regras das telas (início, histórico, veículo, alertas) | `app/src/test/.../ui/...` | JUnit puro |
 | Repositório + Room (CRUD, vínculos, período) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
 
 ## Como rodar
@@ -62,10 +63,19 @@ testImplementation("androidx.test:core:1.6.1")
 4. **Excluir:** excluir um lançamento (com confirmação) e conferir que sumiu
 5. **Filtros:** no Histórico, alternar Todos/Ganhos/Despesas e trocar de mês
 6. **Persistência:** fechar e reabrir o app; os dados continuam lá
-7. **Abastecimento:** na aba Veículo, tocar em + e registrar 40 L, R$ 240,00, odômetro 10.000 (tanque cheio);
-   depois 30 L, R$ 195,00, odômetro 10.400 (tanque cheio). O resumo deve mostrar consumo 13,3 km/l,
-   odômetro 10.400 km e último litro R$ 6,50/L
+7. **Abastecimento:** na aba Veículo, tocar em + e escolher Abastecimento; registrar 40 L, R$ 240,00,
+   odômetro 10.000 (tanque cheio) e depois 30 L, R$ 195,00, odômetro 10.400 (tanque cheio). O resumo deve
+   mostrar consumo 13,3 km/l, odômetro 10.400 km e último litro R$ 6,50/L
 8. **Vínculo:** no Histórico, a despesa de combustível aparece com "Abastecimento"; tocar nela abre o
    formulário do abastecimento (e não o de despesa)
 9. **Editar abastecimento:** mudar o valor e conferir que a despesa no Histórico e o lucro no Início mudaram junto
 10. **Excluir abastecimento:** excluir e conferir que a despesa de combustível também sumiu
+11. **Manutenção:** com os abastecimentos do passo 7 registrados, tocar em + na aba Veículo, escolher
+    Manutenção, Troca de óleo, odômetro 10.000, R$ 250,00 e intervalo 10.000 (vem sugerido). Deve aparecer
+    "Alertas de manutenção: Troca de óleo, Faltam 9.600 km"
+12. **Alerta próximo:** registrar um abastecimento de teste com odômetro 19.700; o alerta vira "Faltam 300 km"
+    e o card "Atenção: manutenção" aparece no Início. Registrar outro com odômetro 20.200: "Atrasada em 200 km"
+    (excluir esses abastecimentos de teste depois)
+13. **Vínculo da manutenção:** no Histórico a despesa aparece com "Manutenção"; tocar abre o formulário da
+    manutenção. Mudar o valor e conferir que a despesa acompanha
+14. **Excluir manutenção:** excluir e conferir que a despesa e o alerta sumiram

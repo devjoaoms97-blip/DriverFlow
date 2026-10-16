@@ -21,7 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.motoristafinanceiro.data.model.Abastecimento
+import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.domain.ResumoVeiculo
+import br.com.motoristafinanceiro.domain.descricaoManutencao
 import br.com.motoristafinanceiro.domain.precoPorLitroCentavos
 import br.com.motoristafinanceiro.util.formatarKm
 import br.com.motoristafinanceiro.util.formatarKmPorLitro
@@ -34,6 +36,7 @@ private val formatoData = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 @Composable
 fun VeiculoScreen(
     onEditarAbastecimento: (Long) -> Unit,
+    onEditarManutencao: (Long) -> Unit,
     vm: VeiculoViewModel = viewModel(factory = VeiculoViewModel.Factory),
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
@@ -44,21 +47,41 @@ fun VeiculoScreen(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item { CartaoResumo(state.resumo) }
-        item {
-            Text(
-                "Abastecimentos",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 8.dp),
-            )
+
+        if (state.alertas.isNotEmpty()) {
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Alertas de manutenção", style = MaterialTheme.typography.titleMedium)
+                        ListaAlertas(state.alertas)
+                    }
+                }
+            }
         }
-        if (state.abastecimentos.isEmpty()) {
-            item { Text("Toque em + para registrar o primeiro abastecimento.") }
+
+        item { Titulo("Manutenções") }
+        if (state.manutencoes.isEmpty()) {
+            item { Text("Toque em + e escolha Manutenção para registrar a primeira.") }
         } else {
-            items(state.abastecimentos, key = { it.id }) { a ->
+            items(state.manutencoes, key = { "m${it.id}" }) { m ->
+                LinhaManutencao(m) { onEditarManutencao(m.id) }
+            }
+        }
+
+        item { Titulo("Abastecimentos") }
+        if (state.abastecimentos.isEmpty()) {
+            item { Text("Toque em + e escolha Abastecimento para registrar o primeiro.") }
+        } else {
+            items(state.abastecimentos, key = { "a${it.id}" }) { a ->
                 LinhaAbastecimento(a) { onEditarAbastecimento(a.id) }
             }
         }
     }
+}
+
+@Composable
+private fun Titulo(texto: String) {
+    Text(texto, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
 }
 
 @Composable
@@ -86,6 +109,30 @@ private fun Linha(rotulo: String, valor: String) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(rotulo)
         Text(valor)
+    }
+}
+
+@Composable
+private fun LinhaManutencao(m: Manutencao, onClick: () -> Unit) {
+    val detalhes = listOfNotNull(
+        m.data.format(formatoData),
+        m.odometroKm.formatarKm(),
+        m.intervaloKm?.let { "a cada " + it.formatarKm() },
+    ).joinToString(" · ")
+
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(descricaoManutencao(m), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                detalhes,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Text(m.valorCentavos.formatarReais(), style = MaterialTheme.typography.bodyLarge)
     }
 }
 

@@ -43,10 +43,16 @@ interface DespesaDao {
 
     /** Mantém a despesa gerada (abastecimento/manutenção) em sincronia com o registro de origem. */
     @Query(
-        "UPDATE despesas SET data = :data, valorCentavos = :valorCentavos " +
+        "UPDATE despesas SET data = :data, valorCentavos = :valorCentavos, observacao = :observacao " +
             "WHERE origem = :origem AND origemId = :origemId"
     )
-    suspend fun atualizarPorOrigem(origem: OrigemDespesa, origemId: Long, data: LocalDate, valorCentavos: Long)
+    suspend fun atualizarPorOrigem(
+        origem: OrigemDespesa,
+        origemId: Long,
+        data: LocalDate,
+        valorCentavos: Long,
+        observacao: String?,
+    )
 
     @Query("SELECT * FROM despesas WHERE data BETWEEN :inicio AND :fim ORDER BY data DESC, id DESC")
     fun observarPorPeriodo(inicio: LocalDate, fim: LocalDate): Flow<List<Despesa>>
@@ -68,7 +74,11 @@ interface AbastecimentoDao {
 @Dao
 interface ManutencaoDao {
     @Insert suspend fun inserir(manutencao: Manutencao): Long
+    @Update suspend fun atualizar(manutencao: Manutencao)
     @Delete suspend fun excluir(manutencao: Manutencao)
+
+    @Query("SELECT * FROM manutencoes WHERE id = :id")
+    suspend fun buscarPorId(id: Long): Manutencao?
 
     @Query("SELECT * FROM manutencoes ORDER BY odometroKm DESC")
     fun observarTodas(): Flow<List<Manutencao>>

@@ -36,7 +36,15 @@ class DestinoEdicaoTest {
     }
 
     @Test
-    fun despesaDeManutencao_porEnquantoNaoEditavel() {
-        assertEquals(DestinoEdicao.SemEdicao, destinoEdicao(despesa(OrigemDespesa.MANUTENCAO, origemId = 3)))
+    fun despesaDeManutencao_levaParaAManutencaoDeOrigem() {
+        assertEquals(
+            DestinoEdicao.EditarManutencao(3),
+            destinoEdicao(despesa(OrigemDespesa.MANUTENCAO, origemId = 3)),
+        )
+    }
+
+    @Test
+    fun despesaDeManutencao_semOrigem_naoEditavel() {
+        assertEquals(DestinoEdicao.SemEdicao, destinoEdicao(despesa(OrigemDespesa.MANUTENCAO, origemId = null)))
     }
 }

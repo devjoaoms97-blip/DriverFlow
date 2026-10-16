@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.motoristafinanceiro.domain.Estatisticas
+import br.com.motoristafinanceiro.ui.veiculo.ListaAlertas
 import br.com.motoristafinanceiro.util.formatarReais
 
 @Composable
@@ -28,6 +29,15 @@ fun HomeScreen(vm: HomeViewModel = viewModel(factory = HomeViewModel.Factory)) {
         Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        if (state.alertasUrgentes.isNotEmpty()) {
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Atenção: manutenção", style = MaterialTheme.typography.titleMedium)
+                    ListaAlertas(state.alertasUrgentes)
+                }
+            }
+        }
+
         CartaoResumo("Hoje", state.hoje)
         CartaoResumo("Este mês", state.mes)
 

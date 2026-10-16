@@ -59,6 +59,7 @@ fun HistoricoScreen(
     onEditarGanho: (Long) -> Unit,
     onEditarDespesa: (Long) -> Unit,
     onEditarAbastecimento: (Long) -> Unit,
+    onEditarManutencao: (Long) -> Unit,
     vm: HistoricoViewModel = viewModel(factory = HistoricoViewModel.Factory),
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
@@ -114,6 +115,7 @@ fun HistoricoScreen(
                                     when (destino) {
                                         is DestinoEdicao.EditarDespesa -> onEditarDespesa(destino.id)
                                         is DestinoEdicao.EditarAbastecimento -> onEditarAbastecimento(destino.id)
+                                        is DestinoEdicao.EditarManutencao -> onEditarManutencao(destino.id)
                                         DestinoEdicao.SemEdicao -> Unit
                                     }
                                 }
@@ -167,7 +169,7 @@ private fun LinhaDespesa(despesa: Despesa, onEditar: (DestinoEdicao) -> Unit) {
     val origem = when (despesa.origem) {
         OrigemDespesa.MANUAL -> null
         OrigemDespesa.ABASTECIMENTO -> "Abastecimento"
-        OrigemDespesa.MANUTENCAO -> "Gerada automaticamente"
+        OrigemDespesa.MANUTENCAO -> "Manutenção"
     }
     val detalhes = listOfNotNull(despesa.observacao?.takeIf { it.isNotBlank() }, origem).joinToString(" · ")
     val aoClicar: (() -> Unit)? =

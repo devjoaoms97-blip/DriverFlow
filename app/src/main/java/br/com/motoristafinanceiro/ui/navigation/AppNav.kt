@@ -10,14 +10,19 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -33,6 +38,7 @@ import br.com.motoristafinanceiro.ui.home.HomeScreen
 import br.com.motoristafinanceiro.ui.lancamento.NovoLancamentoScreen
 import br.com.motoristafinanceiro.ui.lancamento.TipoLancamento
 import br.com.motoristafinanceiro.ui.veiculo.AbastecimentoScreen
+import br.com.motoristafinanceiro.ui.veiculo.ManutencaoScreen
 import br.com.motoristafinanceiro.ui.veiculo.VeiculoScreen
 
 private data class Destino(val rota: String, val rotulo: String, val icone: ImageVector)
@@ -50,7 +56,8 @@ private const val ROTA_NOVO = "novo"
 private const val ROTA_GANHO = "ganho/{id}"
 private const val ROTA_DESPESA = "despesa/{id}"
 private const val ROTA_ABASTECIMENTO = "abastecimento/{id}"
-private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO)
+private const val ROTA_MANUTENCAO = "manutencao/{id}"
+private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO)
 
 @Composable
 fun AppNav() {
@@ -59,6 +66,7 @@ fun AppNav() {
     val rotaAtual = pilha?.destination?.route
     val emFormulario = rotaAtual in rotasFormulario
     val naTelaVeiculo = rotaAtual == ROTA_VEICULO
+    var escolhendoRegistro by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
@@ -83,13 +91,13 @@ fun AppNav() {
         },
         floatingActionButton = {
             if (!emFormulario) {
-                // Na aba Veículo o botão + registra um abastecimento; nas demais, ganho/despesa.
+                // Na aba Veículo o + pergunta se é abastecimento ou manutenção; nas demais, ganho/despesa.
                 FloatingActionButton(
-                    onClick = { nav.navigate(if (naTelaVeiculo) "abastecimento/0" else ROTA_NOVO) },
+                    onClick = { if (naTelaVeiculo) escolhendoRegistro = true else nav.navigate(ROTA_NOVO) },
                 ) {
                     Icon(
                         Icons.Filled.Add,
-                        contentDescription = if (naTelaVeiculo) "Novo abastecimento" else "Novo lançamento",
+                        contentDescription = if (naTelaVeiculo) "Novo registro do veículo" else "Novo lançamento",
                     )
                 }
             }
@@ -102,10 +110,14 @@ fun AppNav() {
                     onEditarGanho = { nav.navigate("ganho/$it") },
                     onEditarDespesa = { nav.navigate("despesa/$it") },
                     onEditarAbastecimento = { nav.navigate("abastecimento/$it") },
+                    onEditarManutencao = { nav.navigate("manutencao/$it") },
                 )
             }
             composable(ROTA_VEICULO) {
-                VeiculoScreen(onEditarAbastecimento = { nav.navigate("abastecimento/$it") })
+                VeiculoScreen(
+                    onEditarAbastecimento = { nav.navigate("abastecimento/$it") },
+                    onEditarManutencao = { nav.navigate("manutencao/$it") },
+                )
             }
             composable("reservas") { EmConstrucao("Reservas") }
             composable("analises") { EmConstrucao("Análises") }
@@ -142,7 +154,36 @@ fun AppNav() {
                     onConcluir = { nav.popBackStack() },
                 )
             }
+            composable(
+                ROTA_MANUTENCAO,
+                arguments = listOf(navArgument("id") { type = NavType.LongType }),
+            ) { e ->
+                ManutencaoScreen(
+                    id = e.arguments?.getLong("id") ?: 0L,
+                    onConcluir = { nav.popBackStack() },
+                )
+            }
         }
+    }
+
+    if (escolhendoRegistro) {
+        AlertDialog(
+            onDismissRequest = { escolhendoRegistro = false },
+            title = { Text("Registrar") },
+            text = { Text("O que você quer registrar?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    escolhendoRegistro = false
+                    nav.navigate("abastecimento/0")
+                }) { Text("Abastecimento") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    escolhendoRegistro = false
+                    nav.navigate("manutencao/0")
+                }) { Text("Manutenção") }
+            },
+        )
     }
 }
 

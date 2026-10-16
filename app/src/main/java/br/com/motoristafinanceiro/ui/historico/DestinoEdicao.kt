@@ -7,6 +7,7 @@ import br.com.motoristafinanceiro.data.model.OrigemDespesa
 sealed interface DestinoEdicao {
     data class EditarDespesa(val id: Long) : DestinoEdicao
     data class EditarAbastecimento(val id: Long) : DestinoEdicao
+    data class EditarManutencao(val id: Long) : DestinoEdicao
     data object SemEdicao : DestinoEdicao
 }
 
@@ -14,6 +15,6 @@ internal fun destinoEdicao(despesa: Despesa): DestinoEdicao = when (despesa.orig
     OrigemDespesa.MANUAL -> DestinoEdicao.EditarDespesa(despesa.id)
     OrigemDespesa.ABASTECIMENTO ->
         despesa.origemId?.let { DestinoEdicao.EditarAbastecimento(it) } ?: DestinoEdicao.SemEdicao
-    // Manutenção ganha edição na Etapa 4.
-    OrigemDespesa.MANUTENCAO -> DestinoEdicao.SemEdicao
+    OrigemDespesa.MANUTENCAO ->
+        despesa.origemId?.let { DestinoEdicao.EditarManutencao(it) } ?: DestinoEdicao.SemEdicao
 }

@@ -18,6 +18,7 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 
 ## Etapa 2: Início e histórico
 - 🟡 Tela inicial (hoje e mês; falta semana)
+- ✅ Card de atenção com manutenções atrasadas ou próximas no Início
 - ✅ Histórico por mês, agrupado por dia, com filtro Todos/Ganhos/Despesas
 - ⬜ Filtros por plataforma e categoria
 
@@ -28,9 +29,12 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ⬜ Depreciação por km nas configurações (DataStore) e no custo por km
 
 ## Etapa 4: Manutenção e reservas
-- 🟡 Lógica de km restantes e reserva diária (pronta e testada, sem tela)
-- ⬜ Telas e formulários de manutenção e reservas (inclui editar/excluir a despesa gerada pela manutenção)
-- ⬜ Notificações com WorkManager
+- ✅ Registrar, editar e excluir manutenções (a despesa acompanha), com intervalo em km sugerido por tipo
+- ✅ Alertas por km (atrasada / próxima a 500 km / em dia) na tela Veículo e no Início
+- ✅ Despesa de manutenção no Histórico abre o formulário da manutenção
+- ⬜ Notificações com WorkManager (hoje os alertas aparecem só dentro do app)
+- 🟡 Reserva diária (lógica pronta e testada, sem tela)
+- ⬜ Telas e formulários de reservas
 
 ## Etapa 5: Metas
 - 🟡 Progresso da meta na Início (sem tela para definir a meta)

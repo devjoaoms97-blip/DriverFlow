@@ -4,7 +4,10 @@ import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.CategoriaDespesa
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Plataforma
+import br.com.motoristafinanceiro.data.model.TipoManutencao
+import br.com.motoristafinanceiro.domain.StatusAlerta
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -47,6 +50,37 @@ class VeiculoEstadoTest {
     fun semDados_estadoVazio() {
         val s = montarEstadoVeiculo(emptyList(), emptyList(), emptyList(), emptyList())
         assertTrue(s.abastecimentos.isEmpty())
+        assertTrue(s.manutencoes.isEmpty())
+        assertTrue(s.alertas.isEmpty())
         assertNull(s.resumo.consumoMedioKmPorLitro)
+    }
+
+    @Test
+    fun manutencoes_maisRecentesPrimeiro() {
+        val antiga = Manutencao(id = 1, tipo = TipoManutencao.OLEO, data = d1, odometroKm = 10_000, valorCentavos = 0)
+        val recente = Manutencao(id = 2, tipo = TipoManutencao.PNEUS, data = d2, odometroKm = 10_300, valorCentavos = 0)
+
+        val s = montarEstadoVeiculo(emptyList(), listOf(antiga, recente), emptyList(), emptyList())
+
+        assertEquals(listOf(2L, 1L), s.manutencoes.map { it.id })
+    }
+
+    @Test
+    fun alertas_usamOOdometroDosAbastecimentosEDasManutencoes() {
+        val oleo = Manutencao(
+            id = 1, tipo = TipoManutencao.OLEO, data = d1, odometroKm = 10_000, valorCentavos = 0, intervaloKm = 400,
+        )
+
+        val s = montarEstadoVeiculo(listOf(a1, a2), listOf(oleo), emptyList(), emptyList())
+
+        // vence em 10.400; odômetro atual (abastecimento) é 10.400 => 0 km restantes
+        assertEquals(0, s.alertas.single().kmRestantes)
+        assertEquals(StatusAlerta.PROXIMA, s.alertas.single().status)
+    }
+
+    @Test
+    fun alertas_semOdometro_naoHaAlertas() {
+        val s = montarEstadoVeiculo(emptyList(), emptyList(), emptyList(), emptyList())
+        assertTrue(s.alertas.isEmpty())
     }
 }
