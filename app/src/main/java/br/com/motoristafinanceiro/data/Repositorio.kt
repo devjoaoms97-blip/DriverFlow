@@ -114,6 +114,7 @@ class Repositorio(private val db: AppDatabase) {
 
     // ---- Reservas ----
     fun reservas(): Flow<List<ReservaDespesa>> = db.reservaDao().observarTodas()
+    suspend fun reservaPorId(id: Long): ReservaDespesa? = db.reservaDao().buscarPorId(id)
     suspend fun salvarReserva(r: ReservaDespesa) = db.reservaDao().salvar(r)
     suspend fun excluirReserva(r: ReservaDespesa) = db.reservaDao().excluir(r)
 

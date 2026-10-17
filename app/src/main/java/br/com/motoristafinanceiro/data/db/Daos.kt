@@ -89,6 +89,9 @@ interface ReservaDao {
     @Upsert suspend fun salvar(reserva: ReservaDespesa): Long
     @Delete suspend fun excluir(reserva: ReservaDespesa)
 
+    @Query("SELECT * FROM reservas WHERE id = :id")
+    suspend fun buscarPorId(id: Long): ReservaDespesa?
+
     @Query("SELECT * FROM reservas ORDER BY proximoVencimento ASC")
     fun observarTodas(): Flow<List<ReservaDespesa>>
 }

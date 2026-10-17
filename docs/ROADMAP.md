@@ -37,8 +37,8 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ✅ Alertas por km (atrasada / próxima a 500 km / em dia) na tela Veículo e no Início
 - ✅ Despesa de manutenção no Histórico abre o formulário da manutenção
 - ⬜ Notificações com WorkManager (hoje os alertas aparecem só dentro do app)
-- 🟡 Reserva diária (lógica pronta e testada, sem tela)
-- ⬜ Telas e formulários de reservas
+- ✅ Reservas: cadastro, edição e exclusão de despesas fixas (IPVA, seguro, parcela...), com quanto separar por dia e por semana
+- ✅ Próximo vencimento avança sozinho quando a data cadastrada já passou
 
 ## Etapa 5: Metas
 - 🟡 Progresso da meta na Início (sem tela para definir a meta)

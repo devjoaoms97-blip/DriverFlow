@@ -38,6 +38,8 @@ import br.com.motoristafinanceiro.ui.historico.HistoricoScreen
 import br.com.motoristafinanceiro.ui.home.HomeScreen
 import br.com.motoristafinanceiro.ui.lancamento.NovoLancamentoScreen
 import br.com.motoristafinanceiro.ui.lancamento.TipoLancamento
+import br.com.motoristafinanceiro.ui.reservas.ReservaScreen
+import br.com.motoristafinanceiro.ui.reservas.ReservasScreen
 import br.com.motoristafinanceiro.ui.veiculo.AbastecimentoScreen
 import br.com.motoristafinanceiro.ui.veiculo.ManutencaoScreen
 import br.com.motoristafinanceiro.ui.veiculo.VeiculoScreen
@@ -53,13 +55,15 @@ private val destinos = listOf(
 )
 
 private const val ROTA_VEICULO = "veiculo"
+private const val ROTA_RESERVAS = "reservas"
+private const val ROTA_RESERVA = "reserva/{id}"
 private const val ROTA_NOVO = "novo"
 private const val ROTA_GANHO = "ganho/{id}"
 private const val ROTA_DESPESA = "despesa/{id}"
 private const val ROTA_ABASTECIMENTO = "abastecimento/{id}"
 private const val ROTA_MANUTENCAO = "manutencao/{id}"
 private const val ROTA_AJUSTES = "ajustes"
-private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO, ROTA_AJUSTES)
+private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO, ROTA_AJUSTES, ROTA_RESERVA)
 
 @Composable
 fun AppNav() {
@@ -68,6 +72,7 @@ fun AppNav() {
     val rotaAtual = pilha?.destination?.route
     val emFormulario = rotaAtual in rotasFormulario
     val naTelaVeiculo = rotaAtual == ROTA_VEICULO
+    val naTelaReservas = rotaAtual == ROTA_RESERVAS
     var escolhendoRegistro by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -95,11 +100,21 @@ fun AppNav() {
             if (!emFormulario) {
                 // Na aba Veículo o + pergunta se é abastecimento ou manutenção; nas demais, ganho/despesa.
                 FloatingActionButton(
-                    onClick = { if (naTelaVeiculo) escolhendoRegistro = true else nav.navigate(ROTA_NOVO) },
+                    onClick = {
+                        when {
+                            naTelaVeiculo -> escolhendoRegistro = true
+                            naTelaReservas -> nav.navigate("reserva/0")
+                            else -> nav.navigate(ROTA_NOVO)
+                        }
+                    },
                 ) {
                     Icon(
                         Icons.Filled.Add,
-                        contentDescription = if (naTelaVeiculo) "Novo registro do veículo" else "Novo lançamento",
+                        contentDescription = when {
+                            naTelaVeiculo -> "Novo registro do veículo"
+                            naTelaReservas -> "Nova reserva"
+                            else -> "Novo lançamento"
+                        },
                     )
                 }
             }
@@ -122,7 +137,18 @@ fun AppNav() {
                     onEditarManutencao = { nav.navigate("manutencao/$it") },
                 )
             }
-            composable("reservas") { EmConstrucao("Reservas") }
+            composable(ROTA_RESERVAS) {
+                ReservasScreen(onEditar = { nav.navigate("reserva/$it") })
+            }
+            composable(
+                ROTA_RESERVA,
+                arguments = listOf(navArgument("id") { type = NavType.LongType }),
+            ) { e ->
+                ReservaScreen(
+                    id = e.arguments?.getLong("id") ?: 0L,
+                    onConcluir = { nav.popBackStack() },
+                )
+            }
             composable("analises") { EmConstrucao("Análises") }
 
             composable(ROTA_NOVO) {

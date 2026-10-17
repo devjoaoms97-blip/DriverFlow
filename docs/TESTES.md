@@ -92,3 +92,9 @@ testImplementation("androidx.test:core:1.6.1")
 19. **Ícone:** na tela inicial do celular, o app aparece como uma moeda dourada com um volante sobre fundo
     verde, com o nome "Motorista Financeiro". Em Android 13 ou mais novo com ícones temáticos ligados,
     o ícone assume as cores do tema do aparelho
+20. **Reservas:** na aba Reservas, tocar em + e escolher o atalho IPVA (vem anual). Valor 3650,00 e um vencimento
+    daqui a alguns meses. O card "Separar por dia" deve mostrar R$ 10,00
+21. **Total:** cadastrar também um Seguro mensal de R$ 300,00. O total passa a R$ 20,00 por dia e R$ 140,00 por semana
+22. **Vencimento passado:** cadastrar uma parcela mensal com vencimento num mês que já passou. A lista deve mostrar
+    o próximo vencimento futuro, com "Vence em N dias", e a ordem fica pelo vencimento mais próximo
+23. **Editar e excluir:** abrir uma reserva, mudar o valor (o "por dia" acompanha) e excluí-la com confirmação

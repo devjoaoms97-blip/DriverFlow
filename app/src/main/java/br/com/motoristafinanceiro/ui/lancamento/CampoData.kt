@@ -24,10 +24,15 @@ import java.time.format.DateTimeFormatter
 
 private val formatoData = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-/** Botão com a data atual do lançamento + atalhos "Hoje" e "Ontem". */
+/** Botão com a data atual + (opcionalmente) atalhos "Hoje" e "Ontem". */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CampoData(data: LocalDate, onChange: (LocalDate) -> Unit, modifier: Modifier = Modifier) {
+fun CampoData(
+    data: LocalDate,
+    onChange: (LocalDate) -> Unit,
+    modifier: Modifier = Modifier,
+    mostrarAtalhos: Boolean = true,
+) {
     var aberto by remember { mutableStateOf(false) }
 
     Row(
@@ -36,8 +41,10 @@ fun CampoData(data: LocalDate, onChange: (LocalDate) -> Unit, modifier: Modifier
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         OutlinedButton(onClick = { aberto = true }) { Text(data.format(formatoData)) }
-        TextButton(onClick = { onChange(LocalDate.now()) }) { Text("Hoje") }
-        TextButton(onClick = { onChange(LocalDate.now().minusDays(1)) }) { Text("Ontem") }
+        if (mostrarAtalhos) {
+            TextButton(onClick = { onChange(LocalDate.now()) }) { Text("Hoje") }
+            TextButton(onClick = { onChange(LocalDate.now().minusDays(1)) }) { Text("Ontem") }
+        }
     }
 
     if (aberto) {

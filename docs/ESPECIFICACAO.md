@@ -68,6 +68,7 @@ com lançamento rápido (poucos toques) e funcionamento offline.
 | Consumo médio | pelo método do tanque cheio: km entre dois "cheios" ÷ litros abastecidos entre eles (incluindo o último) |
 | Km restantes (manutenção) | odômetro da última + intervalo − odômetro atual (negativo = atrasada) |
 | Reserva diária | valor da despesa ÷ dias do período (mensal 30, trimestral 91, semestral 182, anual 365) |
+| Próximo vencimento | data cadastrada; se já passou, avança de 1, 3, 6 ou 12 meses (conforme a periodicidade), sempre contando a partir da data original |
 | Progresso da meta | lucro líquido do mês ÷ meta |
 
 **Despesas automáticas:** abastecimento e manutenção criam uma despesa vinculada (`origem` + `origemId`),
