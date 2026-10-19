@@ -1,26 +1,41 @@
 # Motorista Financeiro
 
 App Android **de uso pessoal** para controle financeiro de motorista de aplicativo (Uber, 99 e outros):
-ganhos, despesas, lucro líquido real, custo por km, consumo do carro, reservas e metas.
+ganhos, despesas, lucro líquido real, custo por km, consumo do carro, manutenção, reservas e metas.
 
 Dados 100% locais no aparelho (sem login, sem servidor, sem nuvem).
 
+## O que o app faz hoje
+
+- **Ganhos e despesas** com data, plataforma, categoria e foto do comprovante (câmera ou galeria)
+- **Início** com lucro líquido do dia e do mês, ganho por km e por hora, custo por km, depreciação e alertas
+- **Histórico** por mês, agrupado por dia, com filtro e edição de tudo que foi lançado
+- **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km
+- **Reservas** para despesas fixas (IPVA, seguro, parcela), com quanto separar por dia
+- **Ajustes:** depreciação por km
+
+O que falta está no [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
 ## Stack
 
-Kotlin · Jetpack Compose (Material 3) · Room (SQLite) · MVVM com StateFlow · Navigation Compose · DataStore · WorkManager
+Kotlin · Jetpack Compose (Material 3) · Room (SQLite) · MVVM com StateFlow · Navigation Compose · DataStore
 
-## Como abrir
+## Como rodar
 
-1. Abra a pasta no **Android Studio** (Koala ou mais novo) e aguarde o *Gradle Sync*.
-   O Android Studio gera o `gradle wrapper` automaticamente; se quiser versionar o wrapper no Git, rode `gradle wrapper` uma vez.
-2. Use JDK 17.
-3. Rode no emulador ou no celular (minSdk 26 / Android 8.0).
+O dia a dia do projeto (pacotes de atualização, build, testes e commit) está em
+[`docs/FLUXO_DE_TRABALHO.md`](docs/FLUXO_DE_TRABALHO.md).
 
-> **Atenção:** este esqueleto foi escrito sem acesso a um ambiente Android, então ainda **não foi compilado**.
-> Pode haver pequenos ajustes de import/versão no primeiro sync. Os testes de `domain/` (`./gradlew test`) cobrem a lógica de cálculo.
+Para abrir pela primeira vez:
+
+1. Use o **JDK 17** e uma pasta **sem acento e sem espaço** no caminho
+2. Crie o `local.properties` com `sdk.dir=<caminho do Android SDK>` (o arquivo não vai para o Git)
+3. Pelo Android Studio: abra a pasta e aguarde o Gradle Sync. Pelo terminal: `.\gradlew test installDebug`
+   com o celular conectado (minSdk 26 / Android 8.0)
 
 ## Documentação
 
+- [`docs/FLUXO_DE_TRABALHO.md`](docs/FLUXO_DE_TRABALHO.md): como desenvolvemos, aplicamos pacotes e fazemos commit
+- [`docs/TESTES.md`](docs/TESTES.md): política de testes de regressão e roteiro manual de validação
 - [`docs/ESPECIFICACAO.md`](docs/ESPECIFICACAO.md): escopo, requisitos, regras de negócio, modelo de dados e telas
 - [`docs/ROADMAP.md`](docs/ROADMAP.md): etapas e checklist do que já está pronto
 
@@ -28,17 +43,21 @@ Kotlin · Jetpack Compose (Material 3) · Room (SQLite) · MVVM com StateFlow ·
 
 ```
 app/src/main/java/br/com/motoristafinanceiro/
-├── MotoristaApp.kt          # Application: cria banco e repositório
+├── MotoristaApp.kt          # Application: banco, repositório, configurações e comprovantes
 ├── MainActivity.kt
 ├── data/
 │   ├── model/               # Entidades Room e enums
 │   ├── db/                  # AppDatabase, DAOs, conversores
-│   └── Repositorio.kt       # único ponto de acesso a dados
+│   ├── Repositorio.kt       # único ponto de acesso aos dados do banco
+│   ├── Configuracoes.kt     # ajustes do usuário (DataStore)
+│   ├── ComprovanteStorage.kt, ProcessadorDeImagem.kt   # fotos dos comprovantes
 ├── domain/                  # Regras puras de cálculo (testáveis)
-├── util/                    # Formatação de dinheiro
+├── util/                    # Formatação de dinheiro, números e km
 └── ui/
-    ├── theme/
-    ├── navigation/          # NavHost + barra inferior
-    ├── home/                # Tela inicial (lucro, indicadores, meta)
-    └── lancamento/          # Formulário de ganho/despesa
+    ├── theme/, navigation/  # Tema e NavHost + barra inferior
+    ├── home/, historico/    # Início e histórico
+    ├── lancamento/          # Formulário de ganho/despesa
+    ├── veiculo/             # Abastecimento, manutenção e alertas
+    ├── reservas/, ajustes/  # Reservas e Ajustes
+    └── comprovante/         # Miniatura e ampliação da foto
 ```
