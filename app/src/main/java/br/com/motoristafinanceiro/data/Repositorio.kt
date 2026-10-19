@@ -35,6 +35,8 @@ class Repositorio(private val db: AppDatabase) {
 
     suspend fun despesaPorId(id: Long): Despesa? = db.despesaDao().buscarPorId(id)
 
+    suspend fun nomesDeComprovantesEmUso(): List<String> = db.despesaDao().fotosEmUso()
+
     suspend fun salvarDespesa(despesa: Despesa) {
         if (despesa.id == 0L) db.despesaDao().inserir(despesa) else db.despesaDao().atualizar(despesa)
     }

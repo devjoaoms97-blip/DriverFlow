@@ -1,5 +1,23 @@
 package br.com.motoristafinanceiro.ui.lancamento
 
+import android.content.ActivityNotFoundException
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import br.com.motoristafinanceiro.data.ProcessadorDeImagem
+import br.com.motoristafinanceiro.ui.comprovante.ComprovanteDialog
+import br.com.motoristafinanceiro.ui.comprovante.MiniaturaComprovante
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -186,13 +204,51 @@ private fun FormGanho(vm: NovoLancamentoViewModel, original: Ganho?, onConcluir:
 
 @Composable
 private fun FormDespesa(vm: NovoLancamentoViewModel, original: Despesa?, onConcluir: () -> Unit) {
-    var data by remember { mutableStateOf(original?.data ?: LocalDate.now()) }
-    var categoria by remember { mutableStateOf(original?.categoria ?: CategoriaDespesa.COMBUSTIVEL) }
-    var valor by remember { mutableStateOf(original?.valorCentavos?.paraTextoReais() ?: "") }
-    var obs by remember { mutableStateOf(original?.observacao ?: "") }
+    // rememberSaveable: os campos sobrevivem a girar a tela e a abrir o app da câmera.
+    var data by rememberSaveable { mutableStateOf(original?.data ?: LocalDate.now()) }
+    var categoria by rememberSaveable { mutableStateOf(original?.categoria ?: CategoriaDespesa.COMBUSTIVEL) }
+    var valor by rememberSaveable { mutableStateOf(original?.valorCentavos?.paraTextoReais() ?: "") }
+    var obs by rememberSaveable { mutableStateOf(original?.observacao ?: "") }
+    var fotoNome by rememberSaveable { mutableStateOf(original?.fotoUri) }
+    var fotoPendente by rememberSaveable { mutableStateOf<String?>(null) }
     var confirmarExclusao by remember { mutableStateOf(false) }
+    var verFoto by remember { mutableStateOf(false) }
+    var processandoFoto by remember { mutableStateOf(false) }
+    var erroFoto by remember { mutableStateOf<String?>(null) }
+
+    val contexto = LocalContext.current
+    val escopo = rememberCoroutineScope()
+
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { tirou ->
+        val nome = fotoPendente
+        fotoPendente = null
+        if (nome != null) {
+            if (tirou) {
+                processandoFoto = true
+                escopo.launch {
+                    val certo = withContext(Dispatchers.IO) { ProcessadorDeImagem.otimizar(vm.comprovantes.arquivo(nome)) }
+                    processandoFoto = false
+                    if (certo) fotoNome = nome else erroFoto = "Não foi possível usar essa foto."
+                }
+            } else {
+                escopo.launch(Dispatchers.IO) { vm.comprovantes.excluir(nome) }
+            }
+        }
+    }
+
+    val galeria = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            processandoFoto = true
+            escopo.launch {
+                val nome = withContext(Dispatchers.IO) { vm.comprovantes.importar(contexto.contentResolver, uri) }
+                processandoFoto = false
+                if (nome != null) fotoNome = nome else erroFoto = "Não foi possível usar essa foto."
+            }
+        }
+    }
 
     val valorCentavos = valor.reaisParaCentavos()
+    val nomeDaFoto = fotoNome
 
     Column(
         Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
@@ -209,9 +265,57 @@ private fun FormDespesa(vm: NovoLancamentoViewModel, original: Despesa?, onConcl
         OutlinedTextField(obs, { obs = it }, label = { Text("Observação (opcional)") },
             modifier = Modifier.fillMaxWidth())
 
-        // TODO: anexar foto do comprovante.
+        Text("Comprovante", style = MaterialTheme.typography.labelLarge)
+        if (nomeDaFoto != null) {
+            MiniaturaComprovante(
+                arquivo = vm.comprovantes.arquivo(nomeDaFoto),
+                ladoMax = 600,
+                modifier = Modifier.fillMaxWidth().height(180.dp).clickable { verFoto = true },
+            )
+            Text(
+                "Toque na foto para ampliar.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (processandoFoto) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CircularProgressIndicator(Modifier.size(20.dp))
+                Text("Preparando a foto...")
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(
+                enabled = !processandoFoto,
+                onClick = {
+                    erroFoto = null
+                    val arquivo = vm.comprovantes.novoArquivo()
+                    fotoPendente = arquivo.name
+                    try {
+                        val uri = FileProvider.getUriForFile(contexto, "${contexto.packageName}.fileprovider", arquivo)
+                        camera.launch(uri)
+                    } catch (e: ActivityNotFoundException) {
+                        fotoPendente = null
+                        arquivo.delete()
+                        erroFoto = "Nenhum app de câmera encontrado."
+                    }
+                },
+            ) { Text("Tirar foto") }
+            OutlinedButton(
+                enabled = !processandoFoto,
+                onClick = {
+                    erroFoto = null
+                    galeria.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                },
+            ) { Text("Galeria") }
+            if (nomeDaFoto != null) {
+                TextButton(onClick = { fotoNome = null }) { Text("Remover") }
+            }
+        }
+        erroFoto?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+
         Button(
-            enabled = valorCentavos != null && valorCentavos > 0,
+            enabled = valorCentavos != null && valorCentavos > 0 && !processandoFoto,
             onClick = {
                 val base = original ?: Despesa(data = data, categoria = categoria, valorCentavos = 0)
                 vm.salvarDespesa(
@@ -220,6 +324,7 @@ private fun FormDespesa(vm: NovoLancamentoViewModel, original: Despesa?, onConcl
                         categoria = categoria,
                         valorCentavos = valorCentavos ?: 0,
                         observacao = obs.ifBlank { null },
+                        fotoUri = fotoNome,
                     ),
                     onConcluir,
                 )
@@ -228,6 +333,10 @@ private fun FormDespesa(vm: NovoLancamentoViewModel, original: Despesa?, onConcl
         ) { Text(if (original == null) "Salvar despesa" else "Salvar alterações") }
 
         if (original != null) BotaoExcluir { confirmarExclusao = true }
+    }
+
+    if (verFoto && nomeDaFoto != null) {
+        ComprovanteDialog(vm.comprovantes.arquivo(nomeDaFoto)) { verFoto = false }
     }
 
     if (confirmarExclusao && original != null) {

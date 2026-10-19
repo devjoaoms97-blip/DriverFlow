@@ -3,6 +3,13 @@
 
     <!-- Nenhuma permissão necessária no MVP (app 100% local). -->
 
+    <!-- Permite abrir o app de câmera do aparelho (Android 11+) -->
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
+
     <application
         android:name=".MotoristaApp"
         android:allowBackup="true"
@@ -20,6 +27,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Entrega ao app de câmera um endereço temporário para gravar a foto na pasta privada -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

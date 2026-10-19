@@ -29,7 +29,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
-import br.com.motoristafinanceiro.data.model.OrigemDespesa
 import br.com.motoristafinanceiro.util.formatarReais
 import br.com.motoristafinanceiro.util.minutosParaHorasTexto
 import br.com.motoristafinanceiro.util.paraTextoNumero
@@ -166,12 +165,7 @@ private fun LinhaGanho(ganho: Ganho, onClick: () -> Unit) {
 @Composable
 private fun LinhaDespesa(despesa: Despesa, onEditar: (DestinoEdicao) -> Unit) {
     val destino = destinoEdicao(despesa)
-    val origem = when (despesa.origem) {
-        OrigemDespesa.MANUAL -> null
-        OrigemDespesa.ABASTECIMENTO -> "Abastecimento"
-        OrigemDespesa.MANUTENCAO -> "Manutenção"
-    }
-    val detalhes = listOfNotNull(despesa.observacao?.takeIf { it.isNotBlank() }, origem).joinToString(" · ")
+    val detalhes = detalhesDespesa(despesa)
     val aoClicar: (() -> Unit)? =
         if (destino is DestinoEdicao.SemEdicao) null else ({ onEditar(destino) })
 

@@ -38,6 +38,10 @@ interface DespesaDao {
     @Query("SELECT * FROM despesas WHERE id = :id")
     suspend fun buscarPorId(id: Long): Despesa?
 
+    /** Nomes dos arquivos de comprovante que alguma despesa usa. */
+    @Query("SELECT fotoUri FROM despesas WHERE fotoUri IS NOT NULL")
+    suspend fun fotosEmUso(): List<String>
+
     @Query("DELETE FROM despesas WHERE origem = :origem AND origemId = :origemId")
     suspend fun excluirPorOrigem(origem: OrigemDespesa, origemId: Long)
 

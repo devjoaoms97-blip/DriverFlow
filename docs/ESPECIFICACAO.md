@@ -88,6 +88,8 @@ evitando lançamento duplo. Ao excluir o abastecimento/manutenção, a despesa v
 | `metas` | mes ("2026-10"), valorAlvoLucroCentavos |
 
 Datas armazenadas como `epochDay` (Long) via `TypeConverter`. Enums armazenados pelo nome.
+
+**Comprovantes:** o campo `fotoUri` da despesa guarda apenas o NOME do arquivo da foto, que fica em `filesDir/comprovantes/` (pasta privada do app). Fotos são reduzidas para cerca de 1.600 px e regravadas em JPEG, com a rotação do EXIF aplicada. Arquivos que nenhuma despesa usa são apagados na abertura do app, desde que tenham mais de 24 h.
 **Configurações** (depreciação por km, etc.) ficam no DataStore, fora do Room.
 Schema do Room exportado em `app/schemas/` para versionar migrações.
 

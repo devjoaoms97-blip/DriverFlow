@@ -20,7 +20,8 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Cálculos (lucro, km/l, reserva, alertas de manutenção, resumo do veículo) | `app/src/test/.../domain` | JUnit puro |
 | Formatação e conversões | `app/src/test/.../util`, `.../data/db` | JUnit puro |
 | Configurações (DataStore) | `app/src/test/.../data/ConfiguracoesTest` | JUnit puro, arquivo temporário |
-| Ícone e manifest (arquivos de recurso presentes e referenciados) | `app/src/test/.../app/IconeDoAppTest` | JUnit puro |
+| Ícone e manifest (arquivos de recurso presentes e referenciados) | `app/src/test/.../app/IconeDoAppTest`, `ComprovanteManifestTest` | JUnit puro |
+| Arquivos de comprovante (criar, apagar, órfãos) | `app/src/test/.../data/ComprovanteStorageTest` | JUnit puro, pasta temporária |
 | Estado e regras das telas (início, histórico, veículo, alertas) | `app/src/test/.../ui/...` | JUnit puro |
 | Repositório + Room (CRUD, vínculos, período) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
 
@@ -98,3 +99,14 @@ testImplementation("androidx.test:core:1.6.1")
 22. **Vencimento passado:** cadastrar uma parcela mensal com vencimento num mês que já passou. A lista deve mostrar
     o próximo vencimento futuro, com "Vence em N dias", e a ordem fica pelo vencimento mais próximo
 23. **Editar e excluir:** abrir uma reserva, mudar o valor (o "por dia" acompanha) e excluí-la com confirmação
+24. **Câmera:** em uma nova despesa, tocar em "Tirar foto", fotografar um papel e confirmar na câmera. A miniatura
+    aparece no formulário. Salvar a despesa
+25. **Comprovante no Histórico:** a despesa mostra "Com comprovante". Abrir, tocar na miniatura e conferir que a
+    foto amplia em uma janela com o botão Fechar
+26. **Galeria:** em outra despesa, tocar em "Galeria" e escolher uma foto grande. A miniatura aparece e a despesa salva
+27. **Orientação:** tirar uma foto com o celular na vertical e conferir que a miniatura não aparece deitada
+28. **Campos preservados:** preencher valor e observação, abrir a câmera e voltar. Os campos continuam preenchidos
+29. **Trocar e remover:** editar uma despesa com foto, trocar por outra e salvar; depois editar de novo, tocar em
+    "Remover" e salvar. A despesa deixa de mostrar "Com comprovante"
+30. **Cancelar a câmera:** abrir a câmera e voltar sem fotografar. Nenhuma miniatura aparece e nada quebra
+31. **Excluir despesa com foto:** excluir e conferir que ela some do Histórico (o arquivo da foto também é apagado)

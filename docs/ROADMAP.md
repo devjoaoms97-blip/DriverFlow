@@ -18,7 +18,7 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ✅ Formulário de ganho/despesa
 - ✅ Seletor de data (calendário + atalhos Hoje/Ontem)
 - ✅ Editar e excluir lançamentos (com confirmação)
-- ⬜ Anexar foto do comprovante
+- ✅ Foto do comprovante nas despesas (câmera ou galeria), guardada na pasta privada do app, com ampliação
 
 ## Etapa 2: Início e histórico
 - 🟡 Tela inicial (hoje e mês; falta semana)
@@ -47,5 +47,5 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 ## Etapa 6: Análises e backup
 - ⬜ Ganho por hora por dia da semana/horário
 - ⬜ Comparativo Uber × 99
-- ⬜ Backup/restauração JSON
+- ⬜ Backup/restauração JSON (deve incluir as fotos dos comprovantes)
 - 🟡 Tela de Ajustes (só a depreciação por km por enquanto; falta o backup)

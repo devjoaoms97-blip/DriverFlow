@@ -9,9 +9,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.motoristafinanceiro.MotoristaApp
+import br.com.motoristafinanceiro.data.ComprovanteStorage
 import br.com.motoristafinanceiro.data.Repositorio
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.domain.fotoSubstituidaOuRemovida
 import kotlinx.coroutines.launch
 
 enum class TipoLancamento { GANHO, DESPESA }
@@ -21,6 +23,7 @@ enum class TipoLancamento { GANHO, DESPESA }
  */
 class NovoLancamentoViewModel(
     private val repo: Repositorio,
+    val comprovantes: ComprovanteStorage,
     private val tipo: TipoLancamento?,
     private val id: Long,
 ) : ViewModel() {
@@ -53,11 +56,21 @@ class NovoLancamentoViewModel(
     fun excluirGanho(ganho: Ganho, aoConcluir: () -> Unit) =
         executar(aoConcluir) { repo.excluirGanho(ganho) }
 
-    fun salvarDespesa(despesa: Despesa, aoConcluir: () -> Unit) =
-        executar(aoConcluir) { repo.salvarDespesa(despesa) }
+    /** Ao salvar, a foto antiga (trocada ou removida) é apagada do aparelho. */
+    fun salvarDespesa(despesa: Despesa, aoConcluir: () -> Unit) {
+        val antiga = despesaOriginal?.fotoUri
+        executar(aoConcluir) {
+            repo.salvarDespesa(despesa)
+            comprovantes.excluir(fotoSubstituidaOuRemovida(antiga, despesa.fotoUri))
+        }
+    }
 
+    /** Ao excluir a despesa, a foto dela também é apagada. */
     fun excluirDespesa(despesa: Despesa, aoConcluir: () -> Unit) =
-        executar(aoConcluir) { repo.excluirDespesa(despesa) }
+        executar(aoConcluir) {
+            repo.excluirDespesa(despesa)
+            comprovantes.excluir(despesa.fotoUri)
+        }
 
     /** Evita lançamento duplicado se o botão for tocado duas vezes. */
     private fun executar(aoConcluir: () -> Unit, bloco: suspend () -> Unit) {
@@ -72,7 +85,8 @@ class NovoLancamentoViewModel(
     companion object {
         fun factory(tipo: TipoLancamento?, id: Long) = viewModelFactory {
             initializer {
-                NovoLancamentoViewModel((this[APPLICATION_KEY] as MotoristaApp).repositorio, tipo, id)
+                val app = this[APPLICATION_KEY] as MotoristaApp
+                NovoLancamentoViewModel(app.repositorio, app.comprovantes, tipo, id)
             }
         }
     }
