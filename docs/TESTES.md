@@ -22,6 +22,7 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Configurações (DataStore) | `app/src/test/.../data/ConfiguracoesTest` | JUnit puro, arquivo temporário |
 | Ícone e manifest (arquivos de recurso presentes e referenciados) | `app/src/test/.../app/IconeDoAppTest`, `ComprovanteManifestTest` | JUnit puro |
 | Arquivos de comprovante (criar, apagar, órfãos) | `app/src/test/.../data/ComprovanteStorageTest` | JUnit puro, pasta temporária |
+| Backup (leitura e validação do JSON, arquivo .zip, exportar/restaurar, textos) | `app/src/test/.../data/backup`, `.../data/RepositorioBackupTest`, `.../ui/ajustes` | JSON, zip e restauração com Robolectric; datas, fotos e textos em JUnit puro |
 | Estado e regras das telas (início, semana, histórico e seus filtros, veículo, alertas, textos da meta, análises) | `app/src/test/.../ui/...` | JUnit puro |
 | Repositório + Room (CRUD, vínculos, período) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
 
@@ -156,3 +157,22 @@ testImplementation("androidx.test:core:1.6.1")
     mas o ganho por hora e por km dela continuam iguais. Excluir esse ganho de teste depois
 55. **Período:** um ganho de 40 dias atrás entra em "90 dias" e "Tudo", mas não em "30 dias". Os números mudam ao trocar o chip
 56. **Atualiza sozinha:** lançar um ganho novo (botão +) e voltar para a aba Análises: os números já incluem o lançamento
+57. **Exportar:** Ajustes > "Exportar backup". O seletor do sistema abre com o nome sugerido
+    `motorista-financeiro-backup-AAAA-MM-DD.zip`. Salvar em uma pasta e conferir a mensagem em verde
+    ("Backup salvo: N ganhos, N despesas... e N fotos.")
+58. **Conteúdo do arquivo:** copiar o .zip para o computador e abrir: tem o `dados.json` (texto legível) e a pasta
+    `comprovantes` com as fotos das despesas
+59. **Restaurar no mesmo aparelho:** lançar um ganho de teste, ir em "Restaurar backup", confirmar o aviso e escolher o .zip.
+    O ganho de teste some, os dados do backup voltam e o Início confere. A depreciação em Ajustes mostra o valor do backup
+60. **Cancelar:** em "Restaurar backup", tocar em Cancelar no aviso, ou abrir o seletor e voltar sem escolher arquivo.
+    Nada muda e nenhuma mensagem de erro aparece
+61. **Arquivo errado:** tentar restaurar um arquivo que não é backup (uma foto, ou outro .zip). Aparece uma mensagem em
+    vermelho terminando em "Nada foi alterado." e os dados continuam iguais
+62. **Fotos:** despesas com comprovante continuam com a foto depois de restaurar, e a foto abre ampliada
+63. **Vínculos:** depois de restaurar, editar um abastecimento e conferir que a despesa de combustível dele acompanha;
+    excluir esse abastecimento remove a despesa dele
+64. **Lançar depois de restaurar:** criar um ganho e uma despesa novos funciona normalmente e aparece no Histórico
+65. **Reinstalar (o teste que importa):** só depois de copiar o .zip para FORA do celular (computador ou Drive).
+    Desinstalar o app, instalar de novo (`.\gradlew installDebug`), abrir Ajustes > "Restaurar backup" e escolher o .zip.
+    Lançamentos, veículo, reservas, metas, depreciação e fotos voltam. (`installDebug` por cima do app instalado NÃO apaga os
+    dados; só desinstalar apaga)

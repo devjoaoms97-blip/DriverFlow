@@ -2,6 +2,7 @@ package br.com.motoristafinanceiro
 
 import android.app.Application
 import br.com.motoristafinanceiro.data.ComprovanteStorage
+import br.com.motoristafinanceiro.data.backup.BackupManager
 import br.com.motoristafinanceiro.data.Configuracoes
 import br.com.motoristafinanceiro.data.Repositorio
 import br.com.motoristafinanceiro.data.db.AppDatabase
@@ -16,6 +17,7 @@ class MotoristaApp : Application() {
     val repositorio by lazy { Repositorio(database) }
     val configuracoes by lazy { Configuracoes.criar(this) }
     val comprovantes by lazy { ComprovanteStorage(File(filesDir, "comprovantes")) }
+    val backup by lazy { BackupManager(repositorio, configuracoes, comprovantes, File(cacheDir, "restauracao")) }
 
     private val escopoApp = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

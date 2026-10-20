@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +22,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -37,18 +39,20 @@ import br.com.motoristafinanceiro.util.paraTextoReais
 @Composable
 fun AjustesScreen(onVoltar: () -> Unit) {
     val vm: AjustesViewModel = viewModel(factory = AjustesViewModel.Factory)
-    val inicial by produceState<Long?>(initialValue = null) { value = vm.depreciacaoAtual() }
+    // Sobe depois de restaurar um backup, para o campo mostrar a depreciação restaurada.
+    var versao by remember { mutableStateOf(0) }
+    val inicial by produceState<Long?>(initialValue = null, versao) { value = vm.depreciacaoAtual() }
     val valorInicial = inicial
 
     if (valorInicial == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
     } else {
-        FormAjustes(vm, valorInicial, onVoltar)
+        key(valorInicial) { FormAjustes(vm, valorInicial, onVoltar, aoRestaurar = { versao++ }) }
     }
 }
 
 @Composable
-private fun FormAjustes(vm: AjustesViewModel, valorInicial: Long, onVoltar: () -> Unit) {
+private fun FormAjustes(vm: AjustesViewModel, valorInicial: Long, onVoltar: () -> Unit, aoRestaurar: () -> Unit) {
     var texto by remember { mutableStateOf(if (valorInicial > 0) valorInicial.paraTextoReais() else "") }
     val centavos = parseDepreciacaoPorKm(texto)
 
@@ -99,5 +103,8 @@ private fun FormAjustes(vm: AjustesViewModel, valorInicial: Long, onVoltar: () -
             onClick = { vm.salvarDepreciacao(centavos ?: 0L, onVoltar) },
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Salvar") }
+
+        HorizontalDivider(Modifier.padding(vertical = 8.dp))
+        SecaoBackup(aoRestaurar)
     }
 }

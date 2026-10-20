@@ -96,4 +96,57 @@ class ComprovanteStorageTest {
     fun limparOrfaos_semPasta_devolveZero() {
         assertEquals(0, storage.limparOrfaos(emUso = emptySet()))
     }
+
+    // ---- Restauração de backup ----
+
+    @Test
+    fun restaurar_copiaParaAPastaComOMesmoNome() {
+        val origem = File(temp.root, "origem.jpg").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+
+        storage.restaurar(origem, "comp_1.jpg")
+
+        assertArrayEquals(byteArrayOf(1, 2, 3), File(pasta, "comp_1.jpg").readBytes())
+        assertTrue(origem.exists()) // copia, não move
+    }
+
+    @Test
+    fun restaurar_substituiArquivoComMesmoNome() {
+        pasta.mkdirs()
+        File(pasta, "comp_1.jpg").writeBytes(byteArrayOf(9))
+        val origem = File(temp.root, "origem.jpg").apply { writeBytes(byteArrayOf(1, 2)) }
+
+        storage.restaurar(origem, "comp_1.jpg")
+
+        assertArrayEquals(byteArrayOf(1, 2), File(pasta, "comp_1.jpg").readBytes())
+    }
+
+    @Test
+    fun restaurar_ignoraCaminhoNoNome() {
+        val origem = File(temp.root, "origem.jpg").apply { writeBytes(byteArrayOf(1)) }
+
+        storage.restaurar(origem, "../fuga.jpg")
+
+        assertTrue(File(pasta, "fuga.jpg").exists())
+        assertFalse(File(temp.root, "fuga.jpg").exists())
+    }
+
+    @Test
+    fun manterSomente_apagaOQueNaoEstaNaLista() {
+        pasta.mkdirs()
+        File(pasta, "a.jpg").writeBytes(byteArrayOf(1))
+        File(pasta, "b.jpg").writeBytes(byteArrayOf(2))
+        File(pasta, "c.jpg").writeBytes(byteArrayOf(3))
+
+        val apagados = storage.manterSomente(setOf("b.jpg"))
+
+        assertEquals(2, apagados)
+        assertFalse(File(pasta, "a.jpg").exists())
+        assertTrue(File(pasta, "b.jpg").exists())
+        assertFalse(File(pasta, "c.jpg").exists())
+    }
+
+    @Test
+    fun manterSomente_pastaInexistenteNaoQuebra() {
+        assertEquals(0, storage.manterSomente(emptySet()))
+    }
 }

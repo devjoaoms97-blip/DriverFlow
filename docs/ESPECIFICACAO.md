@@ -44,7 +44,7 @@ com lançamento rápido (poucos toques) e funcionamento offline.
 | RF-12 | Definir meta mensal e mostrar progresso e quanto falta por dia | 5 |
 | RF-13 | Análise de ganho por hora por dia da semana e faixa de horário | 6 |
 | RF-14 | Comparativo entre plataformas | 6 |
-| RF-15 | Exportar e importar backup JSON | 6 |
+| RF-15 | Exportar e importar backup (.zip com JSON e fotos) | 6 |
 | RF-16 | Ajustes: depreciação por km, categorias, parâmetros | 6 |
 
 ## 4. Requisitos não funcionais
@@ -108,7 +108,7 @@ Schema do Room exportado em `app/schemas/` para versionar migrações.
 4. **Veículo:** consumo médio, custo por km, abastecimentos, manutenções e alertas
 5. **Reservas:** despesas recorrentes e total a separar por dia
 6. **Análises:** período (30 dias, 90 dias ou tudo, sempre até hoje); resumo, ganho por hora por dia da semana (segunda a domingo, com barra, dias trabalhados e média por dia), melhor dia e comparativo por plataforma. Faixa de horário ainda não existe (ver decisões em aberto)
-7. **Ajustes:** backup/restauração, depreciação por km
+7. **Ajustes:** depreciação por km e backup (Exportar backup, Restaurar backup)
 8. **Meta mensal** (aberta pelo card do Início): definir, editar e remover a meta do mês (R$ 0,01 a R$ 100.000,00). Cada mês tem a sua meta; mês novo começa sem meta
 
 ## 8. Arquitetura
@@ -123,10 +123,41 @@ UI (Compose) → ViewModel (StateFlow) → Repositorio → DAOs (Room)
 - Um `ViewModel` por tela
 - Fluxos reativos (`Flow`) do banco até a UI
 
-## 9. Backup (JSON)
+## 9. Backup
 
-Exportar todas as tabelas em um único `.json` com campo `versaoSchema`, usando o seletor de arquivos do sistema
-(Storage Access Framework, sem permissão extra). Importar substitui os dados atuais após confirmação.
+**Arquivo:** um único `.zip`, escolhido pelo usuário no seletor de arquivos do sistema (Storage Access Framework,
+sem permissão extra), sugerido como `motorista-financeiro-backup-AAAA-MM-DD.zip`. Por que `.zip` e não só `.json`:
+as fotos dos comprovantes entram no backup, e fotos em base64 dentro de um JSON ficariam enormes.
+
+```
+motorista-financeiro-backup-2026-10-20.zip
+├── dados.json            texto legível, com todas as tabelas
+└── comprovantes/         só as fotos que alguma despesa usa
+    └── comprovante_*.jpg
+```
+
+**`dados.json`:** `formato` ("motorista-financeiro-backup"), `versaoSchema` (hoje 1), `criadoEmMs`,
+`depreciacaoPorKmCentavos` e as tabelas `ganhos`, `despesas`, `abastecimentos`, `manutencoes`, `reservas` e `metas`.
+Datas em ISO (`2026-10-20`), meses como `2026-10`, enums pelo nome e dinheiro em centavos. Os **ids são mantidos**,
+porque as despesas geradas por abastecimento/manutenção apontam para eles.
+
+**Exportar:** lê todas as tabelas em uma única transação e grava o `.zip`. Comprovante referenciado que não existe mais
+no aparelho fica de fora e é avisado ao final.
+
+**Restaurar** (substitui os dados atuais, com confirmação):
+1. Lê e **valida o arquivo inteiro antes de tocar em qualquer dado**. Se algo estiver errado, mostra o motivo
+   ("ganhos #2: campo \"data\" não é uma data válida") e **nada é alterado**.
+2. Copia as fotos (só adiciona), troca todas as tabelas em **uma transação** (se falhar, volta ao que era),
+   grava a depreciação e só então apaga as fotos que não pertencem mais a nenhuma despesa.
+3. Despesa cuja foto não veio no arquivo fica sem foto (e isso é avisado).
+
+**Validação:** formato e versão; tabelas e campos obrigatórios; tipos; enums conhecidos; datas válidas; valores, km e
+minutos não negativos; ids positivos e sem repetição; despesa de abastecimento/manutenção apontando para um registro
+que existe no backup; nomes de foto simples (sem pasta nem `..`); depreciação dentro do teto. Entradas do `.zip` com
+caminho suspeito são ignoradas.
+
+**Versões:** um backup mais novo que o app é recusado com pedido para atualizar. Quando o banco mudar (por exemplo, o
+horário do turno), a `versaoSchema` sobe e o app continua lendo as versões antigas.
 
 ## 10. Decisões em aberto
 

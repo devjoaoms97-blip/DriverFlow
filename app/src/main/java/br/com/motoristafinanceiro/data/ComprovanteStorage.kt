@@ -56,6 +56,19 @@ class ComprovanteStorage(private val pasta: File) {
         }
     }
 
+    /** Copia [origem] para a pasta com o nome [nome], substituindo se já existir (restauração de backup). */
+    fun restaurar(origem: File, nome: String) {
+        pasta.mkdirs()
+        origem.copyTo(arquivo(nome), overwrite = true)
+    }
+
+    /** Apaga todo arquivo da pasta que não está em [manter]. Devolve quantos foram apagados. */
+    fun manterSomente(manter: Set<String>): Int {
+        val sobras = pasta.listFiles()?.filter { it.isFile && it.name !in manter } ?: return 0
+        sobras.forEach { it.delete() }
+        return sobras.size
+    }
+
     /** Apaga os arquivos que nenhuma despesa usa. Devolve quantos foram apagados. */
     fun limparOrfaos(
         emUso: Set<String>,

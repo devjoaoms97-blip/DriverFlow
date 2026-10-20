@@ -14,7 +14,7 @@ Dados 100% locais no aparelho (sem login, sem servidor, sem nuvem).
 - **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km
 - **Análises:** ganho por hora por dia da semana, melhor dia e comparativo entre plataformas (Uber × 99), por período
 - **Reservas** para despesas fixas (IPVA, seguro, parcela), com quanto separar por dia
-- **Ajustes:** depreciação por km
+- **Ajustes:** depreciação por km e **backup** (exportar e restaurar um arquivo .zip com dados e fotos dos comprovantes)
 
 O que falta está no [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
@@ -50,6 +50,7 @@ app/src/main/java/br/com/motoristafinanceiro/
 ├── data/
 │   ├── model/               # Entidades Room e enums
 │   ├── db/                  # AppDatabase, DAOs, conversores
+│   ├── backup/              # Exportar e restaurar o backup (.zip: dados.json + fotos)
 │   ├── Repositorio.kt       # único ponto de acesso aos dados do banco
 │   ├── Configuracoes.kt     # ajustes do usuário (DataStore)
 │   ├── ComprovanteStorage.kt, ProcessadorDeImagem.kt   # fotos dos comprovantes

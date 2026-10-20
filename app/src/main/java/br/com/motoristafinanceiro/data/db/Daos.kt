@@ -27,6 +27,14 @@ interface GanhoDao {
 
     @Query("SELECT * FROM ganhos WHERE data BETWEEN :inicio AND :fim ORDER BY data DESC, id DESC")
     fun observarPorPeriodo(inicio: LocalDate, fim: LocalDate): Flow<List<Ganho>>
+
+    @Query("SELECT * FROM ganhos ORDER BY id")
+    suspend fun listarTodos(): List<Ganho>
+
+    @Query("DELETE FROM ganhos")
+    suspend fun apagarTodos()
+
+    @Insert suspend fun inserirTodos(lista: List<Ganho>)
 }
 
 @Dao
@@ -60,6 +68,14 @@ interface DespesaDao {
 
     @Query("SELECT * FROM despesas WHERE data BETWEEN :inicio AND :fim ORDER BY data DESC, id DESC")
     fun observarPorPeriodo(inicio: LocalDate, fim: LocalDate): Flow<List<Despesa>>
+
+    @Query("SELECT * FROM despesas ORDER BY id")
+    suspend fun listarTodos(): List<Despesa>
+
+    @Query("DELETE FROM despesas")
+    suspend fun apagarTodos()
+
+    @Insert suspend fun inserirTodos(lista: List<Despesa>)
 }
 
 @Dao
@@ -73,6 +89,14 @@ interface AbastecimentoDao {
 
     @Query("SELECT * FROM abastecimentos ORDER BY odometroKm ASC")
     fun observarTodos(): Flow<List<Abastecimento>>
+
+    @Query("SELECT * FROM abastecimentos ORDER BY id")
+    suspend fun listarTodos(): List<Abastecimento>
+
+    @Query("DELETE FROM abastecimentos")
+    suspend fun apagarTodos()
+
+    @Insert suspend fun inserirTodos(lista: List<Abastecimento>)
 }
 
 @Dao
@@ -86,6 +110,14 @@ interface ManutencaoDao {
 
     @Query("SELECT * FROM manutencoes ORDER BY odometroKm DESC")
     fun observarTodas(): Flow<List<Manutencao>>
+
+    @Query("SELECT * FROM manutencoes ORDER BY id")
+    suspend fun listarTodos(): List<Manutencao>
+
+    @Query("DELETE FROM manutencoes")
+    suspend fun apagarTodos()
+
+    @Insert suspend fun inserirTodos(lista: List<Manutencao>)
 }
 
 @Dao
@@ -98,6 +130,14 @@ interface ReservaDao {
 
     @Query("SELECT * FROM reservas ORDER BY proximoVencimento ASC")
     fun observarTodas(): Flow<List<ReservaDespesa>>
+
+    @Query("SELECT * FROM reservas ORDER BY id")
+    suspend fun listarTodos(): List<ReservaDespesa>
+
+    @Query("DELETE FROM reservas")
+    suspend fun apagarTodos()
+
+    @Insert suspend fun inserirTodos(lista: List<ReservaDespesa>)
 }
 
 @Dao
@@ -109,4 +149,12 @@ interface MetaDao {
 
     @Query("DELETE FROM metas WHERE mes = :mes")
     suspend fun excluir(mes: String)
+
+    @Query("SELECT * FROM metas ORDER BY mes")
+    suspend fun listarTodos(): List<Meta>
+
+    @Query("DELETE FROM metas")
+    suspend fun apagarTodos()
+
+    @Insert suspend fun inserirTodos(lista: List<Meta>)
 }

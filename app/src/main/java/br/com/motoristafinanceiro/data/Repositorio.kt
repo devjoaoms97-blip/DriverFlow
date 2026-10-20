@@ -1,6 +1,7 @@
 package br.com.motoristafinanceiro.data
 
 import androidx.room.withTransaction
+import br.com.motoristafinanceiro.data.backup.DadosBackup
 import br.com.motoristafinanceiro.data.db.AppDatabase
 import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.CategoriaDespesa
@@ -124,4 +125,36 @@ class Repositorio(private val db: AppDatabase) {
     fun meta(mes: String): Flow<Meta?> = db.metaDao().observar(mes)
     suspend fun salvarMeta(meta: Meta) = db.metaDao().salvar(meta)
     suspend fun excluirMeta(mes: String) = db.metaDao().excluir(mes)
+
+    // ---- Backup ----
+
+    /** Foto consistente de todas as tabelas (uma única transação). A depreciação vem do DataStore. */
+    suspend fun lerTudo(depreciacaoPorKmCentavos: Long): DadosBackup = db.withTransaction {
+        DadosBackup(
+            ganhos = db.ganhoDao().listarTodos(),
+            despesas = db.despesaDao().listarTodos(),
+            abastecimentos = db.abastecimentoDao().listarTodos(),
+            manutencoes = db.manutencaoDao().listarTodos(),
+            reservas = db.reservaDao().listarTodos(),
+            metas = db.metaDao().listarTodos(),
+            depreciacaoPorKmCentavos = depreciacaoPorKmCentavos,
+        )
+    }
+
+    /** Apaga tudo e insere os dados do backup mantendo os ids (os vínculos despesa ↔ abastecimento/manutenção dependem deles). */
+    suspend fun substituirTudo(d: DadosBackup) = db.withTransaction {
+        db.ganhoDao().apagarTodos()
+        db.despesaDao().apagarTodos()
+        db.abastecimentoDao().apagarTodos()
+        db.manutencaoDao().apagarTodos()
+        db.reservaDao().apagarTodos()
+        db.metaDao().apagarTodos()
+
+        db.ganhoDao().inserirTodos(d.ganhos)
+        db.despesaDao().inserirTodos(d.despesas)
+        db.abastecimentoDao().inserirTodos(d.abastecimentos)
+        db.manutencaoDao().inserirTodos(d.manutencoes)
+        db.reservaDao().inserirTodos(d.reservas)
+        db.metaDao().inserirTodos(d.metas)
+    }
 }

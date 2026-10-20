@@ -50,5 +50,5 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ⬜ Ganho por hora por faixa de horário (exige guardar o horário de início do turno: campo novo e migração do banco)
 - ✅ Comparativo entre plataformas (Uber × 99 e as demais): ganho, média por lançamento, por hora e por km
 - ✅ Tela Análises com período de 30 dias, 90 dias ou tudo
-- ⬜ Backup/restauração JSON (deve incluir as fotos dos comprovantes)
-- 🟡 Tela de Ajustes (só a depreciação por km por enquanto; falta o backup)
+- ✅ Backup e restauração em um arquivo .zip (dados em JSON + fotos dos comprovantes), com validação antes de restaurar
+- ✅ Tela de Ajustes (depreciação por km e backup; categorias e outros parâmetros só se fizerem falta)
