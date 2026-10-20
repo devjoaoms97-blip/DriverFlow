@@ -17,12 +17,12 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 
 | O quê | Onde | Como roda |
 |---|---|---|
-| Cálculos (lucro, km/l, reserva, alertas de manutenção, resumo do veículo) | `app/src/test/.../domain` | JUnit puro |
+| Cálculos (lucro, km/l, reserva, alertas de manutenção, resumo do veículo, meta mensal) | `app/src/test/.../domain` | JUnit puro |
 | Formatação e conversões | `app/src/test/.../util`, `.../data/db` | JUnit puro |
 | Configurações (DataStore) | `app/src/test/.../data/ConfiguracoesTest` | JUnit puro, arquivo temporário |
 | Ícone e manifest (arquivos de recurso presentes e referenciados) | `app/src/test/.../app/IconeDoAppTest`, `ComprovanteManifestTest` | JUnit puro |
 | Arquivos de comprovante (criar, apagar, órfãos) | `app/src/test/.../data/ComprovanteStorageTest` | JUnit puro, pasta temporária |
-| Estado e regras das telas (início, histórico, veículo, alertas) | `app/src/test/.../ui/...` | JUnit puro |
+| Estado e regras das telas (início, histórico, veículo, alertas, textos da meta) | `app/src/test/.../ui/...` | JUnit puro |
 | Repositório + Room (CRUD, vínculos, período) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
 
 ## Como rodar
@@ -110,3 +110,18 @@ testImplementation("androidx.test:core:1.6.1")
     "Remover" e salvar. A despesa deixa de mostrar "Com comprovante"
 30. **Cancelar a câmera:** abrir a câmera e voltar sem fotografar. Nenhuma miniatura aparece e nada quebra
 31. **Excluir despesa com foto:** excluir e conferir que ela some do Histórico (o arquivo da foto também é apagado)
+32. **Meta sem definir:** em um mês sem meta, o Início mostra o card "Meta do mês" com o botão "Definir meta"
+33. **Definir meta:** tocar em "Definir meta" (a barra inferior some), digitar 5000 e conferir o aviso
+    "≈ R$ 161,29 por dia" (outubro, 31 dias). Salvar volta ao Início
+34. **Card da meta:** deve mostrar a barra, "R$ lucro de R$ 5.000,00 (N%)", "Faltam R$ X por dia." e
+    "Faltam R$ Y em N dias (contando hoje)." A conta é (meta - lucro do mês) ÷ dias restantes, arredondada
+    para cima. Ex.: em 19/10, com lucro do mês de R$ 70,00, restam 13 dias e faltam R$ 379,24 por dia
+35. **Progresso acompanha os lançamentos:** lançar um ganho de R$ 200,00. O lucro, o percentual e o "por dia" mudam;
+    excluir o ganho faz tudo voltar
+36. **Editar meta:** tocar em "Editar meta", mudar para 4000 e salvar. O card passa a usar a nova meta
+37. **Validação:** digitar "abc", "0" ou "-5" mostra o erro e desabilita Salvar. Campo vazio também deixa Salvar desabilitado
+38. **Meta batida:** definir uma meta menor que o lucro do mês (ex.: 10,00). O card mostra
+    "Meta batida! Você passou R$ X da meta.", a barra cheia e some a linha de dias restantes
+39. **Remover meta:** em "Editar meta", tocar em "Remover meta" e confirmar. O card volta a "Definir meta"
+    e os lançamentos continuam iguais. "Cancelar" na confirmação não remove nada
+40. **Persistência:** fechar e reabrir o app mantém a meta definida

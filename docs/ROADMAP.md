@@ -21,7 +21,7 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ✅ Foto do comprovante nas despesas (câmera ou galeria), guardada na pasta privada do app, com ampliação
 
 ## Etapa 2: Início e histórico
-- 🟡 Tela inicial (hoje e mês; falta semana)
+- 🟡 Tela inicial (hoje, mês e meta; falta semana)
 - ✅ Card de atenção com manutenções atrasadas ou próximas no Início
 - ✅ Histórico por mês, agrupado por dia, com filtro Todos/Ganhos/Despesas
 - ⬜ Filtros por plataforma e categoria
@@ -41,8 +41,9 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ✅ Próximo vencimento avança sozinho quando a data cadastrada já passou
 
 ## Etapa 5: Metas
-- 🟡 Progresso da meta na Início (sem tela para definir a meta)
-- ⬜ Tela de meta com "quanto falta por dia"
+- ✅ Tela de meta mensal (definir, editar e remover), aberta pelo card do Início
+- ✅ Progresso da meta no Início (barra, percentual) e "quanto falta por dia" até o fim do mês, contando hoje
+- ⬜ Repetir a meta do mês anterior automaticamente, se quiser
 
 ## Etapa 6: Análises e backup
 - ⬜ Ganho por hora por dia da semana/horário

@@ -123,4 +123,5 @@ class Repositorio(private val db: AppDatabase) {
     // ---- Metas ----
     fun meta(mes: String): Flow<Meta?> = db.metaDao().observar(mes)
     suspend fun salvarMeta(meta: Meta) = db.metaDao().salvar(meta)
+    suspend fun excluirMeta(mes: String) = db.metaDao().excluir(mes)
 }

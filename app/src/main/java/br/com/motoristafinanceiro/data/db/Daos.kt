@@ -106,4 +106,7 @@ interface MetaDao {
 
     @Query("SELECT * FROM metas WHERE mes = :mes")
     fun observar(mes: String): Flow<Meta?>
+
+    @Query("DELETE FROM metas WHERE mes = :mes")
+    suspend fun excluir(mes: String)
 }

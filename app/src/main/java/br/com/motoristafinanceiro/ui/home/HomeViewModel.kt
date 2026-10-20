@@ -15,6 +15,8 @@ import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.domain.AlertaManutencao
 import br.com.motoristafinanceiro.domain.Estatisticas
+import br.com.motoristafinanceiro.domain.ProgressoMeta
+import br.com.motoristafinanceiro.domain.calcularProgressoMeta
 import br.com.motoristafinanceiro.domain.StatusAlerta
 import br.com.motoristafinanceiro.domain.calcularAlertas
 import br.com.motoristafinanceiro.domain.calcularEstatisticas
@@ -30,6 +32,8 @@ data class HomeUiState(
     val hoje: Estatisticas = Estatisticas(),
     val mes: Estatisticas = Estatisticas(),
     val metaCentavos: Long? = null,
+    /** Progresso e "quanto falta por dia"; null quando não há meta definida para o mês. */
+    val progressoMeta: ProgressoMeta? = null,
     /** Manutenções atrasadas ou próximas (as em dia não aparecem no Início). */
     val alertasUrgentes: List<AlertaManutencao> = emptyList(),
 )
@@ -50,14 +54,17 @@ internal fun montarEstadoHome(
     } else {
         calcularAlertas(manutencoes, odometro).filter { it.status != StatusAlerta.EM_DIA }
     }
+    val estatisticasMes = calcularEstatisticas(ganhosMes, despesasMes, depreciacaoPorKmCentavos)
+    val metaValida = meta?.valorAlvoLucroCentavos?.takeIf { it > 0 }
     return HomeUiState(
         hoje = calcularEstatisticas(
             ganhosMes.filter { it.data == hoje },
             despesasMes.filter { it.data == hoje },
             depreciacaoPorKmCentavos,
         ),
-        mes = calcularEstatisticas(ganhosMes, despesasMes, depreciacaoPorKmCentavos),
+        mes = estatisticasMes,
         metaCentavos = meta?.valorAlvoLucroCentavos,
+        progressoMeta = metaValida?.let { calcularProgressoMeta(it, estatisticasMes.lucroLiquidoCentavos, hoje) },
         alertasUrgentes = alertas,
     )
 }

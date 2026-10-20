@@ -38,6 +38,7 @@ import br.com.motoristafinanceiro.ui.historico.HistoricoScreen
 import br.com.motoristafinanceiro.ui.home.HomeScreen
 import br.com.motoristafinanceiro.ui.lancamento.NovoLancamentoScreen
 import br.com.motoristafinanceiro.ui.lancamento.TipoLancamento
+import br.com.motoristafinanceiro.ui.meta.MetaScreen
 import br.com.motoristafinanceiro.ui.reservas.ReservaScreen
 import br.com.motoristafinanceiro.ui.reservas.ReservasScreen
 import br.com.motoristafinanceiro.ui.veiculo.AbastecimentoScreen
@@ -63,7 +64,8 @@ private const val ROTA_DESPESA = "despesa/{id}"
 private const val ROTA_ABASTECIMENTO = "abastecimento/{id}"
 private const val ROTA_MANUTENCAO = "manutencao/{id}"
 private const val ROTA_AJUSTES = "ajustes"
-private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO, ROTA_AJUSTES, ROTA_RESERVA)
+private const val ROTA_META = "meta"
+private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO, ROTA_AJUSTES, ROTA_RESERVA, ROTA_META)
 
 @Composable
 fun AppNav() {
@@ -121,8 +123,14 @@ fun AppNav() {
         },
     ) { padding ->
         NavHost(nav, startDestination = "inicio", modifier = Modifier.padding(padding)) {
-            composable("inicio") { HomeScreen(onAbrirAjustes = { nav.navigate(ROTA_AJUSTES) }) }
+            composable("inicio") {
+                HomeScreen(
+                    onAbrirAjustes = { nav.navigate(ROTA_AJUSTES) },
+                    onAbrirMeta = { nav.navigate(ROTA_META) },
+                )
+            }
             composable(ROTA_AJUSTES) { AjustesScreen(onVoltar = { nav.popBackStack() }) }
+            composable(ROTA_META) { MetaScreen(onVoltar = { nav.popBackStack() }) }
             composable("historico") {
                 HistoricoScreen(
                     onEditarGanho = { nav.navigate("ganho/$it") },

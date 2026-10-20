@@ -9,6 +9,7 @@ Dados 100% locais no aparelho (sem login, sem servidor, sem nuvem).
 
 - **Ganhos e despesas** com data, plataforma, categoria e foto do comprovante (câmera ou galeria)
 - **Início** com lucro líquido do dia e do mês, ganho por km e por hora, custo por km, depreciação e alertas
+- **Meta mensal** de lucro líquido, com progresso e quanto falta por dia até o fim do mês
 - **Histórico** por mês, agrupado por dia, com filtro e edição de tudo que foi lançado
 - **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km
 - **Reservas** para despesas fixas (IPVA, seguro, parcela), com quanto separar por dia
@@ -59,5 +60,6 @@ app/src/main/java/br/com/motoristafinanceiro/
     ├── lancamento/          # Formulário de ganho/despesa
     ├── veiculo/             # Abastecimento, manutenção e alertas
     ├── reservas/, ajustes/  # Reservas e Ajustes
+    ├── meta/                # Tela da meta mensal e textos do card
     └── comprovante/         # Miniatura e ampliação da foto
 ```

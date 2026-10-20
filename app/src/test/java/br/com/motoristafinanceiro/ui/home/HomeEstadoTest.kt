@@ -103,4 +103,48 @@ class HomeEstadoTest {
         val ganhos = listOf(Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 10_000, km = 100.0))
         assertEquals(0L, montar(ganhos = ganhos).mes.depreciacaoCentavos)
     }
+
+    // ---- Meta mensal: progresso e quanto falta por dia ----
+
+    @Test
+    fun semMeta_semProgresso() {
+        assertNull(montar().progressoMeta)
+        assertNull(montar(meta = Meta("2026-10", 0)).progressoMeta) // meta zerada equivale a sem meta
+    }
+
+    @Test
+    fun meta_progressoUsaLucroLiquidoDoMesEDiasRestantes() {
+        val ganhos = listOf(
+            Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 200_000),
+            Ganho(data = ontem, plataforma = Plataforma.NOVE_NOVE, valorCentavos = 100_000),
+        )
+        val despesas = listOf(Despesa(data = ontem, categoria = CategoriaDespesa.LAVAGEM, valorCentavos = 50_000))
+
+        val p = montar(ganhos, despesas, meta = Meta("2026-10", 500_000)).progressoMeta!!
+
+        assertEquals(250_000L, p.lucroCentavos) // 300000 - 50000
+        assertEquals(250_000L, p.faltaCentavos)
+        assertEquals(17, p.diasRestantes)       // 15/10: dias 15 a 31
+        assertEquals(14_706L, p.faltaPorDiaCentavos) // 250000 / 17 = 14705,9
+    }
+
+    @Test
+    fun meta_depreciacaoNaoEntraNoProgresso() {
+        val ganhos = listOf(Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 100_000, km = 100.0))
+
+        val com = montar(ganhos, meta = Meta("2026-10", 500_000), depreciacaoPorKmCentavos = 30).progressoMeta!!
+        val sem = montar(ganhos, meta = Meta("2026-10", 500_000)).progressoMeta!!
+
+        assertEquals(sem.lucroCentavos, com.lucroCentavos)
+    }
+
+    @Test
+    fun meta_batida() {
+        val ganhos = listOf(Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 600_000))
+
+        val p = montar(ganhos, meta = Meta("2026-10", 500_000)).progressoMeta!!
+
+        assertTrue(p.atingida)
+        assertEquals(0L, p.faltaPorDiaCentavos)
+    }
 }

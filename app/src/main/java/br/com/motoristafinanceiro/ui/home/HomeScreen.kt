@@ -9,12 +9,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -23,12 +25,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.motoristafinanceiro.domain.Estatisticas
+import br.com.motoristafinanceiro.domain.ProgressoMeta
+import br.com.motoristafinanceiro.ui.meta.textoDiasRestantes
+import br.com.motoristafinanceiro.ui.meta.textoFaltaPorDia
 import br.com.motoristafinanceiro.ui.veiculo.ListaAlertas
 import br.com.motoristafinanceiro.util.formatarReais
 
 @Composable
 fun HomeScreen(
     onAbrirAjustes: () -> Unit,
+    onAbrirMeta: () -> Unit,
     vm: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
@@ -60,17 +66,29 @@ fun HomeScreen(
         CartaoResumo("Hoje", state.hoje)
         CartaoResumo("Este mês", state.mes)
 
-        state.metaCentavos?.takeIf { it > 0 }?.let { meta ->
-            val lucro = state.mes.lucroLiquidoCentavos
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Meta do mês", style = MaterialTheme.typography.titleMedium)
-                    LinearProgressIndicator(
-                        progress = { (lucro.toFloat() / meta).coerceIn(0f, 1f) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Text("${lucro.formatarReais()} de ${meta.formatarReais()}")
+        CartaoMeta(state.progressoMeta, onAbrirMeta)
+    }
+}
+
+@Composable
+private fun CartaoMeta(progresso: ProgressoMeta?, onAbrirMeta: () -> Unit) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Meta do mês", style = MaterialTheme.typography.titleMedium)
+            if (progresso == null) {
+                Text("Defina quanto você quer lucrar neste mês e veja quanto falta por dia.")
+                Button(onClick = onAbrirMeta, modifier = Modifier.fillMaxWidth()) { Text("Definir meta") }
+            } else {
+                LinearProgressIndicator(
+                    progress = { progresso.fracao },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text("${progresso.lucroCentavos.formatarReais()} de ${progresso.metaCentavos.formatarReais()} (${progresso.percentual}%)")
+                Text(textoFaltaPorDia(progresso), style = MaterialTheme.typography.titleSmall)
+                textoDiasRestantes(progresso).takeIf { it.isNotEmpty() }?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                TextButton(onClick = onAbrirMeta) { Text("Editar meta") }
             }
         }
     }
