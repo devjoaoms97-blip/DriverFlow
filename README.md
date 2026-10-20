@@ -12,6 +12,7 @@ Dados 100% locais no aparelho (sem login, sem servidor, sem nuvem).
 - **Meta mensal** de lucro líquido, com progresso e quanto falta por dia até o fim do mês
 - **Histórico** por mês, agrupado por dia, com filtro por tipo, plataforma e categoria e edição de tudo que foi lançado
 - **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km
+- **Análises:** ganho por hora por dia da semana, melhor dia e comparativo entre plataformas (Uber × 99), por período
 - **Reservas** para despesas fixas (IPVA, seguro, parcela), com quanto separar por dia
 - **Ajustes:** depreciação por km
 
@@ -60,6 +61,7 @@ app/src/main/java/br/com/motoristafinanceiro/
     ├── lancamento/          # Formulário de ganho/despesa
     ├── veiculo/             # Abastecimento, manutenção e alertas
     ├── reservas/, ajustes/  # Reservas e Ajustes
+    ├── analises/            # Análises por dia da semana e por plataforma
     ├── meta/                # Tela da meta mensal e textos do card
     └── comprovante/         # Miniatura e ampliação da foto
 ```

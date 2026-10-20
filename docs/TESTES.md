@@ -17,12 +17,12 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 
 | O quê | Onde | Como roda |
 |---|---|---|
-| Cálculos (lucro, km/l, reserva, alertas de manutenção, resumo do veículo, meta mensal) | `app/src/test/.../domain` | JUnit puro |
+| Cálculos (lucro, km/l, reserva, alertas de manutenção, resumo do veículo, meta mensal, análises) | `app/src/test/.../domain` | JUnit puro |
 | Formatação e conversões | `app/src/test/.../util`, `.../data/db` | JUnit puro |
 | Configurações (DataStore) | `app/src/test/.../data/ConfiguracoesTest` | JUnit puro, arquivo temporário |
 | Ícone e manifest (arquivos de recurso presentes e referenciados) | `app/src/test/.../app/IconeDoAppTest`, `ComprovanteManifestTest` | JUnit puro |
 | Arquivos de comprovante (criar, apagar, órfãos) | `app/src/test/.../data/ComprovanteStorageTest` | JUnit puro, pasta temporária |
-| Estado e regras das telas (início, semana, histórico e seus filtros, veículo, alertas, textos da meta) | `app/src/test/.../ui/...` | JUnit puro |
+| Estado e regras das telas (início, semana, histórico e seus filtros, veículo, alertas, textos da meta, análises) | `app/src/test/.../ui/...` | JUnit puro |
 | Repositório + Room (CRUD, vínculos, período) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
 
 ## Como rodar
@@ -142,3 +142,17 @@ testImplementation("androidx.test:core:1.6.1")
     continua o do mês inteiro (não muda com o filtro)
 48. **Sem resultado:** escolher uma plataforma ou categoria sem lançamentos mostra "Nenhum lançamento neste período"
     e o total R$ 0,00 (0 lançamentos)
+49. **Aba Análises:** aparecem os chips 30 dias, 90 dias e Tudo. Em um período sem ganhos, mostra
+    "Nenhum ganho lançado neste período."
+50. **Resumo:** com apenas o ganho Uber de R$ 100,00 / 50 km / 4 h e um ganho 99 de R$ 60,00 / 30 km / 2 h no período,
+    o "Resumo do período" mostra ganho bruto R$ 160,00, ganho por hora R$ 26,67 e ganho por km R$ 2,00
+51. **Por dia da semana:** são 7 linhas, de segunda a domingo, cada uma com barra, "R$ X/h · N dias · média R$ Y/dia".
+    Dia sem lançamento mostra "Sem lançamentos"; dia com ganho mas sem horas mostra "sem horas"
+52. **Melhor dia:** com horas informadas em pelo menos 2 dias da semana diferentes, aparece "Melhor dia por hora: ...".
+    Com horas em um dia só, a frase não aparece
+53. **Por plataforma:** um card para cada plataforma que tem ganho (Uber, 99...), com ganho bruto, lançamentos, média por
+    lançamento, ganho por hora e por km, do que mais rendeu para o que menos rendeu. Plataforma sem ganho não aparece
+54. **Horas não inflam o valor:** lançar um ganho Uber de R$ 50,00 sem horas e sem km. O ganho bruto da Uber sobe,
+    mas o ganho por hora e por km dela continuam iguais. Excluir esse ganho de teste depois
+55. **Período:** um ganho de 40 dias atrás entra em "90 dias" e "Tudo", mas não em "30 dias". Os números mudam ao trocar o chip
+56. **Atualiza sozinha:** lançar um ganho novo (botão +) e voltar para a aba Análises: os números já incluem o lançamento

@@ -1,7 +1,5 @@
 package br.com.motoristafinanceiro.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -23,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -34,6 +31,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import br.com.motoristafinanceiro.ui.ajustes.AjustesScreen
+import br.com.motoristafinanceiro.ui.analises.AnalisesScreen
 import br.com.motoristafinanceiro.ui.historico.HistoricoScreen
 import br.com.motoristafinanceiro.ui.home.HomeScreen
 import br.com.motoristafinanceiro.ui.lancamento.NovoLancamentoScreen
@@ -157,7 +155,7 @@ fun AppNav() {
                     onConcluir = { nav.popBackStack() },
                 )
             }
-            composable("analises") { EmConstrucao("Análises") }
+            composable("analises") { AnalisesScreen() }
 
             composable(ROTA_NOVO) {
                 NovoLancamentoScreen(tipo = null, id = 0L, onConcluir = { nav.popBackStack() })
@@ -221,13 +219,5 @@ fun AppNav() {
                 }) { Text("Manutenção") }
             },
         )
-    }
-}
-
-@Composable
-private fun EmConstrucao(titulo: String) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        // TODO: implementar conforme docs/ESPECIFICACAO.md
-        Text("$titulo — em construção")
     }
 }

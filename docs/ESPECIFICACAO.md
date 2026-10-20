@@ -69,6 +69,8 @@ com lançamento rápido (poucos toques) e funcionamento offline.
 | Km restantes (manutenção) | odômetro da última + intervalo − odômetro atual (negativo = atrasada) |
 | Reserva diária | valor da despesa ÷ dias do período (mensal 30, trimestral 91, semestral 182, anual 365) |
 | Próximo vencimento | data cadastrada; se já passou, avança de 1, 3, 6 ou 12 meses (conforme a periodicidade), sempre contando a partir da data original |
+| Desempenho (Análises) | ganho bruto (com gorjeta/bônus), lançamentos e dias trabalhados (datas diferentes). **Ganho por hora** = ganho dos lançamentos que têm horas ÷ suas horas; **ganho por km** = ganho dos lançamentos que têm km ÷ seus km. Lançamento sem horas ou sem km não entra na divisão, para não inflar o valor |
+| Melhor dia por hora | dia da semana com maior ganho por hora, só quando pelo menos 2 dias da semana têm horas informadas; empate fica com o dia que vem primeiro na semana |
 | Semana | de segunda a domingo. No Início soma os lançamentos da semana de hoje, mesmo quando ela atravessa dois meses (o card do mês continua só com o mês) |
 | Progresso da meta | lucro líquido do mês ÷ meta (percentual arredondado para baixo; a barra para em 100%, o percentual pode passar) |
 | Falta da meta | meta - lucro líquido do mês (nunca negativo) |
@@ -105,7 +107,7 @@ Schema do Room exportado em `app/schemas/` para versionar migrações.
 3. **Histórico:** lista por mês filtrável por tipo (Todos/Ganhos/Despesas). Com Ganhos, filtra também por plataforma; com Despesas, por categoria. Os dois refinos são limpos ao trocar o tipo. Com um refino ativo, aparece o total e a quantidade exibidos ("Uber no mês: R$ 450,00 (3 lançamentos)"); o resumo do mês inteiro não muda. Editar/excluir continuam valendo
 4. **Veículo:** consumo médio, custo por km, abastecimentos, manutenções e alertas
 5. **Reservas:** despesas recorrentes e total a separar por dia
-6. **Análises:** melhores dias/horários, Uber × 99
+6. **Análises:** período (30 dias, 90 dias ou tudo, sempre até hoje); resumo, ganho por hora por dia da semana (segunda a domingo, com barra, dias trabalhados e média por dia), melhor dia e comparativo por plataforma. Faixa de horário ainda não existe (ver decisões em aberto)
 7. **Ajustes:** backup/restauração, depreciação por km
 8. **Meta mensal** (aberta pelo card do Início): definir, editar e remover a meta do mês (R$ 0,01 a R$ 100.000,00). Cada mês tem a sua meta; mês novo começa sem meta
 
@@ -129,5 +131,6 @@ Exportar todas as tabelas em um único `.json` com campo `versaoSchema`, usando 
 ## 10. Decisões em aberto
 
 - Lançamento por corrida individual além do lançamento por turno?
+- Faixa de horário nas Análises (RF-13): o ganho hoje só tem data, sem horário. Para analisar por faixa é preciso registrar o horário de início do turno (campo novo no ganho, migração do Room da versão 1 para a 2, sem perder os dados atuais)
 - ~~Definição exata de "semana"~~ **Resolvido:** segunda a domingo
 - ~~Valor padrão de depreciação por km~~ **Resolvido:** começa em R$ 0,00/km (ignorada) e o usuário define em Ajustes; teto de R$ 10,00/km
