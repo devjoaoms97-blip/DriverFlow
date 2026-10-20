@@ -64,6 +64,7 @@ fun HomeScreen(
         }
 
         CartaoResumo("Hoje", state.hoje)
+        CartaoResumo("Esta semana (${state.rotuloSemana})", state.semana)
         CartaoResumo("Este mês", state.mes)
 
         CartaoMeta(state.progressoMeta, onAbrirMeta)

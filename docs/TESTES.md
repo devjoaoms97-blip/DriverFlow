@@ -22,7 +22,7 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Configurações (DataStore) | `app/src/test/.../data/ConfiguracoesTest` | JUnit puro, arquivo temporário |
 | Ícone e manifest (arquivos de recurso presentes e referenciados) | `app/src/test/.../app/IconeDoAppTest`, `ComprovanteManifestTest` | JUnit puro |
 | Arquivos de comprovante (criar, apagar, órfãos) | `app/src/test/.../data/ComprovanteStorageTest` | JUnit puro, pasta temporária |
-| Estado e regras das telas (início, histórico, veículo, alertas, textos da meta) | `app/src/test/.../ui/...` | JUnit puro |
+| Estado e regras das telas (início, semana, histórico e seus filtros, veículo, alertas, textos da meta) | `app/src/test/.../ui/...` | JUnit puro |
 | Repositório + Room (CRUD, vínculos, período) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
 
 ## Como rodar
@@ -125,3 +125,20 @@ testImplementation("androidx.test:core:1.6.1")
 39. **Remover meta:** em "Editar meta", tocar em "Remover meta" e confirmar. O card volta a "Definir meta"
     e os lançamentos continuam iguais. "Cancelar" na confirmação não remove nada
 40. **Persistência:** fechar e reabrir o app mantém a meta definida
+41. **Semana no Início:** entre "Hoje" e "Este mês" aparece o card "Esta semana (12/10 a 18/10)", com as datas
+    de segunda a domingo da semana atual. Lançar um ganho de R$ 100,00 hoje: Hoje, Esta semana e Este mês sobem juntos
+42. **Limite da semana:** lançar um ganho com data do domingo anterior à semana atual. Ele não entra em
+    "Esta semana", mas entra em "Este mês" se for do mesmo mês. Excluir esse ganho de teste depois
+43. **Semana na virada do mês** (só quando a semana atual cruza dois meses): "Esta semana" inclui os dias do mês
+    anterior, e "Este mês" continua só com o mês atual
+44. **Filtro por plataforma:** no Histórico, tocar em Ganhos. Aparece uma linha de chips (Todas, Uber, 99, InDrive,
+    Particular, Outra). Escolher Uber mostra só os ganhos da Uber, o saldo de cada dia muda para o que está na tela e
+    surge "Uber no mês: R$ X (N lançamentos)". Escolher "Todas" volta tudo
+45. **Filtro por categoria:** tocar em Despesas. A linha de chips das categorias rola para o lado. Escolher
+    Combustível mostra só essas despesas e o total ("Combustível no mês: R$ X (N lançamentos)")
+46. **Trocar o tipo limpa o refino:** com Uber escolhido em Ganhos, ir para Despesas e voltar para Ganhos. O chip
+    volta em "Todas". No tipo Todos não aparecem chips nem o total
+47. **Mês e resumo:** com um refino ativo, trocar de mês mantém o refino, e o "Lucro líquido do mês" no topo
+    continua o do mês inteiro (não muda com o filtro)
+48. **Sem resultado:** escolher uma plataforma ou categoria sem lançamentos mostra "Nenhum lançamento neste período"
+    e o total R$ 0,00 (0 lançamentos)

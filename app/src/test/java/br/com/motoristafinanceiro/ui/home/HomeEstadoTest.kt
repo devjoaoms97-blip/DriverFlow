@@ -147,4 +147,58 @@ class HomeEstadoTest {
         assertTrue(p.atingida)
         assertEquals(0L, p.faltaPorDiaCentavos)
     }
+
+    // ---- Semana (segunda a domingo) ----
+    // hoje = 15/10/2026 (quinta): a semana vai de 12/10 (segunda) a 18/10 (domingo)
+
+    @Test
+    fun semana_somaSoOsDiasDaSemana() {
+        val ganhos = listOf(
+            Ganho(data = LocalDate.of(2026, 10, 11), plataforma = Plataforma.UBER, valorCentavos = 90_000), // domingo anterior
+            Ganho(data = LocalDate.of(2026, 10, 12), plataforma = Plataforma.UBER, valorCentavos = 10_000), // segunda
+            Ganho(data = hoje, plataforma = Plataforma.NOVE_NOVE, valorCentavos = 5_000),
+        )
+        val despesas = listOf(Despesa(data = ontem, categoria = CategoriaDespesa.LAVAGEM, valorCentavos = 2_000))
+
+        val s = montar(ganhos, despesas)
+        val comSemana = montarEstadoHome(
+            ganhos, despesas, null, emptyList(), emptyList(), hoje,
+            ganhosSemana = ganhos, despesasSemana = despesas,
+        )
+
+        assertEquals(13_000L, comSemana.semana.lucroLiquidoCentavos) // 10000 + 5000 - 2000; o domingo anterior fica de fora
+        assertEquals(0L, s.semana.lucroLiquidoCentavos)               // sem dados de semana, vem zerado
+        assertEquals("12/10 a 18/10", comSemana.rotuloSemana)
+    }
+
+    @Test
+    fun semana_incluiDiasDoMesAnteriorQuandoAVirada() {
+        val hojeNoInicioDoMes = LocalDate.of(2026, 10, 2) // sexta; semana de 28/09 a 04/10
+        val ganhosDoMes = listOf(Ganho(data = hojeNoInicioDoMes, plataforma = Plataforma.UBER, valorCentavos = 4_000))
+        val ganhosDaSemana = listOf(
+            Ganho(data = LocalDate.of(2026, 9, 29), plataforma = Plataforma.UBER, valorCentavos = 6_000),
+            Ganho(data = hojeNoInicioDoMes, plataforma = Plataforma.UBER, valorCentavos = 4_000),
+        )
+
+        val s = montarEstadoHome(
+            ganhosDoMes, emptyList(), null, emptyList(), emptyList(), hojeNoInicioDoMes,
+            ganhosSemana = ganhosDaSemana,
+        )
+
+        assertEquals(10_000L, s.semana.lucroLiquidoCentavos) // 6000 de setembro + 4000 de outubro
+        assertEquals(4_000L, s.mes.lucroLiquidoCentavos)     // o mês continua só com outubro
+    }
+
+    @Test
+    fun semana_aplicaDepreciacaoPorKm() {
+        val ganhos = listOf(Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 10_000, km = 100.0))
+
+        val s = montarEstadoHome(
+            ganhos, emptyList(), null, emptyList(), emptyList(), hoje,
+            depreciacaoPorKmCentavos = 30, ganhosSemana = ganhos,
+        )
+
+        assertEquals(3_000L, s.semana.depreciacaoCentavos)
+        assertEquals(10_000L, s.semana.lucroLiquidoCentavos)
+    }
 }

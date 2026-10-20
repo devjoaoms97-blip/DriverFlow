@@ -17,6 +17,8 @@ import br.com.motoristafinanceiro.domain.AlertaManutencao
 import br.com.motoristafinanceiro.domain.Estatisticas
 import br.com.motoristafinanceiro.domain.ProgressoMeta
 import br.com.motoristafinanceiro.domain.calcularProgressoMeta
+import br.com.motoristafinanceiro.domain.fimDaSemana
+import br.com.motoristafinanceiro.domain.inicioDaSemana
 import br.com.motoristafinanceiro.domain.StatusAlerta
 import br.com.motoristafinanceiro.domain.calcularAlertas
 import br.com.motoristafinanceiro.domain.calcularEstatisticas
@@ -30,6 +32,10 @@ import java.time.YearMonth
 
 data class HomeUiState(
     val hoje: Estatisticas = Estatisticas(),
+    /** Semana atual, de segunda a domingo (inclui dias do mês anterior quando a semana vira o mês). */
+    val semana: Estatisticas = Estatisticas(),
+    /** Ex.: "12/10 a 18/10". */
+    val rotuloSemana: String = "",
     val mes: Estatisticas = Estatisticas(),
     val metaCentavos: Long? = null,
     /** Progresso e "quanto falta por dia"; null quando não há meta definida para o mês. */
@@ -47,6 +53,9 @@ internal fun montarEstadoHome(
     manutencoes: List<Manutencao>,
     hoje: LocalDate = LocalDate.now(),
     depreciacaoPorKmCentavos: Long = 0,
+    /** Lançamentos que cobrem a semana de [hoje]; podem vir de dois meses. Dias fora da semana são ignorados. */
+    ganhosSemana: List<Ganho> = emptyList(),
+    despesasSemana: List<Despesa> = emptyList(),
 ): HomeUiState {
     val odometro = odometroAtual(abastecimentos, manutencoes)
     val alertas = if (odometro == null) {
@@ -55,6 +64,7 @@ internal fun montarEstadoHome(
         calcularAlertas(manutencoes, odometro).filter { it.status != StatusAlerta.EM_DIA }
     }
     val estatisticasMes = calcularEstatisticas(ganhosMes, despesasMes, depreciacaoPorKmCentavos)
+    val semanaDeHoje = inicioDaSemana(hoje)..fimDaSemana(hoje)
     val metaValida = meta?.valorAlvoLucroCentavos?.takeIf { it > 0 }
     return HomeUiState(
         hoje = calcularEstatisticas(
@@ -62,6 +72,12 @@ internal fun montarEstadoHome(
             despesasMes.filter { it.data == hoje },
             depreciacaoPorKmCentavos,
         ),
+        semana = calcularEstatisticas(
+            ganhosSemana.filter { it.data in semanaDeHoje },
+            despesasSemana.filter { it.data in semanaDeHoje },
+            depreciacaoPorKmCentavos,
+        ),
+        rotuloSemana = rotuloSemana(hoje),
         mes = estatisticasMes,
         metaCentavos = meta?.valorAlvoLucroCentavos,
         progressoMeta = metaValida?.let { calcularProgressoMeta(it, estatisticasMes.lucroLiquidoCentavos, hoje) },
@@ -77,9 +93,18 @@ private data class DadosHome(
     val manutencoes: List<Manutencao>,
 )
 
+private data class DadosSemana(val ganhos: List<Ganho>, val despesas: List<Despesa>)
+
 class HomeViewModel(repo: Repositorio, configuracoes: Configuracoes) : ViewModel() {
 
     private val mesAtual = YearMonth.now()
+    private val inicioSemana = inicioDaSemana(LocalDate.now())
+    private val fimSemana = fimDaSemana(LocalDate.now())
+
+    private val semana = combine(
+        repo.ganhos(inicioSemana, fimSemana),
+        repo.despesas(inicioSemana, fimSemana),
+    ) { ganhos, despesas -> DadosSemana(ganhos, despesas) }
 
     private val dados = combine(
         repo.ganhos(mesAtual.atDay(1), mesAtual.atEndOfMonth()),
@@ -93,11 +118,14 @@ class HomeViewModel(repo: Repositorio, configuracoes: Configuracoes) : ViewModel
 
     val uiState: StateFlow<HomeUiState> = combine(
         dados,
+        semana,
         configuracoes.depreciacaoPorKmCentavos,
-    ) { d, depreciacao ->
+    ) { d, s, depreciacao ->
         montarEstadoHome(
             d.ganhos, d.despesas, d.meta, d.abastecimentos, d.manutencoes,
             depreciacaoPorKmCentavos = depreciacao,
+            ganhosSemana = s.ganhos,
+            despesasSemana = s.despesas,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 

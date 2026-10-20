@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -27,8 +29,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import br.com.motoristafinanceiro.data.model.CategoriaDespesa
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.Plataforma
 import br.com.motoristafinanceiro.util.formatarReais
 import br.com.motoristafinanceiro.util.minutosParaHorasTexto
 import br.com.motoristafinanceiro.util.paraTextoNumero
@@ -97,6 +101,47 @@ fun HistoricoScreen(
             }
         }
 
+        // Refinos do tipo escolhido: plataforma para Ganhos, categoria para Despesas.
+        when (state.filtro) {
+            FiltroHistorico.GANHOS -> LinhaDeChips {
+                FilterChip(
+                    selected = state.plataforma == null,
+                    onClick = { vm.filtrarPlataforma(null) },
+                    label = { Text("Todas") },
+                )
+                Plataforma.entries.forEach {
+                    FilterChip(
+                        selected = state.plataforma == it,
+                        onClick = { vm.filtrarPlataforma(it) },
+                        label = { Text(it.rotulo) },
+                    )
+                }
+            }
+            FiltroHistorico.DESPESAS -> LinhaDeChips {
+                FilterChip(
+                    selected = state.categoria == null,
+                    onClick = { vm.filtrarCategoria(null) },
+                    label = { Text("Todas") },
+                )
+                CategoriaDespesa.entries.forEach {
+                    FilterChip(
+                        selected = state.categoria == it,
+                        onClick = { vm.filtrarCategoria(it) },
+                        label = { Text(it.rotulo) },
+                    )
+                }
+            }
+            FiltroHistorico.TODOS -> Unit
+        }
+
+        state.resumoFiltro?.let {
+            Text(
+                textoResumoFiltro(it),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            )
+        }
+
         if (state.dias.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Nenhum lançamento neste período")
@@ -124,6 +169,15 @@ fun HistoricoScreen(
             }
         }
     }
+}
+
+/** Chips em uma linha que rola para o lado quando não cabem na tela. */
+@Composable
+private fun LinhaDeChips(conteudo: @Composable () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) { conteudo() }
 }
 
 @Composable

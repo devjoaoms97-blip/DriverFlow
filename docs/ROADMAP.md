@@ -21,10 +21,10 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ✅ Foto do comprovante nas despesas (câmera ou galeria), guardada na pasta privada do app, com ampliação
 
 ## Etapa 2: Início e histórico
-- 🟡 Tela inicial (hoje, mês e meta; falta semana)
+- ✅ Tela inicial (hoje, semana de segunda a domingo, mês e meta)
 - ✅ Card de atenção com manutenções atrasadas ou próximas no Início
 - ✅ Histórico por mês, agrupado por dia, com filtro Todos/Ganhos/Despesas
-- ⬜ Filtros por plataforma e categoria
+- ✅ Filtros por plataforma (nos Ganhos) e por categoria (nas Despesas), com total e quantidade do que está na tela
 
 ## Etapa 3: Veículo
 - ✅ Tela Veículo: consumo médio (km/l), odômetro atual, último litro, custo por km do mês

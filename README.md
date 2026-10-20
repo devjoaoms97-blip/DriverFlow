@@ -8,9 +8,9 @@ Dados 100% locais no aparelho (sem login, sem servidor, sem nuvem).
 ## O que o app faz hoje
 
 - **Ganhos e despesas** com data, plataforma, categoria e foto do comprovante (câmera ou galeria)
-- **Início** com lucro líquido do dia e do mês, ganho por km e por hora, custo por km, depreciação e alertas
+- **Início** com lucro líquido do dia, da semana (segunda a domingo) e do mês, ganho por km e por hora, custo por km, depreciação e alertas
 - **Meta mensal** de lucro líquido, com progresso e quanto falta por dia até o fim do mês
-- **Histórico** por mês, agrupado por dia, com filtro e edição de tudo que foi lançado
+- **Histórico** por mês, agrupado por dia, com filtro por tipo, plataforma e categoria e edição de tudo que foi lançado
 - **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km
 - **Reservas** para despesas fixas (IPVA, seguro, parcela), com quanto separar por dia
 - **Ajustes:** depreciação por km

@@ -69,6 +69,7 @@ com lançamento rápido (poucos toques) e funcionamento offline.
 | Km restantes (manutenção) | odômetro da última + intervalo − odômetro atual (negativo = atrasada) |
 | Reserva diária | valor da despesa ÷ dias do período (mensal 30, trimestral 91, semestral 182, anual 365) |
 | Próximo vencimento | data cadastrada; se já passou, avança de 1, 3, 6 ou 12 meses (conforme a periodicidade), sempre contando a partir da data original |
+| Semana | de segunda a domingo. No Início soma os lançamentos da semana de hoje, mesmo quando ela atravessa dois meses (o card do mês continua só com o mês) |
 | Progresso da meta | lucro líquido do mês ÷ meta (percentual arredondado para baixo; a barra para em 100%, o percentual pode passar) |
 | Falta da meta | meta - lucro líquido do mês (nunca negativo) |
 | Dias restantes | dias do mês de hoje até o último dia, **contando hoje** (dia 15 de outubro: 17 dias) |
@@ -99,9 +100,9 @@ Schema do Room exportado em `app/schemas/` para versionar migrações.
 
 ## 7. Telas
 
-1. **Início:** lucro líquido (hoje/mês), indicadores, card da meta (progresso e quanto falta por dia)
+1. **Início:** lucro líquido (hoje/semana/mês), indicadores, card da meta (progresso e quanto falta por dia)
 2. **Novo lançamento** (botão +): abas Ganho / Despesa
-3. **Histórico:** lista filtrável, com editar/excluir
+3. **Histórico:** lista por mês filtrável por tipo (Todos/Ganhos/Despesas). Com Ganhos, filtra também por plataforma; com Despesas, por categoria. Os dois refinos são limpos ao trocar o tipo. Com um refino ativo, aparece o total e a quantidade exibidos ("Uber no mês: R$ 450,00 (3 lançamentos)"); o resumo do mês inteiro não muda. Editar/excluir continuam valendo
 4. **Veículo:** consumo médio, custo por km, abastecimentos, manutenções e alertas
 5. **Reservas:** despesas recorrentes e total a separar por dia
 6. **Análises:** melhores dias/horários, Uber × 99
@@ -128,5 +129,5 @@ Exportar todas as tabelas em um único `.json` com campo `versaoSchema`, usando 
 ## 10. Decisões em aberto
 
 - Lançamento por corrida individual além do lançamento por turno?
-- Definição exata de "semana" (segunda a domingo é a sugestão)
+- ~~Definição exata de "semana"~~ **Resolvido:** segunda a domingo
 - ~~Valor padrão de depreciação por km~~ **Resolvido:** começa em R$ 0,00/km (ignorada) e o usuário define em Ajustes; teto de R$ 10,00/km
