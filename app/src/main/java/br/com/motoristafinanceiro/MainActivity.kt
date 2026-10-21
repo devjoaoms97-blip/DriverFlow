@@ -19,6 +19,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import br.com.motoristafinanceiro.data.ModoTema
 import br.com.motoristafinanceiro.notificacoes.AgendadorDeNotificacoes
 import br.com.motoristafinanceiro.notificacoes.EXTRA_ABRIR
 import br.com.motoristafinanceiro.notificacoes.NotificadorAndroid
@@ -50,7 +52,8 @@ class MainActivity : ComponentActivity() {
             // Verifica os alertas de manutenção a cada mudança nos dados (e ao abrir o app).
             LaunchedEffect(Unit) { AgendadorDeNotificacoes.verificarACadaMudanca(app) }
             LaunchedEffect(Unit) { perguntarPermissaoUmaVez(app) }
-            MotoristaTheme {
+            val modoTema by app.configuracoes.modoTema.collectAsStateWithLifecycle(initialValue = ModoTema.PADRAO)
+            MotoristaTheme(modo = modoTema) {
                 // rememberSaveable: girar a tela depois da abertura não toca a animação de novo.
                 var abertura by rememberSaveable { mutableStateOf(comAbertura) }
                 Box(Modifier.fillMaxSize()) {

@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +33,13 @@ class Configuracoes(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[CHAVE_NOTIFICACOES_MANUTENCAO] = ativas }
     }
 
+    /** Aparência do app (Automático, Claro ou Escuro). Padrão: Escuro. Fica só no aparelho, fora do backup. */
+    val modoTema: Flow<ModoTema> = dataStore.data.map { ModoTema.deNome(it[CHAVE_MODO_TEMA]) }
+
+    suspend fun salvarModoTema(modo: ModoTema) {
+        dataStore.edit { it[CHAVE_MODO_TEMA] = modo.name }
+    }
+
     /** Se o app já mostrou a pergunta de permissão de notificação ao abrir (para perguntar só uma vez). */
     val permissaoNotificacaoPerguntada: Flow<Boolean> =
         dataStore.data.map { it[CHAVE_PERMISSAO_PERGUNTADA] ?: false }
@@ -53,6 +61,7 @@ class Configuracoes(private val dataStore: DataStore<Preferences>) {
         private val CHAVE_NOTIFICACOES_MANUTENCAO = booleanPreferencesKey("notificacoes_manutencao_ativas")
         private val CHAVE_ALERTAS_NOTIFICADOS = stringSetPreferencesKey("alertas_manutencao_notificados")
         private val CHAVE_PERMISSAO_PERGUNTADA = booleanPreferencesKey("permissao_notificacao_perguntada")
+        private val CHAVE_MODO_TEMA = stringPreferencesKey("modo_tema")
 
         fun criar(context: Context): Configuracoes = Configuracoes(context.applicationContext.dataStoreConfiguracoes)
     }

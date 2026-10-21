@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.motoristafinanceiro.MotoristaApp
 import br.com.motoristafinanceiro.data.Configuracoes
+import br.com.motoristafinanceiro.data.ModoTema
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -16,6 +17,12 @@ class AjustesViewModel(private val configuracoes: Configuracoes) : ViewModel() {
     private var ocupado = false
 
     suspend fun depreciacaoAtual(): Long = configuracoes.depreciacaoPorKmCentavos.first()
+
+    val modoTema: Flow<ModoTema> = configuracoes.modoTema
+
+    fun definirModoTema(modo: ModoTema) {
+        viewModelScope.launch { configuracoes.salvarModoTema(modo) }
+    }
 
     val notificacoesAtivas: Flow<Boolean> = configuracoes.notificacoesManutencaoAtivas
 

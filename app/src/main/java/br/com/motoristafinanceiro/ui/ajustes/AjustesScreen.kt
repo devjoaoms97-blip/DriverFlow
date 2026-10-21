@@ -105,6 +105,9 @@ private fun FormAjustes(vm: AjustesViewModel, valorInicial: Long, onVoltar: () -
         ) { Text("Salvar") }
 
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
+        SecaoAparencia(vm)
+
+        HorizontalDivider(Modifier.padding(vertical = 8.dp))
         SecaoNotificacoes(vm)
 
         HorizontalDivider(Modifier.padding(vertical = 8.dp))

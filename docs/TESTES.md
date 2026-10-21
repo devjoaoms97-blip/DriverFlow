@@ -102,7 +102,8 @@ testImplementation("androidx.test:core:1.6.1")
     um fade para a tela Início, sem piscar de branco. Tocar na tela durante a animação pula direto para o Início.
     No Android 13+, na primeira abertura, a pergunta de permissão de notificação aparece por cima da animação
     19c. **Abertura só no início do app:** girar a tela depois que a animação acabou não toca de novo. Tocar numa
-    notificação de manutenção com o app fechado abre direto a aba Veículo, sem a animação
+    notificação de manutenção com o app fechado abre direto a aba Veículo, sem a animação. Fechar o app de verdade (deslizar
+    nos apps recentes) ou sair pelo botão voltar e abrir de novo: a animação toca outra vez. Minimizar e voltar sem fechar não toca
 20. **Reservas:** na aba Reservas, tocar em + e escolher o atalho IPVA (vem anual). Valor 3650,00 e um vencimento
     daqui a alguns meses. O card "Separar por dia" deve mostrar R$ 10,00
 21. **Total:** cadastrar também um Seguro mensal de R$ 300,00. O total passa a R$ 20,00 por dia e R$ 140,00 por semana
@@ -204,7 +205,13 @@ testImplementation("androidx.test:core:1.6.1")
     Liberar e voltar ao app: o aviso some. Ligar a chave de novo e conferir que a notificação chega
 75. **Backup guarda a chave:** desligar a chave, Exportar backup, ligar a chave e Restaurar o backup. A chave volta desligada
     e, se havia alerta próximo ou atrasado, a notificação chega de novo uma vez (a lista de alertas já avisados é zerada)
-76. **Tema:** todas as telas (Início, Histórico, Veículo, Reservas, Metas, Análises, Ajustes e os formulários) em azul-marinho com
+76. **Tema escuro (padrão):** todas as telas (Início, Histórico, Veículo, Reservas, Metas, Análises, Ajustes e os formulários) em azul-marinho com
     texto claro, botões azuis, ganhos em verde e despesas em vermelho. A barra de status e a de navegação do Android ficam na cor do
     fundo, com ícones claros. Conferir também com o celular em modo claro e com outro papel de parede: o app não muda de cor.
     Ao abrir, a passagem da animação para o Início não pisca de branco. Anotar qualquer texto difícil de ler
+77. **Aparência:** Ajustes > Aparência mostra três opções (Automático, Claro, Escuro) com Escuro marcada. Escolher Claro: o app
+    inteiro muda na hora (fundo claro, texto escuro, ganhos em verde-escuro, despesas em vermelho-escuro, barra de status com
+    ícones escuros). Escolher Escuro: volta. Escolher Automático e trocar o modo escuro do celular com o app aberto: o app acompanha
+78. **Aparência lembrada:** com Claro escolhido, fechar o app e abrir de novo: a animação continua azul-marinho e, depois dela,
+    o app aparece claro. Passar por todas as telas no modo Claro e anotar qualquer texto difícil de ler
+79. **Teclado no modo Claro:** abrir um formulário e o teclado: não aparece faixa escura atrás dele

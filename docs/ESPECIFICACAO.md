@@ -110,7 +110,7 @@ Schema do Room exportado em `app/schemas/` para versionar migrações.
 4. **Veículo:** consumo médio, custo por km, abastecimentos, manutenções e alertas
 5. **Reservas:** despesas recorrentes e total a separar por dia
 6. **Análises:** período (30 dias, 90 dias ou tudo, sempre até hoje); resumo, ganho por hora por dia da semana (segunda a domingo, com barra, dias trabalhados e média por dia), melhor dia e comparativo por plataforma. Faixa de horário ainda não existe (ver decisões em aberto)
-7. **Ajustes:** depreciação por km, aviso de manutenção (chave que liga e desliga as notificações; pede a permissão do Android 13+ se ainda não liberada) e backup (Exportar backup, Restaurar backup)
+7. **Ajustes:** depreciação por km, aparência (Automático, Claro ou Escuro), aviso de manutenção (chave que liga e desliga as notificações; pede a permissão do Android 13+ se ainda não liberada) e backup (Exportar backup, Restaurar backup)
 8. **Meta mensal** (aberta pelo card do Início): definir, editar e remover a meta do mês (R$ 0,01 a R$ 100.000,00). Cada mês tem a sua meta; mês novo começa sem meta
 
 ## 8. Arquitetura
@@ -124,7 +124,7 @@ UI (Compose) → ViewModel (StateFlow) → Repositorio → DAOs (Room)
 - Injeção de dependência manual via `MotoristaApp` e `viewModelFactory` (Hilt pode entrar depois, se quiser)
 - Um `ViewModel` por tela
 - Fluxos reativos (`Flow`) do banco até a UI
-- Tema escuro único e próprio (`ui/theme`): azul-marinho do logo no fundo, azul nas ações, verde nos ganhos, vermelho nas despesas e âmbar nos alertas próximos. Sem as cores dinâmicas do Android, para o app ter a mesma cara em qualquer celular
+- Tema próprio (`ui/theme`), escuro e claro, escolhido em Ajustes > Aparência (Automático, Claro ou Escuro; padrão Escuro). Azul-marinho do logo no fundo escuro, azul nas ações, verde nos ganhos, vermelho nas despesas e âmbar nos alertas próximos. Sem as cores dinâmicas do Android, para o app ter a mesma cara em qualquer celular. A escolha fica só no aparelho e não entra no backup
 - `notificacoes/`: `VerificadorDeManutencao` (regra, sem Android) + `NotificadorAndroid` (canal e notificação) + `VerificarManutencaoWorker` e `AgendadorDeNotificacoes` (WorkManager)
 
 ## 9. Backup

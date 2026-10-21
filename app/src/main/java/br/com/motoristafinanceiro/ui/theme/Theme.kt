@@ -1,31 +1,38 @@
 package br.com.motoristafinanceiro.ui.theme
 
 import android.app.Activity
+import android.graphics.drawable.ColorDrawable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import br.com.motoristafinanceiro.data.ModoTema
 
 /**
- * Tema único e escuro do DriverFlow. Não usa as cores dinâmicas do Android (que vêm do papel de parede):
- * o app tem a mesma cara em qualquer celular e combina com a abertura.
+ * Tema do DriverFlow, com paleta própria escura e clara (nunca as cores dinâmicas do Android, que vêm do
+ * papel de parede): o app tem a mesma cara em qualquer celular. [modo] vem de Ajustes.
  */
 @Composable
-fun MotoristaTheme(content: @Composable () -> Unit) {
+fun MotoristaTheme(modo: ModoTema = ModoTema.PADRAO, content: @Composable () -> Unit) {
+    val escuro = temaEscuro(modo, isSystemInDarkTheme())
+    val esquema = if (escuro) EsquemaDriverFlow else EsquemaClaroDriverFlow
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val janela = (view.context as Activity).window
-            // Barras do sistema na cor do fundo, com ícones claros.
-            janela.statusBarColor = EsquemaDriverFlow.background.toArgb()
-            janela.navigationBarColor = EsquemaDriverFlow.background.toArgb()
+            val fundo = esquema.background.toArgb()
+            // Barras do sistema e fundo da janela na cor do fundo (o teclado abrindo não mostra outra cor).
+            janela.statusBarColor = fundo
+            janela.navigationBarColor = fundo
+            janela.setBackgroundDrawable(ColorDrawable(fundo))
             WindowCompat.getInsetsController(janela, view).apply {
-                isAppearanceLightStatusBars = false
-                isAppearanceLightNavigationBars = false
+                isAppearanceLightStatusBars = !escuro
+                isAppearanceLightNavigationBars = !escuro
             }
         }
     }
-    MaterialTheme(colorScheme = EsquemaDriverFlow, content = content)
+    MaterialTheme(colorScheme = esquema, content = content)
 }

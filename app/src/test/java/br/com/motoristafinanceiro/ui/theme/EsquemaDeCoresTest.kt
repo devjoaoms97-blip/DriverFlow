@@ -1,5 +1,6 @@
 package br.com.motoristafinanceiro.ui.theme
 
+import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import org.junit.Assert.assertEquals
@@ -18,14 +19,7 @@ class EsquemaDeCoresTest {
         return (claro + 0.05f) / (escuro + 0.05f)
     }
 
-    @Test
-    fun fundoDoApp_eOMesmoDaAbertura() {
-        assertEquals(Color(0xFF080E20), c.background)
-        assertTrue(File("src/main/res/values/themes.xml").readText().contains("windowSplashScreenBackground\">#080E20<"))
-    }
-
-    @Test
-    fun paresTextoEFundo_temContrasteMinimoDe4e5() {
+    private fun confereContraste(c: ColorScheme) {
         val pares = mapOf(
             "onBackground/background" to (c.onBackground to c.background),
             "onSurface/surface" to (c.onSurface to c.surface),
@@ -57,10 +51,30 @@ class EsquemaDeCoresTest {
     }
 
     @Test
-    fun ganhosEDespesas_temCoresDiferentes() {
+    fun fundoDoApp_eOMesmoDaAbertura() {
+        assertEquals(Color(0xFF080E20), c.background)
+        assertTrue(File("src/main/res/values/themes.xml").readText().contains("windowSplashScreenBackground\">#080E20<"))
+    }
+
+    @Test
+    fun paresTextoEFundo_temContrasteMinimoDe4e5_noTemaEscuro() = confereContraste(EsquemaDriverFlow)
+
+    @Test
+    fun paresTextoEFundo_temContrasteMinimoDe4e5_noTemaClaro() = confereContraste(EsquemaClaroDriverFlow)
+
+    @Test
+    fun temaClaroTemFundoClaro_eOEscuroTemFundoEscuro() {
+        assertTrue(EsquemaClaroDriverFlow.background.luminance() > 0.8f)
+        assertTrue(EsquemaDriverFlow.background.luminance() < 0.05f)
+    }
+
+    @Test
+    fun ganhosEDespesas_temCoresDiferentes_nosDoisTemas() {
         // Ganho usa secondary (verde) e despesa usa error (vermelho) no Histórico.
-        assertNotEquals(c.secondary, c.error)
-        assertNotEquals(c.secondary, c.primary)
+        listOf(EsquemaDriverFlow, EsquemaClaroDriverFlow).forEach {
+            assertNotEquals(it.secondary, it.error)
+            assertNotEquals(it.secondary, it.primary)
+        }
     }
 
     @Test
