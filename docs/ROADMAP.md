@@ -36,7 +36,8 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ✅ Registrar, editar e excluir manutenções (a despesa acompanha), com intervalo em km sugerido por tipo
 - ✅ Alertas por km (atrasada / próxima a 500 km / em dia) na tela Veículo e no Início
 - ✅ Despesa de manutenção no Histórico abre o formulário da manutenção
-- ⬜ Notificações com WorkManager (hoje os alertas aparecem só dentro do app)
+- ✅ Notificações de manutenção (próxima a 500 km ou atrasada) com WorkManager, ligadas em Ajustes (começam desligadas); pedem a permissão do Android 13+ só ao ligar
+- ⬜ Estimar o odômetro com os km dos ganhos, para o alerta andar sem precisar abastecer (hoje o km só avança com abastecimento ou manutenção)
 - ✅ Reservas: cadastro, edição e exclusão de despesas fixas (IPVA, seguro, parcela...), com quanto separar por dia e por semana
 - ✅ Próximo vencimento avança sozinho quando a data cadastrada já passou
 

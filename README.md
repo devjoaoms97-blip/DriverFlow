@@ -14,7 +14,7 @@ Dados 100% locais no aparelho (sem login, sem servidor, sem nuvem).
 - **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km
 - **Análises:** ganho por hora por dia da semana, melhor dia e comparativo entre plataformas (Uber × 99), por período
 - **Reservas** para despesas fixas (IPVA, seguro, parcela), com quanto separar por dia
-- **Ajustes:** depreciação por km e **backup** (exportar e restaurar um arquivo .zip com dados e fotos dos comprovantes)
+- **Ajustes:** depreciação por km, **aviso de manutenção** (notificação quando uma manutenção fica próxima ou atrasada) e **backup** (exportar e restaurar um arquivo .zip com dados e fotos dos comprovantes)
 
 O que falta está no [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
@@ -55,6 +55,7 @@ app/src/main/java/br/com/motoristafinanceiro/
 │   ├── Configuracoes.kt     # ajustes do usuário (DataStore)
 │   ├── ComprovanteStorage.kt, ProcessadorDeImagem.kt   # fotos dos comprovantes
 ├── domain/                  # Regras puras de cálculo (testáveis)
+├── notificacoes/            # Aviso de manutenção: verificador, notificação e WorkManager
 ├── util/                    # Formatação de dinheiro, números e km
 └── ui/
     ├── theme/, navigation/  # Tema e NavHost + barra inferior

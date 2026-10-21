@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Nenhuma permissão necessária no MVP (app 100% local). -->
+    <!-- Única permissão: notificações de manutenção (Android 13+). O app é 100% local e só pede quando o usuário liga o aviso em Ajustes. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Permite abrir o app de câmera do aparelho (Android 11+) -->
     <queries>

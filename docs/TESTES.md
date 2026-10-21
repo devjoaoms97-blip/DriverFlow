@@ -22,6 +22,7 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Configurações (DataStore) | `app/src/test/.../data/ConfiguracoesTest` | JUnit puro, arquivo temporário |
 | Ícone e manifest (arquivos de recurso presentes e referenciados) | `app/src/test/.../app/IconeDoAppTest`, `ComprovanteManifestTest` | JUnit puro |
 | Arquivos de comprovante (criar, apagar, órfãos) | `app/src/test/.../data/ComprovanteStorageTest` | JUnit puro, pasta temporária |
+| Notificações de manutenção (regra de avisar uma vez por estado, textos, verificador com Room e permissão negada, chave e alertas avisados no DataStore, estado da chave em Ajustes, manifest e ícone) | `app/src/test/.../domain/NotificacoesManutencaoTest`, `.../notificacoes`, `.../data/ConfiguracoesNotificacoesTest`, `.../ui/ajustes/EstadoNotificacaoTest`, `.../app/NotificacaoManifestTest` | JUnit puro; o verificador usa Robolectric com Room em memória |
 | Backup (leitura e validação do JSON, arquivo .zip, exportar/restaurar, textos) | `app/src/test/.../data/backup`, `.../data/RepositorioBackupTest`, `.../ui/ajustes` | JSON, zip e restauração com Robolectric; datas, fotos e textos em JUnit puro |
 | Estado e regras das telas (início, semana, histórico e seus filtros, veículo, alertas, textos da meta, análises) | `app/src/test/.../ui/...` | JUnit puro |
 | Repositório + Room (CRUD, vínculos, período) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
@@ -176,3 +177,18 @@ testImplementation("androidx.test:core:1.6.1")
     Desinstalar o app, instalar de novo (`.\gradlew installDebug`), abrir Ajustes > "Restaurar backup" e escolher o .zip.
     Lançamentos, veículo, reservas, metas, depreciação e fotos voltam. (`installDebug` por cima do app instalado NÃO apaga os
     dados; só desinstalar apaga)
+66. **Aviso começa desligado:** Ajustes mostra "Avisar sobre manutenção" com a chave desligada e sem aviso em vermelho
+67. **Ligar:** ligar a chave. No Android 13 ou mais novo aparece a pergunta de permissão; permitir. A chave fica ligada
+68. **Notificação próxima:** com a troca de óleo do passo 11 e a chave ligada, registrar um abastecimento de teste com
+    odômetro 19.700. Chega a notificação "Manutenção próxima: Troca de óleo — Faltam 300 km" (pode levar alguns segundos;
+    puxe a barra de notificações). Se não chegar no Xiaomi: Configurações > Apps > Motorista Financeiro > Notificações
+69. **Não repete:** fechar e abrir o app e editar qualquer lançamento. Nenhuma notificação igual chega de novo
+70. **Atrasada:** registrar um abastecimento de teste com odômetro 20.200. A notificação é substituída por
+    "Manutenção atrasada: Troca de óleo — Atrasada em 200 km" (continua uma só na barra)
+71. **Tocar:** tocar na notificação abre o app e ela some da barra
+72. **Resolvida:** registrar uma nova troca de óleo no odômetro 20.200. A notificação (se ainda estiver na barra) some e o
+    alerta fica em dia. Excluir os abastecimentos de teste depois
+73. **Desligar:** com um alerta próximo ou atrasado de novo, desligar a chave. A notificação some e nada novo chega
+74. **Permissão negada:** bloquear as notificações do app nas configurações do Android (ou negar a pergunta do passo 67) e ligar a
+    chave. Aparece o aviso em vermelho com o botão "Abrir configurações de notificação", que abre a tela certa do Android.
+    Liberar e voltar ao app: o aviso some. Ligar a chave de novo e conferir que a notificação chega
