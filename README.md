@@ -1,6 +1,6 @@
 # DriverFlow
 
-(Antes chamado Motorista Financeiro; o repositório e o pacote do app mantêm o nome antigo.)
+(Antes chamado Motorista Financeiro; o pacote do app (`br.com.motoristafinanceiro`) mantém o nome antigo.)
 
 App Android **de uso pessoal** para controle financeiro de motorista de aplicativo (Uber, 99 e outros):
 ganhos, despesas, lucro líquido real, custo por km, consumo do carro, manutenção, reservas e metas.
@@ -26,7 +26,7 @@ Kotlin · Jetpack Compose (Material 3) · Room (SQLite) · MVVM com StateFlow ·
 
 ## Como rodar
 
-O dia a dia do projeto (pacotes de atualização, build, testes e commit) está em
+O dia a dia do projeto (commit e push pelo Claude, build e testes) está em
 [`docs/FLUXO_DE_TRABALHO.md`](docs/FLUXO_DE_TRABALHO.md).
 
 Para abrir pela primeira vez:
@@ -38,7 +38,7 @@ Para abrir pela primeira vez:
 
 ## Documentação
 
-- [`docs/FLUXO_DE_TRABALHO.md`](docs/FLUXO_DE_TRABALHO.md): como desenvolvemos, aplicamos pacotes e fazemos commit
+- [`docs/FLUXO_DE_TRABALHO.md`](docs/FLUXO_DE_TRABALHO.md): como desenvolvemos, fazemos commit, build e testes
 - [`docs/TESTES.md`](docs/TESTES.md): política de testes de regressão e roteiro manual de validação
 - [`docs/ESPECIFICACAO.md`](docs/ESPECIFICACAO.md): escopo, requisitos, regras de negócio, modelo de dados e telas
 - [`docs/ROADMAP.md`](docs/ROADMAP.md): etapas e checklist do que já está pronto
