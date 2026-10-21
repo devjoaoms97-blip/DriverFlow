@@ -10,7 +10,7 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 ## Identidade visual
 - ✅ Ícone adaptativo do app (letra D com estrada e barras), com versão monocromática para ícones temáticos
 - ✅ Nome DriverFlow e abertura animada (Lottie, 2,5 s, toque pula): fundo azul-marinho, o logo do ícone, o nome e o lema "Sua operação sob controle."
-- ⬜ Cores do app (hoje verde) combinando com o azul e o verde do novo ícone, se quiser
+- ✅ Tema escuro próprio do DriverFlow (azul-marinho do logo, azul nas ações, verde nos ganhos, vermelho nas despesas), sem as cores dinâmicas do Android
 
 ## Etapa 1: Base, ganhos e despesas
 - ✅ Projeto Gradle, dependências e tema

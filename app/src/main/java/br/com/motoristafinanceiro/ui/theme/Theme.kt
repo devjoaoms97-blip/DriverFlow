@@ -1,27 +1,31 @@
 package br.com.motoristafinanceiro.ui.theme
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
+import android.app.Activity
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
+/**
+ * Tema único e escuro do DriverFlow. Não usa as cores dinâmicas do Android (que vêm do papel de parede):
+ * o app tem a mesma cara em qualquer celular e combina com a abertura.
+ */
 @Composable
-fun MotoristaTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit,
-) {
-    val colorScheme = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+fun MotoristaTheme(content: @Composable () -> Unit) {
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val janela = (view.context as Activity).window
+            // Barras do sistema na cor do fundo, com ícones claros.
+            janela.statusBarColor = EsquemaDriverFlow.background.toArgb()
+            janela.navigationBarColor = EsquemaDriverFlow.background.toArgb()
+            WindowCompat.getInsetsController(janela, view).apply {
+                isAppearanceLightStatusBars = false
+                isAppearanceLightNavigationBars = false
+            }
         }
-        darkTheme -> darkColorScheme()
-        else -> lightColorScheme()
     }
-    MaterialTheme(colorScheme = colorScheme, content = content)
+    MaterialTheme(colorScheme = EsquemaDriverFlow, content = content)
 }

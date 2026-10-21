@@ -211,7 +211,7 @@ private fun LinhaGanho(ganho: Ganho, onClick: () -> Unit) {
         titulo = ganho.plataforma.rotulo,
         subtitulo = detalhes,
         valor = "+" + ganho.totalCentavos.formatarReais(),
-        cor = MaterialTheme.colorScheme.primary,
+        cor = MaterialTheme.colorScheme.secondary, // verde: dinheiro que entrou
         onClick = onClick,
     )
 }

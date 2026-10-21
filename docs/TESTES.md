@@ -20,6 +20,7 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Cálculos (lucro, km/l, reserva, alertas de manutenção, resumo do veículo, meta mensal, análises) | `app/src/test/.../domain` | JUnit puro |
 | Formatação e conversões | `app/src/test/.../util`, `.../data/db` | JUnit puro |
 | Configurações (DataStore) | `app/src/test/.../data/ConfiguracoesTest` | JUnit puro, arquivo temporário |
+| Tema (paleta própria, fundo igual ao da abertura, contraste mínimo de 4,5:1 em todos os pares texto/fundo, sem cores dinâmicas) | `app/src/test/.../ui/theme/EsquemaDeCoresTest` | JUnit puro |
 | Ícone, nome e abertura (recursos presentes e referenciados, tema da splash, `installSplashScreen` antes do `onCreate`) | `app/src/test/.../app/IconeDoAppTest`, `IdentidadeVisualTest`, `AnimacaoAberturaTest` (o JSON do Lottie), `ComprovanteManifestTest` | JUnit (o JSON usa Robolectric) puro |
 | Arquivos de comprovante (criar, apagar, órfãos) | `app/src/test/.../data/ComprovanteStorageTest` | JUnit puro, pasta temporária |
 | Notificações de manutenção (regra de avisar uma vez por estado, textos, verificador com Room e permissão negada, chave e alertas avisados no DataStore, estado da chave em Ajustes, manifest e ícone) | `app/src/test/.../domain/NotificacoesManutencaoTest`, `.../notificacoes`, `.../data/ConfiguracoesNotificacoesTest`, `.../ui/ajustes/EstadoNotificacaoTest`, `.../app/NotificacaoManifestTest` | JUnit puro; o verificador usa Robolectric com Room em memória |
@@ -203,3 +204,7 @@ testImplementation("androidx.test:core:1.6.1")
     Liberar e voltar ao app: o aviso some. Ligar a chave de novo e conferir que a notificação chega
 75. **Backup guarda a chave:** desligar a chave, Exportar backup, ligar a chave e Restaurar o backup. A chave volta desligada
     e, se havia alerta próximo ou atrasado, a notificação chega de novo uma vez (a lista de alertas já avisados é zerada)
+76. **Tema:** todas as telas (Início, Histórico, Veículo, Reservas, Metas, Análises, Ajustes e os formulários) em azul-marinho com
+    texto claro, botões azuis, ganhos em verde e despesas em vermelho. A barra de status e a de navegação do Android ficam na cor do
+    fundo, com ícones claros. Conferir também com o celular em modo claro e com outro papel de parede: o app não muda de cor.
+    Ao abrir, a passagem da animação para o Início não pisca de branco. Anotar qualquer texto difícil de ler

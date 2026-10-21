@@ -124,6 +124,7 @@ UI (Compose) → ViewModel (StateFlow) → Repositorio → DAOs (Room)
 - Injeção de dependência manual via `MotoristaApp` e `viewModelFactory` (Hilt pode entrar depois, se quiser)
 - Um `ViewModel` por tela
 - Fluxos reativos (`Flow`) do banco até a UI
+- Tema escuro único e próprio (`ui/theme`): azul-marinho do logo no fundo, azul nas ações, verde nos ganhos, vermelho nas despesas e âmbar nos alertas próximos. Sem as cores dinâmicas do Android, para o app ter a mesma cara em qualquer celular
 - `notificacoes/`: `VerificadorDeManutencao` (regra, sem Android) + `NotificadorAndroid` (canal e notificação) + `VerificarManutencaoWorker` e `AgendadorDeNotificacoes` (WorkManager)
 
 ## 9. Backup
