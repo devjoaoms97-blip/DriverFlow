@@ -1,4 +1,6 @@
-# Motorista Financeiro
+# DriverFlow
+
+(Antes chamado Motorista Financeiro; o repositório e o pacote do app mantêm o nome antigo.)
 
 App Android **de uso pessoal** para controle financeiro de motorista de aplicativo (Uber, 99 e outros):
 ganhos, despesas, lucro líquido real, custo por km, consumo do carro, manutenção, reservas e metas.

@@ -8,8 +8,9 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ⬜ Testes de interface (Compose) para os fluxos principais, quando o app estiver mais estável
 
 ## Identidade visual
-- ✅ Ícone adaptativo do app (moeda com volante), com versão monocromática para ícones temáticos
-- ⬜ Nome e tela de abertura (splash) personalizados, se quiser
+- ✅ Ícone adaptativo do app (letra D com estrada e barras), com versão monocromática para ícones temáticos
+- ✅ Nome DriverFlow e abertura animada (Lottie, 2,5 s, toque pula): fundo azul-marinho, o logo do ícone, o nome e o lema "Sua operação sob controle."
+- ⬜ Cores do app (hoje verde) combinando com o azul e o verde do novo ícone, se quiser
 
 ## Etapa 1: Base, ganhos e despesas
 - ✅ Projeto Gradle, dependências e tema

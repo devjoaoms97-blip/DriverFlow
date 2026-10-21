@@ -20,7 +20,7 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Cálculos (lucro, km/l, reserva, alertas de manutenção, resumo do veículo, meta mensal, análises) | `app/src/test/.../domain` | JUnit puro |
 | Formatação e conversões | `app/src/test/.../util`, `.../data/db` | JUnit puro |
 | Configurações (DataStore) | `app/src/test/.../data/ConfiguracoesTest` | JUnit puro, arquivo temporário |
-| Ícone e manifest (arquivos de recurso presentes e referenciados) | `app/src/test/.../app/IconeDoAppTest`, `ComprovanteManifestTest` | JUnit puro |
+| Ícone, nome e abertura (recursos presentes e referenciados, tema da splash, `installSplashScreen` antes do `onCreate`) | `app/src/test/.../app/IconeDoAppTest`, `IdentidadeVisualTest`, `AnimacaoAberturaTest` (o JSON do Lottie), `ComprovanteManifestTest` | JUnit (o JSON usa Robolectric) puro |
 | Arquivos de comprovante (criar, apagar, órfãos) | `app/src/test/.../data/ComprovanteStorageTest` | JUnit puro, pasta temporária |
 | Notificações de manutenção (regra de avisar uma vez por estado, textos, verificador com Room e permissão negada, chave e alertas avisados no DataStore, estado da chave em Ajustes, manifest e ícone) | `app/src/test/.../domain/NotificacoesManutencaoTest`, `.../notificacoes`, `.../data/ConfiguracoesNotificacoesTest`, `.../ui/ajustes/EstadoNotificacaoTest`, `.../app/NotificacaoManifestTest` | JUnit puro; o verificador usa Robolectric com Room em memória |
 | Backup (leitura e validação do JSON, arquivo .zip, exportar/restaurar, textos) | `app/src/test/.../data/backup`, `.../data/RepositorioBackupTest`, `.../ui/ajustes` | JSON, zip e restauração com Robolectric; datas, fotos e textos em JUnit puro |
@@ -92,9 +92,16 @@ testImplementation("androidx.test:core:1.6.1")
     resumo. Voltar o ajuste para vazio ou 0 e conferir que tudo volta ao valor de antes
 18. **Validação e persistência:** digitar texto inválido (ex.: "abc") mostra o erro e desabilita Salvar;
     fechar e reabrir o app mantém o valor salvo
-19. **Ícone:** na tela inicial do celular, o app aparece como uma moeda dourada com um volante sobre fundo
-    verde, com o nome "Motorista Financeiro". Em Android 13 ou mais novo com ícones temáticos ligados,
-    o ícone assume as cores do tema do aparelho
+19. **Ícone e nome:** na tela inicial do celular, o app aparece com o nome "DriverFlow" e o ícone da letra D azul com
+    estrada e barras verdes sobre fundo azul-marinho. Em Android 13 ou mais novo com ícones temáticos ligados,
+    o ícone vira uma silhueta com as cores do tema do aparelho
+    19b. **Abertura animada:** abrir o app com ele fechado: fundo azul-marinho, o logo do ícone (D azul, estrada e barras
+    verdes) aparece com um leve zoom, depois o nome "DriverFlow", o lema "Sua operação sob controle." e uma barrinha
+    azul que enche da esquerda para a direita. O nome e o lema ficam logo abaixo do logo (e não colados no logo ou fora da tela). Dura 2,5 s e termina com
+    um fade para a tela Início, sem piscar de branco. Tocar na tela durante a animação pula direto para o Início.
+    No Android 13+, na primeira abertura, a pergunta de permissão de notificação aparece por cima da animação
+    19c. **Abertura só no início do app:** girar a tela depois que a animação acabou não toca de novo. Tocar numa
+    notificação de manutenção com o app fechado abre direto a aba Veículo, sem a animação
 20. **Reservas:** na aba Reservas, tocar em + e escolher o atalho IPVA (vem anual). Valor 3650,00 e um vencimento
     daqui a alguns meses. O card "Separar por dia" deve mostrar R$ 10,00
 21. **Total:** cadastrar também um Seguro mensal de R$ 300,00. O total passa a R$ 20,00 por dia e R$ 140,00 por semana
@@ -182,7 +189,7 @@ testImplementation("androidx.test:core:1.6.1")
 67. **Desligar e ligar:** desligar a chave e ligar de novo. A chave fica ligada e a pergunta de permissão não volta
 68. **Notificação próxima:** com a troca de óleo do passo 11 e a chave ligada, registrar um abastecimento de teste com
     odômetro 19.700. Chega a notificação "Manutenção próxima: Troca de óleo — Faltam 300 km" (pode levar alguns segundos;
-    puxe a barra de notificações). Se não chegar no Xiaomi: Configurações > Apps > Motorista Financeiro > Notificações
+    puxe a barra de notificações). Se não chegar no Xiaomi: Configurações > Apps > DriverFlow > Notificações
 69. **Não repete:** fechar e abrir o app e editar qualquer lançamento. Nenhuma notificação igual chega de novo
 70. **Atrasada:** registrar um abastecimento de teste com odômetro 20.200. A notificação é substituída por
     "Manutenção atrasada: Troca de óleo — Atrasada em 200 km" (continua uma só na barra)

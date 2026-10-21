@@ -102,7 +102,7 @@ object BackupJson {
             throw BackupInvalidoException("O arquivo de dados está corrompido ou não é um backup.")
         }
         if (raiz.optString("formato") != FORMATO) {
-            throw BackupInvalidoException("Este arquivo não é um backup do Motorista Financeiro.")
+            throw BackupInvalidoException("Este arquivo não é um backup do DriverFlow.")
         }
         val versao = raiz.optInt("versaoSchema", -1)
         if (versao < 1) throw BackupInvalidoException("O backup não informa a versão do formato.")

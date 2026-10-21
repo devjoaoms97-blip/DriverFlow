@@ -1,3 +1,11 @@
 <resources>
     <style name="Theme.MotoristaFinanceiro" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Abertura do sistema (androidx.core:core-splashscreen): só o fundo azul-marinho, sem ícone. Logo em seguida
+         a animação Lottie (ui/abertura/AberturaAnimada) assume e, quando o app carrega, vale o tema normal. -->
+    <style name="Theme.MotoristaFinanceiro.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#080E20</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_vazio</item>
+        <item name="postSplashScreenTheme">@style/Theme.MotoristaFinanceiro</item>
+    </style>
 </resources>

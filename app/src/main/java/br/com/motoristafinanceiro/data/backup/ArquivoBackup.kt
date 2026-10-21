@@ -83,7 +83,7 @@ object ArquivoBackup {
             throw BackupInvalidoException("O arquivo escolhido está incompleto.")
         }
         val dadosTexto = texto
-            ?: throw BackupInvalidoException("O arquivo escolhido não é um backup do Motorista Financeiro.")
+            ?: throw BackupInvalidoException("O arquivo escolhido não é um backup do DriverFlow.")
         return Lido(BackupJson.ler(dadosTexto), fotos)
     }
 
