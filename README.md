@@ -26,7 +26,7 @@ Kotlin · Jetpack Compose (Material 3) · Room (SQLite) · MVVM com StateFlow ·
 
 ## Como rodar
 
-O dia a dia do projeto (commit e push pelo Claude, build e testes) está em
+O dia a dia do projeto (build, testes, commit e push pelo Claude; teste manual pelo Android Studio) está em
 [`docs/FLUXO_DE_TRABALHO.md`](docs/FLUXO_DE_TRABALHO.md).
 
 Para abrir pela primeira vez:
