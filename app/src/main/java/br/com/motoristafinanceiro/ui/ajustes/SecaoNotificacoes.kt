@@ -58,7 +58,7 @@ fun SecaoNotificacoes(vm: AjustesViewModel) {
             Column(Modifier.weight(1f)) {
                 Text("Avisar sobre manutenção", style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "Notificação quando uma manutenção ficar próxima (500 km) ou atrasada. " +
+                    "Notificação quando uma manutenção ficar próxima (500 km) ou atrasada. Vem ligado; desligue se não quiser. " +
                         "O app só sabe o km pelos abastecimentos e manutenções que você registra.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

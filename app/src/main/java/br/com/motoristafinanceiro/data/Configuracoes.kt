@@ -24,12 +24,20 @@ class Configuracoes(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[CHAVE_DEPRECIACAO_POR_KM] = centavos.coerceAtLeast(0) }
     }
 
-    /** Avisar (notificação) quando uma manutenção ficar próxima ou atrasada. Padrão: desligado. */
+    /** Avisar (notificação) quando uma manutenção ficar próxima ou atrasada. Padrão: ligado. */
     val notificacoesManutencaoAtivas: Flow<Boolean> =
-        dataStore.data.map { it[CHAVE_NOTIFICACOES_MANUTENCAO] ?: false }
+        dataStore.data.map { it[CHAVE_NOTIFICACOES_MANUTENCAO] ?: true }
 
     suspend fun salvarNotificacoesManutencao(ativas: Boolean) {
         dataStore.edit { it[CHAVE_NOTIFICACOES_MANUTENCAO] = ativas }
+    }
+
+    /** Se o app já mostrou a pergunta de permissão de notificação ao abrir (para perguntar só uma vez). */
+    val permissaoNotificacaoPerguntada: Flow<Boolean> =
+        dataStore.data.map { it[CHAVE_PERMISSAO_PERGUNTADA] ?: false }
+
+    suspend fun marcarPermissaoNotificacaoPerguntada() {
+        dataStore.edit { it[CHAVE_PERMISSAO_PERGUNTADA] = true }
     }
 
     /** Chaves dos alertas que já geraram notificação (evita avisar o mesmo alerta de novo). */
@@ -44,6 +52,7 @@ class Configuracoes(private val dataStore: DataStore<Preferences>) {
         private val CHAVE_DEPRECIACAO_POR_KM = longPreferencesKey("depreciacao_por_km_centavos")
         private val CHAVE_NOTIFICACOES_MANUTENCAO = booleanPreferencesKey("notificacoes_manutencao_ativas")
         private val CHAVE_ALERTAS_NOTIFICADOS = stringSetPreferencesKey("alertas_manutencao_notificados")
+        private val CHAVE_PERMISSAO_PERGUNTADA = booleanPreferencesKey("permissao_notificacao_perguntada")
 
         fun criar(context: Context): Configuracoes = Configuracoes(context.applicationContext.dataStoreConfiguracoes)
     }

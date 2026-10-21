@@ -131,6 +131,31 @@ class BackupManagerTest {
     // ---- Restaurar ----
 
     @Test
+    fun exportarERestaurar_devolveAChaveDoAvisoEEsqueceOsAlertasJaAvisados() = roda {
+        instalarDadosDeExemplo()
+        configuracoes.salvarNotificacoesManutencao(false)
+        val backup = exportarParaBytes()
+
+        configuracoes.salvarNotificacoesManutencao(true)
+        configuracoes.salvarAlertasNotificados(setOf("1:ATRASADA"))
+        manager.restaurar(ByteArrayInputStream(backup))
+
+        assertFalse(configuracoes.notificacoesManutencaoAtivas.first())
+        assertTrue(configuracoes.alertasNotificados.first().isEmpty())
+    }
+
+    @Test
+    fun restaurar_backupAntigoSemAChave_mantemAChaveAtual() = roda {
+        val saida = ByteArrayOutputStream()
+        ArquivoBackup.escrever(saida, dadosDeExemplo(), comprovantes::arquivo, 1L) // chave nula, como nos backups antigos
+        configuracoes.salvarNotificacoesManutencao(false)
+
+        manager.restaurar(ByteArrayInputStream(saida.toByteArray()))
+
+        assertFalse(configuracoes.notificacoesManutencaoAtivas.first())
+    }
+
+    @Test
     fun exportarERestaurar_devolveTudoComoEstava() = roda {
         instalarDadosDeExemplo()
         val backup = exportarParaBytes()

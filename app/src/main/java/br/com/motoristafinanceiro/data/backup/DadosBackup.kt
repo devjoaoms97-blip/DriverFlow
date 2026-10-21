@@ -8,7 +8,10 @@ import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.ReservaDespesa
 import java.time.LocalDate
 
-/** Tudo o que o backup guarda, além das fotos: as seis tabelas e a depreciação por km (DataStore). */
+/**
+ * Tudo o que o backup guarda, além das fotos: as seis tabelas e duas configurações (DataStore):
+ * a depreciação por km e a chave do aviso de manutenção.
+ */
 data class DadosBackup(
     val ganhos: List<Ganho> = emptyList(),
     val despesas: List<Despesa> = emptyList(),
@@ -17,6 +20,8 @@ data class DadosBackup(
     val reservas: List<ReservaDespesa> = emptyList(),
     val metas: List<Meta> = emptyList(),
     val depreciacaoPorKmCentavos: Long = 0,
+    /** Null = backup feito antes dessa opção existir: ao restaurar, mantém a chave atual. */
+    val notificacoesManutencaoAtivas: Boolean? = null,
 ) {
     /** Nomes dos arquivos de comprovante usados pelas despesas. */
     val fotosReferenciadas: Set<String> get() = despesas.mapNotNull { it.fotoUri }.toSet()

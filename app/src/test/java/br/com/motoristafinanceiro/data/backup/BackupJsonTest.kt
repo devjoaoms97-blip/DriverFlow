@@ -40,6 +40,26 @@ class BackupJsonTest {
     }
 
     @Test
+    fun gerarELer_guardaAChaveDoAvisoDeManutencao() {
+        listOf(true, false).forEach { chave ->
+            val original = DadosBackup(notificacoesManutencaoAtivas = chave)
+            assertEquals(chave, BackupJson.ler(BackupJson.gerar(original, 0L)).notificacoesManutencaoAtivas)
+        }
+    }
+
+    @Test
+    fun ler_backupAntigoSemAChave_devolveNulo() {
+        val json = JSONObject(BackupJson.gerar(DadosBackup(notificacoesManutencaoAtivas = true), 0L))
+        json.remove("notificacoesManutencaoAtivas")
+
+        assertEquals(null, BackupJson.ler(json.toString()).notificacoesManutencaoAtivas)
+    }
+
+    @Test
+    fun recusa_chaveDoAvisoQueNaoEhVerdadeiroOuFalso() =
+        assertInvalido(alterado { it.put("notificacoesManutencaoAtivas", "sim") }, "notificacoesManutencaoAtivas")
+
+    @Test
     fun gerarELer_dadosVazios() {
         assertEquals(DadosBackup(), BackupJson.ler(BackupJson.gerar(DadosBackup(), 0L)))
     }

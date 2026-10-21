@@ -9,7 +9,7 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * Exportar e restaurar o backup completo: banco, depreciação por km e fotos dos comprovantes.
+ * Exportar e restaurar o backup completo: banco, depreciação por km, aviso de manutenção e fotos dos comprovantes.
  * Faz trabalho de arquivo; chame de uma thread de IO.
  */
 class BackupManager(
@@ -21,6 +21,7 @@ class BackupManager(
 
     suspend fun exportar(saida: OutputStream, agoraMs: Long = System.currentTimeMillis()): ResumoBackup {
         val dados = repo.lerTudo(configuracoes.depreciacaoPorKmCentavos.first())
+            .copy(notificacoesManutencaoAtivas = configuracoes.notificacoesManutencaoAtivas.first())
         return ArquivoBackup.escrever(saida, dados, comprovantes::arquivo, agoraMs)
     }
 
@@ -29,7 +30,7 @@ class BackupManager(
      *
      * Ordem pensada para não perder nada se algo falhar: o arquivo inteiro é lido e validado primeiro
      * (erro aqui não altera nada); depois as fotos são só adicionadas, o banco é trocado em uma transação,
-     * a depreciação é gravada e, por último, as fotos que não pertencem mais a nenhuma despesa são apagadas.
+     * a depreciação e o aviso de manutenção são gravados e, por último, as fotos que não pertencem mais a nenhuma despesa são apagadas.
      *
      * @throws BackupInvalidoException se o arquivo não for um backup válido; os dados atuais ficam intactos.
      */
@@ -43,6 +44,9 @@ class BackupManager(
             fotos.forEach { comprovantes.restaurar(File(pastaTemporaria, it), it) }
             repo.substituirTudo(dados)
             configuracoes.salvarDepreciacaoPorKm(dados.depreciacaoPorKmCentavos)
+            dados.notificacoesManutencaoAtivas?.let { configuracoes.salvarNotificacoesManutencao(it) }
+            // Os ids dos registros podem ter mudado: os alertas "já avisados" não valem mais.
+            configuracoes.salvarAlertasNotificados(emptySet())
             comprovantes.manterSomente(fotos)
 
             return dados.paraResumo(fotos = fotos.size, fotosAusentes = ausentes)

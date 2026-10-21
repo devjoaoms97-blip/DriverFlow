@@ -82,6 +82,7 @@ class VerificadorDeManutencaoTest {
 
     @Test
     fun desligado_naoNotificaELimpaAExistente() = roda {
+        configuracoes.salvarNotificacoesManutencao(false)
         trocaDeOleo(10_000)
         abastecerNo(19_700) // próxima
 

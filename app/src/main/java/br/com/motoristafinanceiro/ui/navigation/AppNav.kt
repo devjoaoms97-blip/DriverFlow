@@ -17,6 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,11 +66,27 @@ private const val ROTA_AJUSTES = "ajustes"
 private const val ROTA_META = "meta"
 private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO, ROTA_AJUSTES, ROTA_RESERVA, ROTA_META)
 
+/**
+ * [destinoPedido]: rota para abrir de fora (ex.: toque na notificação). Depois de navegar, chama
+ * [aoAbrirDestino] para o pedido não se repetir.
+ */
 @Composable
-fun AppNav() {
+fun AppNav(destinoPedido: String? = null, aoAbrirDestino: () -> Unit = {}) {
     val nav = rememberNavController()
     val pilha by nav.currentBackStackEntryAsState()
     val rotaAtual = pilha?.destination?.route
+    val grafoPronto = rotaAtual != null
+    // Só navega depois que o NavHost montou o grafo (rotaAtual deixa de ser nula).
+    LaunchedEffect(destinoPedido, grafoPronto) {
+        if (destinoPedido != null && grafoPronto) {
+            nav.navigate(destinoPedido) {
+                popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+            aoAbrirDestino()
+        }
+    }
     val emFormulario = rotaAtual in rotasFormulario
     val naTelaVeiculo = rotaAtual == ROTA_VEICULO
     val naTelaReservas = rotaAtual == ROTA_RESERVAS

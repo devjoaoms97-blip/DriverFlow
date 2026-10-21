@@ -37,6 +37,7 @@ object BackupJson {
             .put("versaoSchema", VERSAO_ATUAL)
             .put("criadoEmMs", criadoEmMs)
             .put("depreciacaoPorKmCentavos", dados.depreciacaoPorKmCentavos)
+            .put("notificacoesManutencaoAtivas", dados.notificacoesManutencaoAtivas ?: JSONObject.NULL)
             .put("ganhos", array(dados.ganhos) {
                 JSONObject()
                     .put("id", it.id)
@@ -114,6 +115,8 @@ object BackupJson {
             throw BackupInvalidoException("Depreciação por km fora do limite permitido.")
         }
 
+        val notificacoes = raiz.booleanoOpc("notificacoesManutencaoAtivas")
+
         val ganhos = tabela(raiz, "ganhos") {
             Ganho(
                 id = it.idPositivo(),
@@ -190,7 +193,7 @@ object BackupJson {
         exigirUnicos("metas", metas.map { it.mes })
         conferirVinculos(despesas, abastecimentos.map { it.id }.toSet(), manutencoes.map { it.id }.toSet())
 
-        return DadosBackup(ganhos, despesas, abastecimentos, manutencoes, reservas, metas, depreciacao)
+        return DadosBackup(ganhos, despesas, abastecimentos, manutencoes, reservas, metas, depreciacao, notificacoes)
     }
 
     /** Despesa gerada por abastecimento/manutenção precisa apontar para um registro que existe no backup. */
@@ -271,6 +274,8 @@ object BackupJson {
         is Boolean -> v
         else -> throw BackupInvalidoException("campo \"$chave\" não é verdadeiro/falso.")
     }
+
+    private fun JSONObject.booleanoOpc(chave: String): Boolean? = if (ausente(chave)) null else booleano(chave)
 
     private fun JSONObject.texto(chave: String): String = when (val v = obrig(chave)) {
         is String -> v

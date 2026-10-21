@@ -49,7 +49,7 @@ com lançamento rápido (poucos toques) e funcionamento offline.
 
 ## 4. Requisitos não funcionais
 
-- **Offline por padrão.** A única permissão é a de notificações (Android 13+), pedida só quando o usuário liga o aviso de manutenção em Ajustes
+- **Offline por padrão.** A única permissão é a de notificações (Android 13+), pedida uma única vez ao abrir o app, enquanto o aviso de manutenção estiver ligado (o padrão)
 - Lançamento em até 3 toques para os casos comuns
 - Valores monetários sempre em **centavos (Long)**
 - minSdk 26 (Android 8.0), tema claro/escuro, cores dinâmicas no Android 12+
@@ -83,7 +83,7 @@ evitando lançamento duplo. Ao excluir o abastecimento/manutenção, a despesa v
 
 **Odômetro atual:** maior odômetro registrado entre abastecimentos e manutenções.
 
-**Notificações de manutenção (RF-10):** começam desligadas; o usuário liga em Ajustes (no Android 13+ o app pede a permissão nesse momento). Avisa quando um serviço fica **próximo** (500 km ou menos) ou **atrasado**; "em dia" nunca avisa. Cada alerta é identificado pelo registro mais recente do serviço mais o status, então avisa **uma vez por estado**: próxima e depois atrasada são dois avisos, e uma nova troca começa um ciclo novo. A notificação mostra todos os alertas urgentes de uma vez (uma só, que substitui a anterior) e some quando nada mais está urgente ou quando a chave é desligada. Se o Android não permitir notificar, o alerta não é marcado como avisado e a verificação tenta de novo depois. A verificação roda (WorkManager) a cada mudança em manutenções, abastecimentos ou na chave, e uma vez por dia como rede de segurança. Como o odômetro só avança com abastecimento ou manutenção, é nesses momentos que o aviso aparece. A chave e os alertas já avisados ficam só no aparelho e **não entram no backup**.
+**Notificações de manutenção (RF-10):** vêm **ligadas** por padrão; o usuário desliga em Ajustes. No Android 13+ o app pergunta a permissão uma única vez ao abrir (se negar, Ajustes mostra como liberar). Avisa quando um serviço fica **próximo** (500 km ou menos) ou **atrasado**; "em dia" nunca avisa. Cada alerta é identificado pelo registro mais recente do serviço mais o status, então avisa **uma vez por estado**: próxima e depois atrasada são dois avisos, e uma nova troca começa um ciclo novo. A notificação mostra todos os alertas urgentes de uma vez (uma só, que substitui a anterior) e some quando nada mais está urgente ou quando a chave é desligada. Se o Android não permitir notificar, o alerta não é marcado como avisado e a verificação tenta de novo depois. A verificação roda (WorkManager) a cada mudança em manutenções, abastecimentos ou na chave, e uma vez por dia como rede de segurança. Como o odômetro só avança com abastecimento ou manutenção, é nesses momentos que o aviso aparece. Tocar na notificação abre a aba Veículo. A chave entra no backup (backups antigos, sem ela, mantêm a chave atual); ao restaurar, a lista de alertas já avisados é zerada, porque os ids dos registros podem ter mudado.
 
 ## 6. Modelo de dados (Room)
 
@@ -99,7 +99,7 @@ evitando lançamento duplo. Ao excluir o abastecimento/manutenção, a despesa v
 Datas armazenadas como `epochDay` (Long) via `TypeConverter`. Enums armazenados pelo nome.
 
 **Comprovantes:** o campo `fotoUri` da despesa guarda apenas o NOME do arquivo da foto, que fica em `filesDir/comprovantes/` (pasta privada do app). Fotos são reduzidas para cerca de 1.600 px e regravadas em JPEG, com a rotação do EXIF aplicada. Arquivos que nenhuma despesa usa são apagados na abertura do app, desde que tenham mais de 24 h.
-**Configurações** (depreciação por km, aviso de manutenção ligado/desligado, alertas já avisados etc.) ficam no DataStore, fora do Room.
+**Configurações** (depreciação por km, aviso de manutenção ligado/desligado, alertas já avisados, se a permissão já foi perguntada etc.) ficam no DataStore, fora do Room.
 Schema do Room exportado em `app/schemas/` para versionar migrações.
 
 ## 7. Telas
@@ -110,7 +110,7 @@ Schema do Room exportado em `app/schemas/` para versionar migrações.
 4. **Veículo:** consumo médio, custo por km, abastecimentos, manutenções e alertas
 5. **Reservas:** despesas recorrentes e total a separar por dia
 6. **Análises:** período (30 dias, 90 dias ou tudo, sempre até hoje); resumo, ganho por hora por dia da semana (segunda a domingo, com barra, dias trabalhados e média por dia), melhor dia e comparativo por plataforma. Faixa de horário ainda não existe (ver decisões em aberto)
-7. **Ajustes:** depreciação por km, aviso de manutenção (chave que liga as notificações e pede a permissão do Android 13+) e backup (Exportar backup, Restaurar backup)
+7. **Ajustes:** depreciação por km, aviso de manutenção (chave que liga e desliga as notificações; pede a permissão do Android 13+ se ainda não liberada) e backup (Exportar backup, Restaurar backup)
 8. **Meta mensal** (aberta pelo card do Início): definir, editar e remover a meta do mês (R$ 0,01 a R$ 100.000,00). Cada mês tem a sua meta; mês novo começa sem meta
 
 ## 8. Arquitetura
@@ -140,7 +140,7 @@ motorista-financeiro-backup-2026-10-20.zip
 ```
 
 **`dados.json`:** `formato` ("motorista-financeiro-backup"), `versaoSchema` (hoje 1), `criadoEmMs`,
-`depreciacaoPorKmCentavos` e as tabelas `ganhos`, `despesas`, `abastecimentos`, `manutencoes`, `reservas` e `metas`.
+`depreciacaoPorKmCentavos`, `notificacoesManutencaoAtivas` (opcional: backups antigos não têm, e ao restaurá-los a chave atual é mantida) e as tabelas `ganhos`, `despesas`, `abastecimentos`, `manutencoes`, `reservas` e `metas`.
 Datas em ISO (`2026-10-20`), meses como `2026-10`, enums pelo nome e dinheiro em centavos. Os **ids são mantidos**,
 porque as despesas geradas por abastecimento/manutenção apontam para eles.
 

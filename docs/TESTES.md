@@ -177,18 +177,22 @@ testImplementation("androidx.test:core:1.6.1")
     Desinstalar o app, instalar de novo (`.\gradlew installDebug`), abrir Ajustes > "Restaurar backup" e escolher o .zip.
     Lançamentos, veículo, reservas, metas, depreciação e fotos voltam. (`installDebug` por cima do app instalado NÃO apaga os
     dados; só desinstalar apaga)
-66. **Aviso começa desligado:** Ajustes mostra "Avisar sobre manutenção" com a chave desligada e sem aviso em vermelho
-67. **Ligar:** ligar a chave. No Android 13 ou mais novo aparece a pergunta de permissão; permitir. A chave fica ligada
+66. **Aviso já vem ligado:** na primeira abertura (app recém-instalado) no Android 13 ou mais novo aparece a pergunta de
+    permissão de notificação; permitir. Ajustes mostra "Avisar sobre manutenção" com a chave ligada e sem aviso em vermelho
+67. **Desligar e ligar:** desligar a chave e ligar de novo. A chave fica ligada e a pergunta de permissão não volta
 68. **Notificação próxima:** com a troca de óleo do passo 11 e a chave ligada, registrar um abastecimento de teste com
     odômetro 19.700. Chega a notificação "Manutenção próxima: Troca de óleo — Faltam 300 km" (pode levar alguns segundos;
     puxe a barra de notificações). Se não chegar no Xiaomi: Configurações > Apps > Motorista Financeiro > Notificações
 69. **Não repete:** fechar e abrir o app e editar qualquer lançamento. Nenhuma notificação igual chega de novo
 70. **Atrasada:** registrar um abastecimento de teste com odômetro 20.200. A notificação é substituída por
     "Manutenção atrasada: Troca de óleo — Atrasada em 200 km" (continua uma só na barra)
-71. **Tocar:** tocar na notificação abre o app e ela some da barra
+71. **Tocar:** com o app fechado, tocar na notificação abre direto a aba Veículo e ela some da barra. Repetir com o app aberto
+    em outra aba: também vai para Veículo. Girar a tela depois não reabre a aba
 72. **Resolvida:** registrar uma nova troca de óleo no odômetro 20.200. A notificação (se ainda estiver na barra) some e o
     alerta fica em dia. Excluir os abastecimentos de teste depois
 73. **Desligar:** com um alerta próximo ou atrasado de novo, desligar a chave. A notificação some e nada novo chega
-74. **Permissão negada:** bloquear as notificações do app nas configurações do Android (ou negar a pergunta do passo 67) e ligar a
-    chave. Aparece o aviso em vermelho com o botão "Abrir configurações de notificação", que abre a tela certa do Android.
+74. **Permissão negada:** negar a pergunta de permissão (ou bloquear as notificações do app nas configurações do Android)
+    com a chave ligada. Aparece o aviso em vermelho com o botão "Abrir configurações de notificação", que abre a tela certa do Android.
     Liberar e voltar ao app: o aviso some. Ligar a chave de novo e conferir que a notificação chega
+75. **Backup guarda a chave:** desligar a chave, Exportar backup, ligar a chave e Restaurar o backup. A chave volta desligada
+    e, se havia alerta próximo ou atrasado, a notificação chega de novo uma vez (a lista de alertas já avisados é zerada)

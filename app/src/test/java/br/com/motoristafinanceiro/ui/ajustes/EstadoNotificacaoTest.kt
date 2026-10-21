@@ -34,4 +34,21 @@ class EstadoNotificacaoTest {
     fun jaPermitido_naoPedeDeNovo() {
         assertFalse(precisaPedirPermissao(sdkInt = 34, sistemaPermite = true))
     }
+
+    @Test
+    fun aoAbrir_perguntaUmaVezNoAndroid13QuandoLigadoESemPermissao() {
+        assertTrue(devePedirPermissaoAoAbrir(ativas = true, jaPerguntou = false, sdkInt = 34, sistemaPermite = false))
+    }
+
+    @Test
+    fun aoAbrir_naoPerguntaSeJaPerguntouOuDesligadoOuLiberado() {
+        assertFalse(devePedirPermissaoAoAbrir(ativas = true, jaPerguntou = true, sdkInt = 34, sistemaPermite = false))
+        assertFalse(devePedirPermissaoAoAbrir(ativas = false, jaPerguntou = false, sdkInt = 34, sistemaPermite = false))
+        assertFalse(devePedirPermissaoAoAbrir(ativas = true, jaPerguntou = false, sdkInt = 34, sistemaPermite = true))
+    }
+
+    @Test
+    fun aoAbrir_naoPerguntaAntesDoAndroid13() {
+        assertFalse(devePedirPermissaoAoAbrir(ativas = true, jaPerguntou = false, sdkInt = 32, sistemaPermite = false))
+    }
 }

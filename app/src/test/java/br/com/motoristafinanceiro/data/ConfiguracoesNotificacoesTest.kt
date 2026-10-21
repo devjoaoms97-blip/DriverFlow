@@ -33,18 +33,28 @@ class ConfiguracoesNotificacoesTest {
     )
 
     @Test
-    fun avisoDeManutencao_comecaDesligado() {
-        runBlocking { assertFalse(criar().notificacoesManutencaoAtivas.first()) }
+    fun avisoDeManutencao_comecaLigado() {
+        runBlocking { assertTrue(criar().notificacoesManutencaoAtivas.first()) }
+    }
+
+    @Test
+    fun permissaoPerguntada_comecaFalsaEFicaMarcada() {
+        runBlocking {
+            val c = criar()
+            assertFalse(c.permissaoNotificacaoPerguntada.first())
+            c.marcarPermissaoNotificacaoPerguntada()
+            assertTrue(c.permissaoNotificacaoPerguntada.first())
+        }
     }
 
     @Test
     fun avisoDeManutencao_ligaEDesliga() {
         runBlocking {
             val c = criar()
-            c.salvarNotificacoesManutencao(true)
-            assertTrue(c.notificacoesManutencaoAtivas.first())
             c.salvarNotificacoesManutencao(false)
             assertFalse(c.notificacoesManutencaoAtivas.first())
+            c.salvarNotificacoesManutencao(true)
+            assertTrue(c.notificacoesManutencaoAtivas.first())
         }
     }
 
