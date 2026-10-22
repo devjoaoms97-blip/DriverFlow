@@ -172,4 +172,29 @@ class BackupJsonTest {
     @Test
     fun mensagemDeErroDizQualRegistroTemProblema() =
         assertInvalido(alterado { it.getJSONArray("manutencoes").getJSONObject(1).put("tipo", "XYZ") }, "manutencoes #2")
+
+    // ---- Início do turno (campo opcional, desde o banco v2) ----
+
+    @Test
+    fun inicioDoTurno_vaiEVoltaNoBackup() {
+        val ganhos = BackupJson.ler(BackupJson.gerar(dadosDeExemplo(), 1L)).ganhos
+        assertEquals(18 * 60 + 30, ganhos.first { it.id == 1L }.inicioTurnoMinutos)
+        assertEquals(null, ganhos.first { it.id == 2L }.inicioTurnoMinutos)
+    }
+
+    @Test
+    fun backupDaVersao1SemInicioDoTurno_restauraSemHorario() {
+        val texto = alterado { json ->
+            json.put("versaoSchema", 1) // backups feitos antes do horário do turno
+            val ganhos = json.getJSONArray("ganhos")
+            for (i in 0 until ganhos.length()) ganhos.getJSONObject(i).remove("inicioTurnoMinutos")
+        }
+        assertTrue(BackupJson.ler(texto).ganhos.all { it.inicioTurnoMinutos == null })
+    }
+
+    @Test
+    fun recusa_inicioDoTurnoForaDoDia() = assertInvalido(
+        alterado { it.getJSONArray("ganhos").getJSONObject(0).put("inicioTurnoMinutos", 1440) },
+        "inicioTurnoMinutos",
+    )
 }

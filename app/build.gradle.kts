@@ -38,6 +38,10 @@ android {
     }
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        unitTests.all { teste ->
+            // Os testes de interface precisam da Activity de teste do ui-test-manifest, que só entra no debug.
+            if (teste.name == "testReleaseUnitTest") teste.filter.excludeTestsMatching("*.FluxosPrincipaisTest")
+        }
     }
 }
 
@@ -73,4 +77,9 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation("org.robolectric:robolectric:4.13")
     testImplementation("androidx.test:core:1.6.1")
+
+    // Testes de interface (Compose) rodando no PC com Robolectric: sem emulador e sem tocar no celular.
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

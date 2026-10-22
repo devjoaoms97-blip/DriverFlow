@@ -28,6 +28,12 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Estado e regras das telas (início, semana, histórico e seus filtros, veículo, alertas, textos da meta, análises) | `app/src/test/.../ui/...` | JUnit puro |
 | Novo visual (fonte Manrope e licença, números tabulares, escala de texto e cantos; textos do Início, siglas do Histórico, selo e barra das manutenções, barras e percentuais das Análises, data e prefixo R$ do lançamento; abas da barra inferior e telas sem barra) | `app/src/test/.../ui/theme/TipografiaTest`, `.../ui/home/TextoInicioTest`, `.../ui/historico/SiglasHistoricoTest`, `.../ui/veiculo/AlertasTextoTest`, `.../ui/analises/TextoAnalisesTest`, `.../ui/lancamento/CamposLancamentoTest`, `.../ui/navigation/BarraInferiorTest` | JUnit puro |
 | Repositório + Room (CRUD, vínculos, período) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
+| Odômetro estimado (leitura + km dos ganhos dos dias seguintes; fluxo do Repositório; notificação disparada por ganho) | `app/src/test/.../domain/OdometroTest`, `.../data/RepositorioOdometroTest`, `.../notificacoes/VerificadorDeManutencaoTest`, `.../ui/veiculo/TextoOdometroTest` | JUnit puro; Repositório e verificador com Robolectric |
+| Faixas de horário (minutos por faixa, turno que passa da meia-noite, rateio do ganho, melhor faixa, textos) e repetir a meta | `app/src/test/.../domain/FaixasHorarioTest`, `.../domain/MetasTest`, `.../ui/analises/TextoAnalisesTest`, `.../ui/meta/TextoMetaTest`, `.../ui/home/HomeEstadoTest` | JUnit puro |
+| Migração do banco (v1 criado com o SQL do schema exportado, dados mantidos, campo novo grava; cadeia de migrações até a versão atual) e backup v2 | `app/src/test/.../data/db/MigracaoTest`, `.../data/backup/BackupJsonTest` | Robolectric |
+| Horas do turno pelo início e fim (meia-noite, só um dos horários, fim igual ao início, lançamento antigo sem horário) | `app/src/test/.../ui/lancamento/TurnoTest` | JUnit puro |
+| Formulários no visual novo (esqueleto comum, sem campos antigos) | `app/src/test/.../ui/componentes/FormulariosNoVisualTest`, `FormularioTest` | JUnit puro |
+| **Interface (Compose):** lançar ganho e despesa, Salvar desabilitado sem valor, filtrar, editar e excluir no Histórico, Reservas pelo Início e voltar, Abastecer, Análises vazia | `app/src/test/.../ui/FluxosPrincipaisTest` | Robolectric com `createComposeRule` e o app de verdade (banco limpo a cada teste); só na variante debug, porque a Activity de teste vem do `ui-test-manifest` |
 
 ## Como rodar
 
@@ -244,3 +250,28 @@ testImplementation("androidx.test:core:1.6.1")
     dia em azul e o valor por hora em cima, a lista com dias e média de cada dia, e o cartão Por plataforma com a barra dividida
     e o percentual de cada uma (somando 100%)
 90. **Modo Claro no novo visual:** repetir os passos 81 a 89 com Ajustes > Aparência > Claro e anotar qualquer texto difícil de ler
+91. **Formulários secundários:** Abastecer, Manutenção (no Veículo), Nova reserva (Reservas) e Meta abrem com o valor grande no
+    topo, botões de escolha, campos em cartões e o botão de salvar fixo no rodapé (X no topo para cadastro, seta para edição).
+    Excluir/Remover aparecem em vermelho no fim e pedem confirmação. No Abastecimento, o preço por litro aparece embaixo do valor
+92. **Ajustes:** seções Depreciação, Aparência (seletor Automático/Claro/Escuro), Notificações (chave) e Backup em cartões.
+    Salvar depreciação volta ao Início; Exportar/Restaurar continuam funcionando (Restaurar pede confirmação)
+93. **Odômetro estimado:** com um abastecimento registrado hoje no odômetro X, lançar um ganho com 120 km com data de amanhã
+    (ou esperar o dia seguinte). No Veículo aparece "Odômetro estimado" com X + 120 e "Última leitura: X km em dd/MM + 120 km
+    dos ganhos". Um ganho com data de hoje não muda o odômetro. Registrar um novo abastecimento faz voltar a "Odômetro atual"
+94. **Alerta andando sozinho:** com a troca de óleo do passo 11 (intervalo 10.000), lançar ganhos com data depois da última
+    leitura até faltar menos de 500 km: o aviso âmbar aparece no Início, o cartão da manutenção muda para "Em N km" e, com a chave
+    ligada, chega a notificação (sem registrar abastecimento). Excluir esses ganhos de teste depois
+95. **Repetir meta:** com meta no mês passado e nenhuma neste mês, o card da meta no Início mostra "Repetir a de <mês>: R$ X"
+    (grava na hora e o progresso aparece) e "Definir outro valor". Na tela da meta, sem meta, o botão de atalho preenche o campo
+96. **Início e fim do turno:** no Novo lançamento (Ganho), não há mais campo de horas. Tocar em "Início do turno" abre um
+    relógio de 24 h; escolher 17:00 e, em "Fim do turno", 20:00: aparece "3 h de turno". Testar também 22:00 às 02:00 (4 h).
+    Só o início: aviso de que fica sem horas, mas salva. Só o fim, ou fim igual ao início: aviso em vermelho e Salvar desabilitado.
+    No Histórico a linha mostra "3 h · desde 17:00". Editar o ganho: início e fim vêm preenchidos; "Limpar" no relógio tira o
+    horário. Um ganho antigo (com horas e sem horário) mostra "N h online (lançado sem horário)" e mantém as horas ao salvar
+97. **Faixas nas Análises:** com o ganho do passo 96 (R$ 90,00, das 17:00 às 20:00), o cartão "Ganho por hora por horário" mostra
+    R$ 30,00/h na Tarde e na Noite (1 turno em cada). Sem nenhum ganho com horário, o cartão explica como preencher; com
+    lançamentos sem horário, avisa quantos ficaram de fora
+98. **Atualização sem perder dados:** instalar esta versão por cima da anterior (banco versão 1): todos os lançamentos, metas,
+    reservas e fotos continuam lá, e os ganhos antigos aparecem sem horário
+99. **Backup v2:** Exportar backup e Restaurar o mesmo arquivo: os horários de início voltam. Um backup antigo (feito antes desta
+    versão) restaura normalmente, com os ganhos sem horário

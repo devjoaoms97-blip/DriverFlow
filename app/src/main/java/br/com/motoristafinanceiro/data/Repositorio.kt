@@ -11,12 +11,25 @@ import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.OrigemDespesa
 import br.com.motoristafinanceiro.data.model.ReservaDespesa
+import br.com.motoristafinanceiro.domain.Odometro
 import br.com.motoristafinanceiro.domain.descricaoManutencao
+import br.com.motoristafinanceiro.domain.odometroEstimado
+import br.com.motoristafinanceiro.domain.ultimaLeitura
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
 /** Ponto único de acesso aos dados. A UI nunca fala direto com os DAOs. */
 class Repositorio(private val db: AppDatabase) {
+
+    private companion object {
+        /** Limite final para "daqui em diante" nas buscas por período. */
+        val FIM_DOS_TEMPOS: LocalDate = LocalDate.of(9999, 12, 31)
+    }
 
     // ---- Ganhos ----
     fun ganhos(inicio: LocalDate, fim: LocalDate): Flow<List<Ganho>> =
@@ -80,6 +93,23 @@ class Repositorio(private val db: AppDatabase) {
 
     // ---- Manutenção (gera a despesa de manutenção automaticamente) ----
     fun manutencoes(): Flow<List<Manutencao>> = db.manutencaoDao().observarTodas()
+
+    // ---- Odômetro ----
+    /**
+     * Odômetro dos alertas: última leitura (abastecimento ou manutenção) + km dos ganhos lançados depois dela.
+     * Só busca os ganhos a partir do dia seguinte à leitura; muda quando qualquer um dos três muda.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun odometro(): Flow<Odometro?> =
+        combine(abastecimentos(), manutencoes()) { a, m -> a to m }
+            .flatMapLatest { (a, m) ->
+                val leitura = ultimaLeitura(a, m)
+                if (leitura == null) {
+                    flowOf(null)
+                } else {
+                    ganhos(leitura.data.plusDays(1), FIM_DOS_TEMPOS).map { odometroEstimado(a, m, it) }
+                }
+            }
 
     suspend fun manutencaoPorId(id: Long): Manutencao? = db.manutencaoDao().buscarPorId(id)
 

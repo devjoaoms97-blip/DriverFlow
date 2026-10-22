@@ -12,6 +12,7 @@ import br.com.motoristafinanceiro.data.model.Plataforma
 import br.com.motoristafinanceiro.data.model.ReservaDespesa
 import br.com.motoristafinanceiro.data.model.TipoManutencao
 import br.com.motoristafinanceiro.domain.DEPRECIACAO_MAXIMA_POR_KM_CENTAVOS
+import br.com.motoristafinanceiro.domain.MINUTOS_NO_DIA
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -28,8 +29,11 @@ import java.time.format.DateTimeParseException
 object BackupJson {
     const val FORMATO = "motorista-financeiro-backup"
 
-    /** Versão do formato. Suba quando o formato mudar e continue lendo as versões antigas. */
-    const val VERSAO_ATUAL = 1
+    /**
+     * Versão do formato. Suba quando o formato mudar e continue lendo as versões antigas.
+     * 1: primeira versão. 2: ganhos com "inicioTurnoMinutos" (opcional; na 1 não existe).
+     */
+    const val VERSAO_ATUAL = 2
 
     fun gerar(dados: DadosBackup, criadoEmMs: Long): String =
         JSONObject()
@@ -48,6 +52,7 @@ object BackupJson {
                     .put("km", it.km)
                     .put("minutosOnline", it.minutosOnline)
                     .put("observacao", it.observacao)
+                    .put("inicioTurnoMinutos", it.inicioTurnoMinutos ?: JSONObject.NULL)
             })
             .put("despesas", array(dados.despesas) {
                 JSONObject()
@@ -127,6 +132,12 @@ object BackupJson {
                 km = it.duploNaoNegativo("km"),
                 minutosOnline = it.inteiroNaoNegativo("minutosOnline"),
                 observacao = it.textoOpc("observacao"),
+                // Opcional: backups de antes do horário do turno não têm o campo.
+                inicioTurnoMinutos = it.inteiroOpc("inicioTurnoMinutos")?.also { minutos ->
+                    if (minutos !in 0 until MINUTOS_NO_DIA) {
+                        throw BackupInvalidoException("campo \"inicioTurnoMinutos\" fora de 0 a 1439.")
+                    }
+                },
             )
         }
         val abastecimentos = tabela(raiz, "abastecimentos") {

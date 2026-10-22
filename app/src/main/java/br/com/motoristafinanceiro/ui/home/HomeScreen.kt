@@ -38,6 +38,7 @@ import br.com.motoristafinanceiro.ui.componentes.TituloTela
 import br.com.motoristafinanceiro.ui.componentes.ValorRotulado
 import br.com.motoristafinanceiro.ui.meta.textoDiasRestantes
 import br.com.motoristafinanceiro.ui.meta.textoFaltaPorDia
+import br.com.motoristafinanceiro.ui.meta.textoRepetirMeta
 import br.com.motoristafinanceiro.util.formatarReais
 import java.time.LocalDate
 
@@ -94,7 +95,13 @@ fun HomeScreen(
             )
         }
 
-        CartaoMeta(state.progressoMeta, onAbrirMeta)
+        CartaoMeta(
+            state.progressoMeta,
+            onAbrirMeta,
+            repetir = state.metaParaRepetirCentavos?.let { valor ->
+                textoRepetirMeta(vm.mesAtual.minusMonths(1), valor) to { vm.repetirMetaAnterior(valor) }
+            },
+        )
 
         val reservas = textoAvisoReservas(state.reservas)
         LinhaAviso(
@@ -135,7 +142,8 @@ private fun CartaoLucro(titulo: String, e: Estatisticas) {
 }
 
 @Composable
-private fun CartaoMeta(progresso: ProgressoMeta?, onAbrirMeta: () -> Unit) {
+/** [repetir]: texto e ação do botão que copia a meta do mês anterior (só quando o mês ainda não tem meta). */
+private fun CartaoMeta(progresso: ProgressoMeta?, onAbrirMeta: () -> Unit, repetir: Pair<String, () -> Unit>?) {
     val esquema = MaterialTheme.colorScheme
     Cartao {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -150,7 +158,12 @@ private fun CartaoMeta(progresso: ProgressoMeta?, onAbrirMeta: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = esquema.onSurfaceVariant,
             )
-            Button(onClick = onAbrirMeta, modifier = Modifier.fillMaxWidth()) { Text("Definir meta") }
+            if (repetir != null) {
+                Button(onClick = repetir.second, modifier = Modifier.fillMaxWidth()) { Text(repetir.first) }
+                TextButton(onClick = onAbrirMeta, modifier = Modifier.fillMaxWidth()) { Text("Definir outro valor") }
+            } else {
+                Button(onClick = onAbrirMeta, modifier = Modifier.fillMaxWidth()) { Text("Definir meta") }
+            }
         } else {
             BarraProgresso(progresso.fracao, esquema.primary, altura = 10.dp)
             Text(

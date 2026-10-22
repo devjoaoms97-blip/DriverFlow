@@ -13,10 +13,12 @@ import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.domain.AlertaManutencao
+import br.com.motoristafinanceiro.domain.Odometro
 import br.com.motoristafinanceiro.domain.ResumoVeiculo
 import br.com.motoristafinanceiro.domain.calcularAlertas
 import br.com.motoristafinanceiro.domain.calcularEstatisticas
 import br.com.motoristafinanceiro.domain.calcularResumoVeiculo
+import br.com.motoristafinanceiro.domain.ultimaLeitura
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -33,6 +35,8 @@ data class VeiculoUiState(
     val alertas: List<AlertaManutencao> = emptyList(),
     /** Depreciação por km usada no custo por km (0 = ignorada). */
     val depreciacaoPorKmCentavos: Long = 0,
+    /** Odômetro dos alertas: última leitura + km dos ganhos depois dela. Null sem nenhuma leitura. */
+    val odometro: Odometro? = null,
 )
 
 /** Regra pura da tela (sem Android), coberta por testes. */
@@ -42,13 +46,15 @@ internal fun montarEstadoVeiculo(
     ganhosMes: List<Ganho>,
     despesasMes: List<Despesa>,
     depreciacaoPorKmCentavos: Long = 0,
+    /** Com os km dos ganhos; null usa só as leituras (sem estimativa). */
+    odometroEstimado: Odometro? = null,
 ): VeiculoUiState {
     val resumo = calcularResumoVeiculo(
         abastecimentos,
         manutencoes,
         calcularEstatisticas(ganhosMes, despesasMes, depreciacaoPorKmCentavos),
     )
-    val odometro = resumo.odometroAtualKm
+    val odometro = odometroEstimado ?: ultimaLeitura(abastecimentos, manutencoes)?.let { Odometro(it.km, it) }
     return VeiculoUiState(
         resumo = resumo,
         abastecimentos = abastecimentos.sortedWith(
@@ -57,23 +63,33 @@ internal fun montarEstadoVeiculo(
         manutencoes = manutencoes.sortedWith(
             compareByDescending<Manutencao> { it.data.toEpochDay() }.thenByDescending { it.odometroKm }
         ),
-        alertas = if (odometro != null) calcularAlertas(manutencoes, odometro) else emptyList(),
+        alertas = if (odometro != null) calcularAlertas(manutencoes, odometro.km) else emptyList(),
         depreciacaoPorKmCentavos = depreciacaoPorKmCentavos,
+        odometro = odometro,
     )
 }
+
+private data class Registros(
+    val abastecimentos: List<Abastecimento>,
+    val manutencoes: List<Manutencao>,
+    val odometro: Odometro?,
+)
 
 class VeiculoViewModel(repo: Repositorio, configuracoes: Configuracoes) : ViewModel() {
 
     private val mes = YearMonth.now()
 
+    private val registros = combine(repo.abastecimentos(), repo.manutencoes(), repo.odometro()) { a, m, o ->
+        Registros(a, m, o)
+    }
+
     val uiState: StateFlow<VeiculoUiState> = combine(
-        repo.abastecimentos(),
-        repo.manutencoes(),
+        registros,
         repo.ganhos(mes.atDay(1), mes.atEndOfMonth()),
         repo.despesas(mes.atDay(1), mes.atEndOfMonth()),
         configuracoes.depreciacaoPorKmCentavos,
-    ) { abastecimentos, manutencoes, ganhos, despesas, depreciacao ->
-        montarEstadoVeiculo(abastecimentos, manutencoes, ganhos, despesas, depreciacao)
+    ) { r, ganhos, despesas, depreciacao ->
+        montarEstadoVeiculo(r.abastecimentos, r.manutencoes, ganhos, despesas, depreciacao, r.odometro)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), VeiculoUiState())
 
     companion object {

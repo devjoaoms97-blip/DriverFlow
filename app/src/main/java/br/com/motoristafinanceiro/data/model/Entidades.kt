@@ -18,6 +18,8 @@ data class Ganho(
     val km: Double = 0.0,
     val minutosOnline: Int = 0,
     val observacao: String? = null,
+    /** Hora em que o turno começou, em minutos desde a meia-noite (0 a 1439); null = não informada. */
+    val inicioTurnoMinutos: Int? = null,
 ) {
     val totalCentavos: Long get() = valorCentavos + gorjetaBonusCentavos
 }

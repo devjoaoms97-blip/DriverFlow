@@ -10,13 +10,17 @@ import br.com.motoristafinanceiro.data.Repositorio
 import br.com.motoristafinanceiro.data.model.Ganho
 import br.com.motoristafinanceiro.domain.Desempenho
 import br.com.motoristafinanceiro.domain.DesempenhoDia
+import br.com.motoristafinanceiro.domain.DesempenhoFaixa
 import br.com.motoristafinanceiro.domain.DesempenhoPlataforma
 import br.com.motoristafinanceiro.domain.PeriodoAnalise
 import br.com.motoristafinanceiro.domain.analisarPorDiaDaSemana
+import br.com.motoristafinanceiro.domain.analisarPorFaixa
 import br.com.motoristafinanceiro.domain.analisarPorPlataforma
 import br.com.motoristafinanceiro.domain.desempenhoDe
+import br.com.motoristafinanceiro.domain.ganhosSemHorario
 import br.com.motoristafinanceiro.domain.inicio
 import br.com.motoristafinanceiro.domain.melhorDiaPorHora
+import br.com.motoristafinanceiro.domain.melhorFaixa
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,6 +38,11 @@ data class AnalisesUiState(
     /** Só plataformas com ganho no período, da que mais rendeu para a que menos rendeu. */
     val plataformas: List<DesempenhoPlataforma> = emptyList(),
     val melhorDia: DesempenhoDia? = null,
+    /** Sempre 4 itens (madrugada, manhã, tarde, noite); zerados quando nenhum ganho tem horário. */
+    val faixas: List<DesempenhoFaixa> = emptyList(),
+    val melhorFaixa: DesempenhoFaixa? = null,
+    /** Lançamentos do período que ficaram fora da análise por faixa (sem horário de início ou sem horas). */
+    val ganhosSemHorario: Int = 0,
 ) {
     val temDados: Boolean get() = total.lancamentos > 0
 }
@@ -41,12 +50,16 @@ data class AnalisesUiState(
 /** Regra pura da tela Análises (sem Android), coberta por testes. */
 internal fun montarEstadoAnalises(periodo: PeriodoAnalise, ganhos: List<Ganho>): AnalisesUiState {
     val dias = analisarPorDiaDaSemana(ganhos)
+    val faixas = analisarPorFaixa(ganhos)
     return AnalisesUiState(
         periodo = periodo,
         total = desempenhoDe(ganhos),
         dias = dias,
         plataformas = analisarPorPlataforma(ganhos),
         melhorDia = melhorDiaPorHora(dias),
+        faixas = faixas,
+        melhorFaixa = melhorFaixa(faixas),
+        ganhosSemHorario = ganhosSemHorario(ganhos),
     )
 }
 

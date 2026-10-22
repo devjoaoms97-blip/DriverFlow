@@ -8,7 +8,9 @@ import br.com.motoristafinanceiro.data.Configuracoes
 import br.com.motoristafinanceiro.data.Repositorio
 import br.com.motoristafinanceiro.data.db.AppDatabase
 import br.com.motoristafinanceiro.data.model.Abastecimento
+import br.com.motoristafinanceiro.data.model.Ganho
 import br.com.motoristafinanceiro.data.model.Manutencao
+import br.com.motoristafinanceiro.data.model.Plataforma
 import br.com.motoristafinanceiro.data.model.TipoManutencao
 import br.com.motoristafinanceiro.notificacoes.VerificadorDeManutencao.Resultado
 import kotlinx.coroutines.CoroutineScope
@@ -157,5 +159,25 @@ class VerificadorDeManutencaoTest {
         assertEquals(limpezasAntes + 1, limpezas)
         assertTrue(configuracoes.alertasNotificados.first().isEmpty())
         assertEquals(1, entregues.size)
+    }
+
+    @Test
+    fun kmDosGanhosDepoisDaLeitura_disparamOAvisoSemPrecisarAbastecer() = roda {
+        configuracoes.salvarNotificacoesManutencao(true)
+        trocaDeOleo(10_000) // leitura de hoje; próxima troca em 20.000
+        repo.salvarGanho(Ganho(data = hoje.plusDays(1), plataforma = Plataforma.UBER, valorCentavos = 50_000, km = 9_600.0))
+
+        assertEquals(Resultado.NOTIFICOU, verificador.verificar())
+        assertEquals("Manutenção próxima", entregues.single().titulo)
+    }
+
+    @Test
+    fun ganhoNoMesmoDiaDaLeitura_naoContaNoOdometro() = roda {
+        configuracoes.salvarNotificacoesManutencao(true)
+        trocaDeOleo(10_000)
+        repo.salvarGanho(Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 50_000, km = 9_600.0))
+
+        assertEquals(Resultado.NADA_NOVO, verificador.verificar())
+        assertTrue(entregues.isEmpty())
     }
 }

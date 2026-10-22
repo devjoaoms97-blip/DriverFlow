@@ -22,6 +22,7 @@ internal fun dadosDeExemplo(): DadosBackup {
             Ganho(
                 id = 1, data = d12, plataforma = Plataforma.UBER, valorCentavos = 10_000,
                 gorjetaBonusCentavos = 500, km = 50.5, minutosOnline = 240, observacao = "Aeroporto",
+                inicioTurnoMinutos = 18 * 60 + 30,
             ),
             Ganho(id = 2, data = d13, plataforma = Plataforma.NOVE_NOVE, valorCentavos = 6_000),
         ),

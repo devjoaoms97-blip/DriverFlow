@@ -1,6 +1,8 @@
 package br.com.motoristafinanceiro.ui.analises
 
 import br.com.motoristafinanceiro.domain.DesempenhoDia
+import br.com.motoristafinanceiro.domain.DesempenhoFaixa
+import br.com.motoristafinanceiro.domain.FaixaHorario
 import br.com.motoristafinanceiro.util.formatarReais
 import java.time.DayOfWeek
 
@@ -62,4 +64,25 @@ fun percentuais(valores: List<Long>): List<Int> {
         }
     }
     return base
+}
+
+/** "06h–12h" (a Noite termina em "24h"). */
+fun intervaloFaixa(f: FaixaHorario): String =
+    f.inicioHora.toString().padStart(2, '0') + "h–" + f.fimHora.toString().padStart(2, '0') + "h"
+
+/** "R$ 32,00/h · 5 turnos"; sem horas na faixa, "Sem turnos". */
+fun textoFaixa(d: DesempenhoFaixa): String {
+    val porHora = d.ganhoPorHoraCentavos ?: return "Sem turnos"
+    val turnos = if (d.turnos == 1) "1 turno" else "${d.turnos} turnos"
+    return "${porHora.formatarReais()}/h · $turnos"
+}
+
+fun textoMelhorFaixa(d: DesempenhoFaixa): String =
+    "Melhor horário: ${d.faixa.rotulo.lowercase()} (${(d.ganhoPorHoraCentavos ?: 0L).formatarReais()}/h)"
+
+/** Aviso dos lançamentos que não entram na análise por faixa; vazio quando todos têm horário. */
+fun textoSemHorario(quantidade: Int): String = when (quantidade) {
+    0 -> ""
+    1 -> "1 lançamento sem horário de início (ou sem horas) não entra aqui."
+    else -> "$quantidade lançamentos sem horário de início (ou sem horas) não entram aqui."
 }

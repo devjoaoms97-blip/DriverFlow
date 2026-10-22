@@ -30,7 +30,7 @@ com lançamento rápido (poucos toques) e funcionamento offline.
 
 | ID | Requisito | Etapa |
 |---|---|---|
-| RF-01 | Lançar ganho: data, plataforma, valor bruto, gorjeta/bônus, km, horas online | 1 |
+| RF-01 | Lançar ganho: data, plataforma, valor bruto, gorjeta/bônus, km e início e fim do turno (as horas são a diferença) | 1 |
 | RF-02 | Lançar despesa: data, categoria, valor, observação, foto opcional | 1 |
 | RF-03 | Editar e excluir lançamentos | 1 |
 | RF-04 | Tela inicial com lucro líquido (hoje, semana, mês) e indicadores | 2 |
@@ -64,9 +64,11 @@ com lançamento rápido (poucos toques) e funcionamento offline.
 | Lucro após depreciação | lucro líquido − (km × depreciação por km) |
 | Ganho por km | ganho bruto ÷ km rodados |
 | Ganho por hora | ganho bruto ÷ horas online |
+| Horas do turno | fim − início do turno, passando da meia-noite normalmente (22:00 às 02:00 = 4 h). O fim não é guardado: é sempre início + minutos. Pausas no meio do turno contam como horas. Só o início preenchido: o ganho fica sem horas. Só o fim, ou fim igual ao início: não deixa salvar. Lançamento antigo, com horas e sem horário, mantém as horas até que início e fim sejam preenchidos |
 | Custo por km | (despesas + depreciação) ÷ km rodados |
 | Consumo médio | pelo método do tanque cheio: km entre dois "cheios" ÷ litros abastecidos entre eles (incluindo o último) |
-| Km restantes (manutenção) | odômetro da última + intervalo − odômetro atual (negativo = atrasada) |
+| Odômetro (alertas) | **estimado** = maior leitura real (abastecimento ou manutenção; empate fica com a mais recente) + km dos ganhos lançados **nos dias seguintes** a ela. Ganhos do mesmo dia da leitura não entram (não dá para saber se foram antes ou depois). Km fora dos apps não entram, então a estimativa tende a ficar abaixo do real: o alerta pode chegar um pouco tarde, nunca cedo. Uma nova leitura zera a estimativa |
+| Km restantes (manutenção) | odômetro da última + intervalo − odômetro (estimado) atual (negativo = atrasada) |
 | Reserva diária | valor da despesa ÷ dias do período (mensal 30, trimestral 91, semestral 182, anual 365) |
 | Próximo vencimento | data cadastrada; se já passou, avança de 1, 3, 6 ou 12 meses (conforme a periodicidade), sempre contando a partir da data original |
 | Desempenho (Análises) | ganho bruto (com gorjeta/bônus), lançamentos e dias trabalhados (datas diferentes). **Ganho por hora** = ganho dos lançamentos que têm horas ÷ suas horas; **ganho por km** = ganho dos lançamentos que têm km ÷ seus km. Lançamento sem horas ou sem km não entra na divisão, para não inflar o valor |
@@ -77,6 +79,8 @@ com lançamento rápido (poucos toques) e funcionamento offline.
 | Dias restantes | dias do mês de hoje até o último dia, **contando hoje** (dia 15 de outubro: 17 dias) |
 | Falta por dia | falta da meta ÷ dias restantes, arredondado para cima; no último dia do mês é tudo o que falta |
 | Meta batida | lucro líquido do mês ≥ meta; o card mostra quanto passou e não mostra mais "por dia" |
+| Repetir meta | quando o mês ainda não tem meta e o anterior tinha (dentro do limite), o card do Início oferece "Repetir a de setembro: R$ X" (grava na hora) e a tela da meta oferece o mesmo atalho para preencher o campo |
+| Faixas de horário (Análises) | madrugada 0h–6h, manhã 6h–12h, tarde 12h–18h, noite 18h–24h. Cada ganho com início do turno e horas online é repartido entre as faixas na proporção do tempo que passou em cada uma (um turno das 17h às 20h: 1/3 na tarde e 2/3 na noite; turno que passa da meia-noite continua na madrugada). Ganho por hora da faixa = ganho repartido ÷ horas na faixa. Melhor faixa só com 2 ou mais faixas com horas. Ganhos sem início ou sem horas não entram, e a tela diz quantos ficaram de fora |
 
 **Despesas automáticas:** abastecimento e manutenção criam uma despesa vinculada (`origem` + `origemId`),
 evitando lançamento duplo. Ao excluir o abastecimento/manutenção, a despesa vinculada também é excluída.
@@ -89,7 +93,7 @@ evitando lançamento duplo. Ao excluir o abastecimento/manutenção, a despesa v
 
 | Tabela | Campos |
 |---|---|
-| `ganhos` | id, data, plataforma, valorCentavos, gorjetaBonusCentavos, km, minutosOnline, observacao |
+| `ganhos` | id, data, plataforma, valorCentavos, gorjetaBonusCentavos, km, minutosOnline, observacao, inicioTurnoMinutos (minutos desde a meia-noite, opcional; desde a versão 2) |
 | `despesas` | id, data, categoria, valorCentavos, observacao, fotoUri, origem (MANUAL/ABASTECIMENTO/MANUTENCAO), origemId |
 | `abastecimentos` | id, data, litros, valorTotalCentavos, odometroKm, tanqueCheio |
 | `manutencoes` | id, tipo, data, odometroKm, valorCentavos, intervaloKm, observacao |
@@ -100,19 +104,21 @@ Datas armazenadas como `epochDay` (Long) via `TypeConverter`. Enums armazenados 
 
 **Comprovantes:** o campo `fotoUri` da despesa guarda apenas o NOME do arquivo da foto, que fica em `filesDir/comprovantes/` (pasta privada do app). Fotos são reduzidas para cerca de 1.600 px e regravadas em JPEG, com a rotação do EXIF aplicada. Arquivos que nenhuma despesa usa são apagados na abertura do app, desde que tenham mais de 24 h.
 **Configurações** (depreciação por km, aviso de manutenção ligado/desligado, alertas já avisados, se a permissão já foi perguntada etc.) ficam no DataStore, fora do Room.
-Schema do Room exportado em `app/schemas/` para versionar migrações.
+Schema do Room exportado em `app/schemas/` para versionar migrações. **Versão atual: 2.** Migrações em
+`data/db/AppDatabase.kt` (`MIGRACOES`), nunca apagadas: 1 → 2 acrescenta `ganhos.inicioTurnoMinutos` (nulo nos
+lançamentos antigos). O `MigracaoTest` cria um banco da versão 1 com o SQL do schema exportado e abre com o app atual.
 
 ## 7. Telas
 
 Navegação: barra inferior com Início, Histórico, **+** (no centro), Veículo e Análises. O + abre o Novo lançamento;
 na aba Veículo, pergunta se é abastecimento ou manutenção. Reservas, Meta e Ajustes abrem a partir do Início, sem a barra.
 
-1. **Início:** data, seletor Hoje/Semana/Mês, cartão do lucro líquido do período (barra lucro × despesas, ganho bruto e despesas; depreciação quando configurada), indicadores (ganho por km, ganho por hora, custo por km, km e horas rodados), aviso de manutenção (atrasadas e próximas, abre a aba Veículo), card da meta (progresso e quanto falta por dia) e atalho de Reservas (quanto separar hoje e o próximo vencimento)
-2. **Novo lançamento** (botão +): seletor Ganho / Despesa, valor em destaque na cor do tipo, plataforma ou categoria em chips, data com atalhos Hoje/Ontem, km/horas/gorjeta lado a lado e o botão de salvar fixo no rodapé
+1. **Início:** data, seletor Hoje/Semana/Mês, cartão do lucro líquido do período (barra lucro × despesas, ganho bruto e despesas; depreciação quando configurada), indicadores (ganho por km, ganho por hora, custo por km, km e horas rodados), aviso de manutenção (atrasadas e próximas, abre a aba Veículo), card da meta (progresso e quanto falta por dia; sem meta, o atalho para repetir a do mês anterior) e atalho de Reservas (quanto separar hoje e o próximo vencimento)
+2. **Novo lançamento** (botão +): seletor Ganho / Despesa, valor em destaque na cor do tipo, plataforma ou categoria em chips, data com atalhos Hoje/Ontem, início e fim do turno (relógio de 24 h; as horas são calculadas e aparecem embaixo), km e gorjeta lado a lado, e o botão de salvar fixo no rodapé
 3. **Histórico:** lista por mês filtrável por tipo (Todos/Ganhos/Despesas). Com Ganhos, filtra também por plataforma; com Despesas, por categoria. Os dois refinos são limpos ao trocar o tipo. Com um refino ativo, aparece o total e a quantidade exibidos ("Uber no mês: R$ 450,00 (3 lançamentos)"); o resumo do mês inteiro não muda. Editar/excluir continuam valendo
-4. **Veículo:** odômetro em destaque, consumo médio, último litro e custo por km do mês; botões Abastecer e Manutenção; um cartão por manutenção com intervalo (selo atrasada/próxima/em dia e barra do quanto do intervalo já foi rodado); manutenções feitas e abastecimentos
+4. **Veículo:** odômetro em destaque ("estimado", com a última leitura e os km somados, quando há ganhos depois dela), consumo médio, último litro e custo por km do mês; botões Abastecer e Manutenção; um cartão por manutenção com intervalo (selo atrasada/próxima/em dia e barra do quanto do intervalo já foi rodado); manutenções feitas e abastecimentos
 5. **Reservas** (aberta pelo atalho do Início; o + do cabeçalho cadastra): despesas recorrentes e total a separar por dia
-6. **Análises:** período (30 dias, 90 dias ou tudo, sempre até hoje); resumo, ganho por hora por dia da semana (segunda a domingo, com barra, dias trabalhados e média por dia), melhor dia e comparativo por plataforma. Faixa de horário ainda não existe (ver decisões em aberto)
+6. **Análises:** período (30 dias, 90 dias ou tudo, sempre até hoje); resumo, ganho por hora por dia da semana (segunda a domingo, com barra, dias trabalhados e média por dia), melhor dia, ganho por hora por faixa de horário (com a melhor faixa e quantos lançamentos ficaram de fora) e comparativo por plataforma
 7. **Ajustes:** depreciação por km, aparência (Automático, Claro ou Escuro), aviso de manutenção (chave que liga e desliga as notificações; pede a permissão do Android 13+ se ainda não liberada) e backup (Exportar backup, Restaurar backup)
 8. **Meta mensal** (aberta pelo card do Início): definir, editar e remover a meta do mês (R$ 0,01 a R$ 100.000,00). Cada mês tem a sua meta; mês novo começa sem meta
 
@@ -144,7 +150,7 @@ motorista-financeiro-backup-2026-10-20.zip
     └── comprovante_*.jpg
 ```
 
-**`dados.json`:** `formato` ("motorista-financeiro-backup"), `versaoSchema` (hoje 1), `criadoEmMs`,
+**`dados.json`:** `formato` ("motorista-financeiro-backup"), `versaoSchema` (hoje 2; a 1 continua sendo lida), `criadoEmMs`,
 `depreciacaoPorKmCentavos`, `notificacoesManutencaoAtivas` (opcional: backups antigos não têm, e ao restaurá-los a chave atual é mantida) e as tabelas `ganhos`, `despesas`, `abastecimentos`, `manutencoes`, `reservas` e `metas`.
 Datas em ISO (`2026-10-20`), meses como `2026-10`, enums pelo nome e dinheiro em centavos. Os **ids são mantidos**,
 porque as despesas geradas por abastecimento/manutenção apontam para eles.
@@ -164,13 +170,14 @@ minutos não negativos; ids positivos e sem repetição; despesa de abasteciment
 que existe no backup; nomes de foto simples (sem pasta nem `..`); depreciação dentro do teto. Entradas do `.zip` com
 caminho suspeito são ignoradas.
 
-**Versões:** um backup mais novo que o app é recusado com pedido para atualizar. Quando o banco mudar (por exemplo, o
-horário do turno), a `versaoSchema` sobe e o app continua lendo as versões antigas.
+**Versões:** um backup mais novo que o app é recusado com pedido para atualizar. Quando o banco muda, a `versaoSchema`
+sobe e o app continua lendo as versões antigas. Versão 2: ganhos com `inicioTurnoMinutos` (opcional, de 0 a 1439;
+backups da versão 1 restauram com os ganhos sem horário).
 
 ## 10. Decisões em aberto
 
 - Lançamento por corrida individual além do lançamento por turno?
-- Faixa de horário nas Análises (RF-13): o ganho hoje só tem data, sem horário. Para analisar por faixa é preciso registrar o horário de início do turno (campo novo no ganho, migração do Room da versão 1 para a 2, sem perder os dados atuais)
-- Odômetro estimado: hoje o km do carro só avança com abastecimento ou manutenção, então o alerta (e a notificação) só muda nesses registros. Somar os km dos ganhos desde a última leitura do odômetro faria o alerta andar sozinho, mas é uma estimativa (km pessoais não entram)
+- ~~Faixa de horário nas Análises (RF-13)~~ **Resolvido:** início do turno opcional no ganho (banco e backup na versão 2)
+- ~~Odômetro estimado~~ **Resolvido:** última leitura + km dos ganhos dos dias seguintes (regra na seção 5), sempre ligado
 - ~~Definição exata de "semana"~~ **Resolvido:** segunda a domingo
 - ~~Valor padrão de depreciação por km~~ **Resolvido:** começa em R$ 0,00/km (ignorada) e o usuário define em Ajustes; teto de R$ 10,00/km

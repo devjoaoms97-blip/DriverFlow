@@ -1,26 +1,13 @@
 package br.com.motoristafinanceiro.ui.veiculo
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +23,14 @@ import br.com.motoristafinanceiro.data.model.TipoManutencao
 import br.com.motoristafinanceiro.domain.intervaloSugeridoKm
 import br.com.motoristafinanceiro.domain.manutencaoValida
 import br.com.motoristafinanceiro.domain.parseIntervaloKm
+import br.com.motoristafinanceiro.ui.componentes.BotaoExcluir
+import br.com.motoristafinanceiro.ui.componentes.CampoCompacto
+import br.com.motoristafinanceiro.ui.componentes.CampoValor
+import br.com.motoristafinanceiro.ui.componentes.DialogoConfirmar
+import br.com.motoristafinanceiro.ui.componentes.Escolhas
+import br.com.motoristafinanceiro.ui.componentes.NaoEncontrado
+import br.com.motoristafinanceiro.ui.componentes.TelaFormulario
+import br.com.motoristafinanceiro.ui.componentes.TextoDeApoio
 import br.com.motoristafinanceiro.ui.lancamento.CampoData
 import br.com.motoristafinanceiro.util.paraTextoReais
 import br.com.motoristafinanceiro.util.reaisParaCentavos
@@ -53,14 +48,7 @@ fun ManutencaoScreen(id: Long, onConcluir: () -> Unit) {
         vm.carregando -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
-        id != 0L && original == null -> Column(
-            Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text("Manutenção não encontrada")
-            Button(onClick = onConcluir, modifier = Modifier.padding(top = 12.dp)) { Text("Voltar") }
-        }
+        id != 0L && original == null -> NaoEncontrado("Manutenção não encontrada", onConcluir)
         else -> FormManutencao(vm, original, onConcluir)
     }
 }
@@ -83,81 +71,63 @@ private fun FormManutencao(vm: ManutencaoViewModel, original: Manutencao?, onCon
     val valorCentavos = valor.reaisParaCentavos()
     val valido = manutencaoValida(odometroKm, valorCentavos, intervalo)
 
-    Column(
-        Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+    TelaFormulario(
+        titulo = if (original == null) "Nova manutenção" else "Editar manutenção",
+        novo = original == null,
+        onVoltar = onConcluir,
+        textoSalvar = if (original == null) "Salvar manutenção" else "Salvar alterações",
+        podeSalvar = valido,
+        onSalvar = {
+            val base = original ?: Manutencao(tipo = tipo, data = data, odometroKm = 0, valorCentavos = 0)
+            vm.salvar(
+                base.copy(
+                    tipo = tipo,
+                    data = data,
+                    odometroKm = odometroKm ?: 0,
+                    valorCentavos = valorCentavos ?: 0,
+                    intervaloKm = parseIntervaloKm(intervalo),
+                    observacao = obs.ifBlank { null },
+                ),
+                onConcluir,
+            )
+        },
     ) {
-        Text(
-            if (original == null) "Nova manutenção" else "Editar manutenção",
-            style = MaterialTheme.typography.titleLarge,
+        CampoValor("Valor do serviço", valor, { valor = it }, MaterialTheme.colorScheme.primary)
+        Escolhas(
+            "Serviço", TipoManutencao.entries, tipo, { it.rotulo },
+            {
+                tipo = it
+                if (!intervaloEditado) intervalo = intervaloSugeridoKm(it)?.toString().orEmpty()
+            },
         )
         CampoData(data, { data = it })
-
-        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TipoManutencao.entries.forEach {
-                FilterChip(
-                    selected = tipo == it,
-                    onClick = {
-                        tipo = it
-                        if (!intervaloEditado) intervalo = intervaloSugeridoKm(it)?.toString().orEmpty()
-                    },
-                    label = { Text(it.rotulo) },
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                CampoCompacto(
+                    "Odômetro no serviço", odometro, { odometro = it }, Modifier.weight(1f),
+                    dica = "ex.: 48720", teclado = KeyboardType.Number,
+                )
+                CampoCompacto(
+                    "Próxima a cada (km)", intervalo, { intervalo = it; intervaloEditado = true }, Modifier.weight(1f),
+                    dica = "opcional", teclado = KeyboardType.Number,
                 )
             }
+            TextoDeApoio("Deixe o intervalo vazio para não criar alerta.")
         }
-
-        OutlinedTextField(odometro, { odometro = it }, label = { Text("Odômetro na hora do serviço (km)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(valor, { valor = it }, label = { Text("Valor (R$)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(intervalo, { intervalo = it; intervaloEditado = true },
-            label = { Text("Intervalo até a próxima (km), opcional") },
-            supportingText = { Text("Deixe vazio para não criar alerta.") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(obs, { obs = it }, label = { Text("Observação (opcional)") },
-            supportingText = {
-                if (tipo == TipoManutencao.OUTRO) Text("Para \"Outro\", descreva o serviço aqui (ex.: Bateria).")
-            },
-            modifier = Modifier.fillMaxWidth())
-
-        Button(
-            enabled = valido,
-            onClick = {
-                val base = original ?: Manutencao(tipo = tipo, data = data, odometroKm = 0, valorCentavos = 0)
-                vm.salvar(
-                    base.copy(
-                        tipo = tipo,
-                        data = data,
-                        odometroKm = odometroKm ?: 0,
-                        valorCentavos = valorCentavos ?: 0,
-                        intervaloKm = parseIntervaloKm(intervalo),
-                        observacao = obs.ifBlank { null },
-                    ),
-                    onConcluir,
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-        ) { Text(if (original == null) "Salvar manutenção" else "Salvar alterações") }
-
-        if (original != null) {
-            OutlinedButton(
-                onClick = { confirmarExclusao = true },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-            ) { Text("Excluir manutenção") }
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            CampoCompacto("Observação (opcional)", obs, { obs = it }, Modifier.fillMaxWidth(), umaLinha = false)
+            if (tipo == TipoManutencao.OUTRO) TextoDeApoio("Para \"Outro\", descreva o serviço aqui (ex.: Bateria).")
         }
+        if (original != null) BotaoExcluir("Excluir manutenção") { confirmarExclusao = true }
     }
 
     if (confirmarExclusao && original != null) {
-        AlertDialog(
-            onDismissRequest = { confirmarExclusao = false },
-            title = { Text("Excluir manutenção?") },
-            text = { Text("A despesa gerada por ela também será excluída.") },
-            confirmButton = { TextButton(onClick = { vm.excluir(original, onConcluir) }) { Text("Excluir") } },
-            dismissButton = { TextButton(onClick = { confirmarExclusao = false }) { Text("Cancelar") } },
+        DialogoConfirmar(
+            "Excluir manutenção?",
+            "A despesa gerada por ela também será excluída.",
+            "Excluir",
+            onConfirmar = { vm.excluir(original, onConcluir) },
+            onCancelar = { confirmarExclusao = false },
         )
     }
 }

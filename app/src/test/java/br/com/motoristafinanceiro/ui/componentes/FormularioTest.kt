@@ -1,20 +1,11 @@
-package br.com.motoristafinanceiro.ui.lancamento
+package br.com.motoristafinanceiro.ui.componentes
 
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.VisualTransformation
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.time.LocalDate
 
-class CamposLancamentoTest {
-    private val hoje = LocalDate.of(2026, 10, 21)
-
-    @Test
-    fun rotuloData_hojeOntemOuSoAData() {
-        assertEquals("Hoje · 21/10/2026", rotuloData(hoje, hoje))
-        assertEquals("Ontem · 20/10/2026", rotuloData(hoje.minusDays(1), hoje))
-        assertEquals("05/10/2026", rotuloData(LocalDate.of(2026, 10, 5), hoje))
-    }
+class FormularioTest {
 
     @Test
     fun prefixoReais_mostraRSAntesDoValor() {

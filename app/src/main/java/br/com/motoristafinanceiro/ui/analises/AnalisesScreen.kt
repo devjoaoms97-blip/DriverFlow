@@ -29,9 +29,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.motoristafinanceiro.domain.DesempenhoDia
+import br.com.motoristafinanceiro.domain.DesempenhoFaixa
 import br.com.motoristafinanceiro.domain.DesempenhoPlataforma
 import br.com.motoristafinanceiro.domain.PeriodoAnalise
 import br.com.motoristafinanceiro.ui.componentes.BarraDividida
+import br.com.motoristafinanceiro.ui.componentes.BarraProgresso
 import br.com.motoristafinanceiro.ui.componentes.Cartao
 import br.com.motoristafinanceiro.ui.componentes.GradeDuasColunas
 import br.com.motoristafinanceiro.ui.componentes.Indicador
@@ -74,6 +76,8 @@ fun AnalisesScreen(vm: AnalisesViewModel = viewModel(factory = AnalisesViewModel
         )
 
         CartaoDiasDaSemana(state.dias, state.melhorDia)
+
+        CartaoFaixas(state.faixas, state.melhorFaixa, state.ganhosSemHorario)
 
         if (state.plataformas.isNotEmpty()) CartaoPlataformas(state.plataformas)
 
@@ -151,6 +155,46 @@ private fun CartaoDiasDaSemana(dias: List<DesempenhoDia>, melhor: DesempenhoDia?
                     )
                 }
             }
+        }
+    }
+}
+
+/** Ganho por hora em cada faixa do dia (madrugada, manhã, tarde, noite), com barra relativa à melhor. */
+@Composable
+private fun CartaoFaixas(faixas: List<DesempenhoFaixa>, melhor: DesempenhoFaixa?, semHorario: Int) {
+    val esquema = MaterialTheme.colorScheme
+    val maximo = faixas.mapNotNull { it.ganhoPorHoraCentavos }.maxOrNull()
+    Cartao(espacamento = 14.dp) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text("Ganho por hora por horário", style = MaterialTheme.typography.titleMedium)
+            melhor?.let {
+                Text(textoMelhorFaixa(it), style = MaterialTheme.typography.bodySmall, color = esquema.onSurfaceVariant)
+            }
+        }
+        if (maximo == null) {
+            Text(
+                "Informe o início do turno ao lançar um ganho para ver em que horário você ganha mais.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = esquema.onSurfaceVariant,
+            )
+        } else {
+            faixas.forEach { f ->
+                val destaque = melhor != null && f.faixa == melhor.faixa
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(f.faixa.rotulo, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                        Text(intervaloFaixa(f.faixa), style = MaterialTheme.typography.labelMedium, color = esquema.onSurfaceVariant)
+                    }
+                    BarraProgresso(
+                        fracaoDaBarra(f.ganhoPorHoraCentavos, maximo),
+                        if (destaque) esquema.primary else esquema.outline,
+                    )
+                    Text(textoFaixa(f), style = MaterialTheme.typography.bodySmall, color = esquema.onSurfaceVariant)
+                }
+            }
+        }
+        textoSemHorario(semHorario).takeIf { it.isNotEmpty() }?.let {
+            Text(it, style = MaterialTheme.typography.bodySmall, color = esquema.onSurfaceVariant)
         }
     }
 }

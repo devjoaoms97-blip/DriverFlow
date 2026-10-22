@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,10 @@ internal val abasDireita = listOf(
     Aba("veiculo", "Veículo", Icones.Veiculo),
     Aba("analises", "Análises", Icones.Analises),
 )
+
+/** Tags para os testes de interface acharem a aba e o + (o texto "Início" também é título de tela). */
+internal fun tagDaAba(rota: String) = "aba-$rota"
+internal const val TAG_BOTAO_NOVO = "botao-novo"
 
 /** Barra inferior do "Painel de bordo": 4 abas e o botão + no centro, ao alcance do polegar. */
 @Composable
@@ -66,7 +71,7 @@ fun BarraInferior(
                     color = esquema.primary,
                     contentColor = esquema.onPrimary,
                     shadowElevation = 6.dp,
-                    modifier = Modifier.size(56.dp).offset(y = (-14).dp),
+                    modifier = Modifier.size(56.dp).offset(y = (-14).dp).testTag(TAG_BOTAO_NOVO),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(Icones.Mais, contentDescription = descricaoNovo, modifier = Modifier.size(26.dp))
@@ -84,6 +89,7 @@ private fun ItemAba(aba: Aba, ativa: Boolean, onAbrir: (String) -> Unit, modifie
     Column(
         modifier
             .fillMaxHeight()
+            .testTag(tagDaAba(aba.rota))
             .selectable(selected = ativa, role = Role.Tab, onClick = { onAbrir(aba.rota) }),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),

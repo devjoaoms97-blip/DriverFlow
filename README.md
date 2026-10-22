@@ -9,12 +9,12 @@ Dados 100% locais no aparelho (sem login, sem servidor, sem nuvem).
 
 ## O que o app faz hoje
 
-- **Ganhos e despesas** com data, plataforma, categoria e foto do comprovante (câmera ou galeria)
+- **Ganhos e despesas** com data, plataforma, categoria, início e fim do turno e foto do comprovante (câmera ou galeria)
 - **Início** com lucro líquido do dia, da semana (segunda a domingo) e do mês, ganho por km e por hora, custo por km, depreciação e alertas
-- **Meta mensal** de lucro líquido, com progresso e quanto falta por dia até o fim do mês
+- **Meta mensal** de lucro líquido, com progresso, quanto falta por dia até o fim do mês e atalho para repetir a do mês anterior
 - **Histórico** por mês, agrupado por dia, com filtro por tipo, plataforma e categoria e edição de tudo que foi lançado
-- **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km
-- **Análises:** ganho por hora por dia da semana, melhor dia e comparativo entre plataformas (Uber × 99), por período
+- **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km, com o odômetro estimado pelos km dos ganhos
+- **Análises:** ganho por hora por dia da semana e por faixa de horário, melhores dia e horário e comparativo entre plataformas (Uber × 99), por período
 - **Reservas** para despesas fixas (IPVA, seguro, parcela), com quanto separar por dia
 - **Visual "Painel de bordo":** fonte Manrope, números em destaque e barra inferior com o + no centro, ao alcance do polegar
 - **Ajustes:** depreciação por km, **aviso de manutenção** (notificação quando uma manutenção fica próxima ou atrasada) e **backup** (exportar e restaurar um arquivo .zip com dados e fotos dos comprovantes)

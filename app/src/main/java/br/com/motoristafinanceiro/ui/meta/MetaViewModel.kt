@@ -23,6 +23,9 @@ class MetaViewModel(
     /** Meta do mês em centavos, ou null se ainda não foi definida. */
     suspend fun metaAtual(): Long? = repo.meta(mes.toString()).first()?.valorAlvoLucroCentavos
 
+    /** Meta do mês anterior, para o atalho "Repetir a de setembro". */
+    suspend fun metaAnterior(): Long? = repo.meta(mes.minusMonths(1).toString()).first()?.valorAlvoLucroCentavos
+
     fun salvar(centavos: Long, aoConcluir: () -> Unit) =
         executar(aoConcluir) { repo.salvarMeta(Meta(mes.toString(), centavos)) }
 

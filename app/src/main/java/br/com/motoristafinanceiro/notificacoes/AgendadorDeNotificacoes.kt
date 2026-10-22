@@ -9,6 +9,7 @@ import androidx.work.WorkManager
 import br.com.motoristafinanceiro.MotoristaApp
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import java.util.concurrent.TimeUnit
 
 /** Quando a verificação de manutenção roda. */
@@ -31,13 +32,13 @@ object AgendadorDeNotificacoes {
     }
 
     /**
-     * Verifica a cada mudança em manutenções, abastecimentos (o odômetro vem deles) ou na chave
+     * Verifica a cada mudança em manutenções, no odômetro (leituras e km dos ganhos depois delas) ou na chave
      * "avisar sobre manutenção". Fica coletando enquanto a tela do app estiver aberta.
      */
     suspend fun verificarACadaMudanca(app: MotoristaApp) {
         combine(
             app.repositorio.manutencoes(),
-            app.repositorio.abastecimentos(),
+            app.repositorio.odometro().map { it?.km }.distinctUntilChanged(),
             // distinctUntilChanged: o DataStore emite a cada gravação (até de outras chaves), e só esta interessa.
             app.configuracoes.notificacoesManutencaoAtivas.distinctUntilChanged(),
         ) { _, _, _ -> }.collect { verificarAgora(app) }

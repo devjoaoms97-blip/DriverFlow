@@ -6,6 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
+import java.time.YearMonth
 
 class TextoMetaTest {
     private val meta = 500_000L
@@ -41,4 +42,13 @@ class TextoMetaTest {
         assertEquals("Meta batida! Você passou ${60_000L.formatarReais()} da meta.", textoFaltaPorDia(p))
         assertTrue(textoDiasRestantes(p).isEmpty())
     }
+
+    @Test
+    fun nomeDoMes_emMinusculas() = assertEquals("setembro", nomeDoMes(YearMonth.of(2026, 9)))
+
+    @Test
+    fun botaoDeRepetir_comMesEValor() = assertEquals(
+        "Repetir a de setembro: ${500_000L.formatarReais()}",
+        textoRepetirMeta(YearMonth.of(2026, 9), 500_000),
+    )
 }

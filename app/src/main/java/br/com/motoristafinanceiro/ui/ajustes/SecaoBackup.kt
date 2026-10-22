@@ -2,18 +2,16 @@ package br.com.motoristafinanceiro.ui.ajustes
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import br.com.motoristafinanceiro.ui.componentes.BotaoPrincipal
+import br.com.motoristafinanceiro.ui.componentes.DialogoConfirmar
 
 /** Exportar e restaurar o backup completo (arquivo .zip). [aoRestaurar] avisa a tela para recarregar os ajustes. */
 @Composable
@@ -39,8 +39,7 @@ fun SecaoBackup(aoRestaurar: () -> Unit) {
         vm.restaurar(uri, aoRestaurar)
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Backup", style = MaterialTheme.typography.titleMedium)
+    SecaoAjustes("Backup") {
         Text(
             "Guarda lançamentos, veículo, reservas, metas, depreciação e as fotos dos comprovantes em um arquivo " +
                 ".zip. Escolha onde salvar (Google Drive, computador...). Sem backup, desinstalar o app ou perder " +
@@ -49,17 +48,15 @@ fun SecaoBackup(aoRestaurar: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        Button(
-            onClick = { criarArquivo.launch(vm.nomeSugerido) },
-            enabled = !trabalhando,
-            modifier = Modifier.fillMaxWidth(),
-        ) { Text("Exportar backup") }
+        BotaoPrincipal("Exportar backup", habilitado = !trabalhando) { criarArquivo.launch(vm.nomeSugerido) }
 
         OutlinedButton(
             onClick = { confirmandoRestauracao = true },
             enabled = !trabalhando,
-            modifier = Modifier.fillMaxWidth(),
-        ) { Text("Restaurar backup") }
+            shape = MaterialTheme.shapes.medium,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+        ) { Text("Restaurar backup", style = MaterialTheme.typography.titleSmall) }
 
         when (estado) {
             is EstadoBackup.Trabalhando -> Row(
@@ -78,22 +75,16 @@ fun SecaoBackup(aoRestaurar: () -> Unit) {
     }
 
     if (confirmandoRestauracao) {
-        AlertDialog(
-            onDismissRequest = { confirmandoRestauracao = false },
-            title = { Text("Restaurar backup?") },
-            text = {
-                Text(
-                    "Isso substitui TODOS os dados atuais (lançamentos, veículo, reservas, metas, depreciação e " +
-                        "fotos) pelos do arquivo. Se quiser guardar o que existe hoje, cancele e exporte um backup antes.",
-                )
+        DialogoConfirmar(
+            "Restaurar backup?",
+            "Isso substitui TODOS os dados atuais (lançamentos, veículo, reservas, metas, depreciação e " +
+                "fotos) pelos do arquivo. Se quiser guardar o que existe hoje, cancele e exporte um backup antes.",
+            "Escolher arquivo",
+            onConfirmar = {
+                confirmandoRestauracao = false
+                abrirArquivo.launch(arrayOf("*/*"))
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmandoRestauracao = false
-                    abrirArquivo.launch(arrayOf("*/*"))
-                }) { Text("Escolher arquivo") }
-            },
-            dismissButton = { TextButton(onClick = { confirmandoRestauracao = false }) { Text("Cancelar") } },
+            onCancelar = { confirmandoRestauracao = false },
         )
     }
 }

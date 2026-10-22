@@ -58,3 +58,12 @@ fun calcularProgressoMeta(metaCentavos: Long, lucroCentavos: Long, hoje: LocalDa
         faltaPorDiaCentavos = (falta + dias - 1) / dias,
     )
 }
+
+/**
+ * Meta que dá para repetir com um toque: a do mês anterior, quando o mês atual ainda não tem meta válida.
+ * Null quando o mês atual já tem meta ou o anterior não tinha (ou tinha um valor fora do limite).
+ */
+fun metaParaRepetirCentavos(metaDoMes: Long?, metaDoMesAnterior: Long?): Long? {
+    if (metaDoMes != null && metaDoMes > 0) return null
+    return metaDoMesAnterior?.takeIf { it in 1..META_MAXIMA_CENTAVOS }
+}

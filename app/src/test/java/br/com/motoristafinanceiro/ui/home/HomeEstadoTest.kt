@@ -10,6 +10,8 @@ import br.com.motoristafinanceiro.data.model.Periodicidade
 import br.com.motoristafinanceiro.data.model.Plataforma
 import br.com.motoristafinanceiro.data.model.ReservaDespesa
 import br.com.motoristafinanceiro.data.model.TipoManutencao
+import br.com.motoristafinanceiro.domain.LeituraOdometro
+import br.com.motoristafinanceiro.domain.Odometro
 import br.com.motoristafinanceiro.domain.StatusAlerta
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -229,5 +231,33 @@ class HomeEstadoTest {
         val s = montar()
         assertTrue(s.reservas.itens.isEmpty())
         assertEquals(0L, s.reservas.totalDiarioCentavos)
+    }
+
+    @Test
+    fun alertas_usamOOdometroEstimadoQuandoHa() {
+        val oleo = Manutencao(tipo = TipoManutencao.OLEO, data = ontem, odometroKm = 10_000, valorCentavos = 0, intervaloKm = 5_000)
+
+        val semEstimativa = montar(manutencoes = listOf(oleo))
+        val comEstimativa = montarEstadoHome(
+            emptyList(), emptyList(), null, emptyList(), listOf(oleo), hoje,
+            odometroEstimado = Odometro(14_800, LeituraOdometro(10_000, ontem)),
+        )
+
+        assertTrue(semEstimativa.alertasUrgentes.isEmpty()) // 10.000 km: faltam 5.000
+        assertEquals(StatusAlerta.PROXIMA, comEstimativa.alertasUrgentes.single().status) // faltam 200
+    }
+
+    @Test
+    fun metaParaRepetir_soSemMetaNoMesEComMetaNoAnterior() {
+        val anterior = Meta("2026-09", 500_000)
+
+        val semMeta = montarEstadoHome(emptyList(), emptyList(), null, emptyList(), emptyList(), hoje, metaMesAnterior = anterior)
+        val comMeta = montarEstadoHome(
+            emptyList(), emptyList(), Meta("2026-10", 400_000), emptyList(), emptyList(), hoje, metaMesAnterior = anterior,
+        )
+
+        assertEquals(500_000L, semMeta.metaParaRepetirCentavos)
+        assertNull(comMeta.metaParaRepetirCentavos)
+        assertNull(montar().metaParaRepetirCentavos)
     }
 }

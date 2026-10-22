@@ -3,22 +3,14 @@ package br.com.motoristafinanceiro.ui.ajustes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +25,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.motoristafinanceiro.domain.parseDepreciacaoPorKm
+import br.com.motoristafinanceiro.ui.componentes.BotaoPrincipal
+import br.com.motoristafinanceiro.ui.componentes.CabecalhoVoltar
+import br.com.motoristafinanceiro.ui.componentes.CampoCompacto
+import br.com.motoristafinanceiro.ui.componentes.Cartao
+import br.com.motoristafinanceiro.ui.componentes.MargemTela
+import br.com.motoristafinanceiro.ui.componentes.RotuloSecao
+import br.com.motoristafinanceiro.ui.componentes.TextoDeApoio
 import br.com.motoristafinanceiro.util.formatarReais
 import br.com.motoristafinanceiro.util.paraTextoReais
 
@@ -56,61 +55,48 @@ private fun FormAjustes(vm: AjustesViewModel, valorInicial: Long, onVoltar: () -
     var texto by remember { mutableStateOf(if (valorInicial > 0) valorInicial.paraTextoReais() else "") }
     val centavos = parseDepreciacaoPorKm(texto)
 
-    Column(
-        Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onVoltar) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
-            }
-            Text("Ajustes", style = MaterialTheme.typography.titleLarge)
-        }
-
-        OutlinedTextField(
-            value = texto,
-            onValueChange = { texto = it },
-            label = { Text("Depreciação por km (R$)") },
-            supportingText = {
-                Text(
-                    if (centavos == null) "Valor inválido. Use algo como 0,25."
-                    else "Ex.: 0,25. Deixe vazio ou 0 para ignorar."
+    Column(Modifier.fillMaxSize()) {
+        CabecalhoVoltar("Ajustes", onVoltar)
+        Column(
+            Modifier.verticalScroll(rememberScrollState()).padding(horizontal = MargemTela, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+        ) {
+            SecaoAjustes("Depreciação") {
+                CampoCompacto(
+                    "Depreciação por km (R$)", texto, { texto = it }, Modifier.fillMaxWidth(),
+                    dica = "ex.: 0,25", teclado = KeyboardType.Decimal, erro = centavos == null,
                 )
-            },
-            isError = centavos == null,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        if (centavos != null && centavos > 0) {
-            Text(
-                "≈ ${(centavos * 100).formatarReais()} a cada 100 km rodados",
-                style = MaterialTheme.typography.bodyMedium,
-            )
+                TextoDeApoio(
+                    when {
+                        centavos == null -> "Valor inválido. Use algo como 0,25."
+                        centavos > 0 -> "≈ ${(centavos * 100).formatarReais()} a cada 100 km rodados"
+                        else -> "Deixe vazio ou 0 para ignorar."
+                    },
+                    erro = centavos == null,
+                )
+                Text(
+                    "É quanto o carro perde de valor e desgasta a cada km rodado. Esse valor entra no custo por km " +
+                        "e no \"lucro após depreciação\" do Início, sem alterar o lucro líquido (que só considera o " +
+                        "dinheiro que saiu do bolso).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                BotaoPrincipal("Salvar depreciação", habilitado = centavos != null) {
+                    vm.salvarDepreciacao(centavos ?: 0L, onVoltar)
+                }
+            }
+            SecaoAparencia(vm)
+            SecaoNotificacoes(vm)
+            SecaoBackup(aoRestaurar)
         }
+    }
+}
 
-        Text(
-            "É quanto o carro perde de valor e desgasta a cada km rodado. Esse valor entra no custo por km " +
-                "e no \"lucro após depreciação\" do Início, sem alterar o lucro líquido (que só considera o " +
-                "dinheiro que saiu do bolso).",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Button(
-            enabled = centavos != null,
-            onClick = { vm.salvarDepreciacao(centavos ?: 0L, onVoltar) },
-            modifier = Modifier.fillMaxWidth(),
-        ) { Text("Salvar") }
-
-        HorizontalDivider(Modifier.padding(vertical = 8.dp))
-        SecaoAparencia(vm)
-
-        HorizontalDivider(Modifier.padding(vertical = 8.dp))
-        SecaoNotificacoes(vm)
-
-        HorizontalDivider(Modifier.padding(vertical = 8.dp))
-        SecaoBackup(aoRestaurar)
+/** Uma seção de Ajustes: rótulo em caixa alta e o conteúdo num cartão. */
+@Composable
+internal fun SecaoAjustes(titulo: String, conteudo: @Composable ColumnScope.() -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        RotuloSecao(titulo, Modifier.padding(horizontal = 4.dp))
+        Cartao(espacamento = 12.dp, conteudo = conteudo)
     }
 }

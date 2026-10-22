@@ -6,7 +6,6 @@ import br.com.motoristafinanceiro.domain.alertasParaNotificar
 import br.com.motoristafinanceiro.domain.alertasUrgentes
 import br.com.motoristafinanceiro.domain.calcularAlertas
 import br.com.motoristafinanceiro.domain.chavesParaGuardar
-import br.com.motoristafinanceiro.domain.odometroAtual
 import kotlinx.coroutines.flow.first
 
 /**
@@ -29,8 +28,8 @@ class VerificadorDeManutencao(
         }
 
         val manutencoes = repositorio.manutencoes().first()
-        val abastecimentos = repositorio.abastecimentos().first()
-        val odometro = odometroAtual(abastecimentos, manutencoes)
+        // Odômetro com os km dos ganhos lançados depois da última leitura (estimado).
+        val odometro = repositorio.odometro().first()?.km
         val alertas = if (odometro == null) emptyList() else calcularAlertas(manutencoes, odometro)
         val urgentes = alertasUrgentes(alertas)
         val jaNotificados = configuracoes.alertasNotificados.first()

@@ -25,4 +25,12 @@ class FormatacaoTest {
         assertEquals("6,5", 390.minutosParaHorasTexto())
         assertEquals("1,67", 100.minutosParaHorasTexto())
     }
+
+    @Test
+    fun minutosParaHorario_comZerosAEsquerda() {
+        assertEquals("00:00", 0.minutosParaHorario())
+        assertEquals("08:05", (8 * 60 + 5).minutosParaHorario())
+        assertEquals("18:30", (18 * 60 + 30).minutosParaHorario())
+        assertEquals("23:59", 1439.minutosParaHorario())
+    }
 }

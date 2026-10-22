@@ -42,6 +42,7 @@ import br.com.motoristafinanceiro.ui.componentes.RotuloSecao
 import br.com.motoristafinanceiro.ui.componentes.TituloTela
 import br.com.motoristafinanceiro.util.formatarReais
 import br.com.motoristafinanceiro.util.minutosParaHorasTexto
+import br.com.motoristafinanceiro.util.minutosParaHorario
 import br.com.motoristafinanceiro.util.paraTextoNumero
 import java.time.LocalDate
 import java.time.YearMonth
@@ -236,6 +237,7 @@ private fun LinhaGanho(ganho: Ganho, onClick: () -> Unit) {
     val detalhes = listOfNotNull(
         ganho.km.takeIf { it > 0 }?.let { "${it.paraTextoNumero()} km" },
         ganho.minutosOnline.takeIf { it > 0 }?.let { "${it.minutosParaHorasTexto()} h" },
+        ganho.inicioTurnoMinutos?.let { "desde ${it.minutosParaHorario()}" },
         ganho.observacao?.takeIf { it.isNotBlank() },
     ).joinToString(" · ")
 

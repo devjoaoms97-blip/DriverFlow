@@ -7,6 +7,8 @@ import br.com.motoristafinanceiro.data.model.Ganho
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Plataforma
 import br.com.motoristafinanceiro.data.model.TipoManutencao
+import br.com.motoristafinanceiro.domain.LeituraOdometro
+import br.com.motoristafinanceiro.domain.Odometro
 import br.com.motoristafinanceiro.domain.StatusAlerta
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -104,5 +106,23 @@ class VeiculoEstadoTest {
 
         assertEquals(0L, s.depreciacaoPorKmCentavos)
         assertEquals(60L, s.resumo.custoPorKmMesCentavos)
+    }
+
+    @Test
+    fun semEstimativa_odometroEhAUltimaLeitura() {
+        val s = montarEstadoVeiculo(listOf(a1, a2), emptyList(), emptyList(), emptyList())
+        assertEquals(Odometro(10_400, LeituraOdometro(10_400, d2)), s.odometro)
+    }
+
+    @Test
+    fun comEstimativa_alertasUsamOOdometroEstimado() {
+        val oleo = Manutencao(tipo = TipoManutencao.OLEO, data = d1, odometroKm = 10_000, valorCentavos = 0, intervaloKm = 1_000)
+        val estimado = Odometro(10_700, LeituraOdometro(10_400, d2))
+
+        val s = montarEstadoVeiculo(listOf(a1, a2), listOf(oleo), emptyList(), emptyList(), odometroEstimado = estimado)
+
+        assertEquals(estimado, s.odometro)
+        assertEquals(300, s.alertas.single().kmRestantes) // sem a estimativa seriam 600
+        assertEquals(10_400, s.resumo.odometroAtualKm) // a leitura real continua no resumo
     }
 }

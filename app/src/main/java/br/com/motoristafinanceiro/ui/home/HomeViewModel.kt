@@ -16,8 +16,10 @@ import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.ReservaDespesa
 import br.com.motoristafinanceiro.domain.AlertaManutencao
 import br.com.motoristafinanceiro.domain.Estatisticas
+import br.com.motoristafinanceiro.domain.Odometro
 import br.com.motoristafinanceiro.domain.ProgressoMeta
 import br.com.motoristafinanceiro.domain.calcularProgressoMeta
+import br.com.motoristafinanceiro.domain.metaParaRepetirCentavos
 import br.com.motoristafinanceiro.domain.fimDaSemana
 import br.com.motoristafinanceiro.domain.inicioDaSemana
 import br.com.motoristafinanceiro.domain.StatusAlerta
@@ -30,6 +32,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -41,6 +44,8 @@ data class HomeUiState(
     val rotuloSemana: String = "",
     val mes: Estatisticas = Estatisticas(),
     val metaCentavos: Long? = null,
+    /** Meta do mês anterior que o card oferece repetir; null se o mês já tem meta ou o anterior não tinha. */
+    val metaParaRepetirCentavos: Long? = null,
     /** Progresso e "quanto falta por dia"; null quando não há meta definida para o mês. */
     val progressoMeta: ProgressoMeta? = null,
     /** Manutenções atrasadas ou próximas (as em dia não aparecem no Início). */
@@ -62,8 +67,11 @@ internal fun montarEstadoHome(
     ganhosSemana: List<Ganho> = emptyList(),
     despesasSemana: List<Despesa> = emptyList(),
     reservas: List<ReservaDespesa> = emptyList(),
+    /** Odômetro com os km dos ganhos (estimado); null usa só as leituras de abastecimentos e manutenções. */
+    odometroEstimado: Odometro? = null,
+    metaMesAnterior: Meta? = null,
 ): HomeUiState {
-    val odometro = odometroAtual(abastecimentos, manutencoes)
+    val odometro = odometroEstimado?.km ?: odometroAtual(abastecimentos, manutencoes)
     val alertas = if (odometro == null) {
         emptyList()
     } else {
@@ -86,6 +94,7 @@ internal fun montarEstadoHome(
         rotuloSemana = rotuloSemana(hoje),
         mes = estatisticasMes,
         metaCentavos = meta?.valorAlvoLucroCentavos,
+        metaParaRepetirCentavos = metaParaRepetirCentavos(meta?.valorAlvoLucroCentavos, metaMesAnterior?.valorAlvoLucroCentavos),
         progressoMeta = metaValida?.let { calcularProgressoMeta(it, estatisticasMes.lucroLiquidoCentavos, hoje) },
         alertasUrgentes = alertas,
         reservas = montarEstadoReservas(reservas, hoje),
@@ -104,11 +113,13 @@ private data class DadosSemana(
     val ganhos: List<Ganho>,
     val despesas: List<Despesa>,
     val reservas: List<ReservaDespesa>,
+    val odometro: Odometro?,
+    val metaAnterior: Meta?,
 )
 
-class HomeViewModel(repo: Repositorio, configuracoes: Configuracoes) : ViewModel() {
+class HomeViewModel(private val repo: Repositorio, configuracoes: Configuracoes) : ViewModel() {
 
-    private val mesAtual = YearMonth.now()
+    val mesAtual: YearMonth = YearMonth.now()
     private val inicioSemana = inicioDaSemana(LocalDate.now())
     private val fimSemana = fimDaSemana(LocalDate.now())
 
@@ -116,7 +127,11 @@ class HomeViewModel(repo: Repositorio, configuracoes: Configuracoes) : ViewModel
         repo.ganhos(inicioSemana, fimSemana),
         repo.despesas(inicioSemana, fimSemana),
         repo.reservas(),
-    ) { ganhos, despesas, reservas -> DadosSemana(ganhos, despesas, reservas) }
+        repo.odometro(),
+        repo.meta(mesAtual.minusMonths(1).toString()),
+    ) { ganhos, despesas, reservas, odometro, metaAnterior ->
+        DadosSemana(ganhos, despesas, reservas, odometro, metaAnterior)
+    }
 
     private val dados = combine(
         repo.ganhos(mesAtual.atDay(1), mesAtual.atEndOfMonth()),
@@ -139,8 +154,15 @@ class HomeViewModel(repo: Repositorio, configuracoes: Configuracoes) : ViewModel
             ganhosSemana = s.ganhos,
             despesasSemana = s.despesas,
             reservas = s.reservas,
+            odometroEstimado = s.odometro,
+            metaMesAnterior = s.metaAnterior,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+
+    /** Grava como meta deste mês o valor da meta do mês anterior (o card do Início oferece com um toque). */
+    fun repetirMetaAnterior(centavos: Long) {
+        viewModelScope.launch { repo.salvarMeta(Meta(mesAtual.toString(), centavos)) }
+    }
 
     companion object {
         val Factory = viewModelFactory {

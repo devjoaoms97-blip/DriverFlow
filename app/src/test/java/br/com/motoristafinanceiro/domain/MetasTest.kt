@@ -142,4 +142,13 @@ class MetasTest {
     fun metaPorDiaDoMes_arredondaAoCentavoMaisProximo() {
         assertEquals(16_129L, metaPorDiaDoMesCentavos(500_000, YearMonth.of(2026, 10))) // 16129,03
     }
+
+    @Test
+    fun repetir_soQuandoOMesNaoTemMetaEOAnteriorTinha() {
+        assertEquals(500_000L, metaParaRepetirCentavos(null, 500_000))
+        assertEquals(500_000L, metaParaRepetirCentavos(0, 500_000)) // meta zerada conta como sem meta
+        assertNull(metaParaRepetirCentavos(400_000, 500_000)) // o mês já tem meta
+        assertNull(metaParaRepetirCentavos(null, null)) // o anterior não tinha
+        assertNull(metaParaRepetirCentavos(null, META_MAXIMA_CENTAVOS + 1)) // fora do limite
+    }
 }

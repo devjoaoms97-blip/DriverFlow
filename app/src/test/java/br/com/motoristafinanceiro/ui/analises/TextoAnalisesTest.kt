@@ -2,6 +2,8 @@ package br.com.motoristafinanceiro.ui.analises
 
 import br.com.motoristafinanceiro.domain.Desempenho
 import br.com.motoristafinanceiro.domain.DesempenhoDia
+import br.com.motoristafinanceiro.domain.DesempenhoFaixa
+import br.com.motoristafinanceiro.domain.FaixaHorario
 import br.com.motoristafinanceiro.util.formatarReais
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -104,4 +106,30 @@ class TextoAnalisesTest {
 
     @Test
     fun percentuais_totalZero_tudoZero() = assertEquals(listOf(0, 0), percentuais(listOf(0, 0)))
+
+    @Test
+    fun intervaloDasFaixas() {
+        assertEquals(
+            listOf("00h–06h", "06h–12h", "12h–18h", "18h–24h"),
+            FaixaHorario.entries.map { intervaloFaixa(it) },
+        )
+    }
+
+    @Test
+    fun textoDaFaixa_porHoraETurnos() {
+        assertEquals("${3_200L.formatarReais()}/h · 5 turnos", textoFaixa(DesempenhoFaixa(FaixaHorario.NOITE, 16_000, 300, 5)))
+        assertEquals("${3_000L.formatarReais()}/h · 1 turno", textoFaixa(DesempenhoFaixa(FaixaHorario.TARDE, 3_000, 60, 1)))
+        assertEquals("Sem turnos", textoFaixa(DesempenhoFaixa(FaixaHorario.MADRUGADA)))
+    }
+
+    @Test
+    fun melhorFaixa_eAvisoDosSemHorario() {
+        assertEquals(
+            "Melhor horário: noite (${3_200L.formatarReais()}/h)",
+            textoMelhorFaixa(DesempenhoFaixa(FaixaHorario.NOITE, 16_000, 300, 5)),
+        )
+        assertEquals("", textoSemHorario(0))
+        assertEquals("1 lançamento sem horário de início (ou sem horas) não entra aqui.", textoSemHorario(1))
+        assertEquals("3 lançamentos sem horário de início (ou sem horas) não entram aqui.", textoSemHorario(3))
+    }
 }

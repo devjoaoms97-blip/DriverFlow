@@ -21,3 +21,6 @@ fun Int.minutosParaHorasTexto(): String {
     if (this % 60 == 0) return (this / 60).toString()
     return String.format(ptBR, "%.2f", this / 60.0).trimEnd('0').trimEnd(',')
 }
+
+/** Minutos desde a meia-noite → "08:05", "18:30". */
+fun Int.minutosParaHorario(): String = String.format(ptBR, "%02d:%02d", this / 60, this % 60)

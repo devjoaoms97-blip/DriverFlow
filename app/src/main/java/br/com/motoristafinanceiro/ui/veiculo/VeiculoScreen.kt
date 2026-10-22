@@ -30,6 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.domain.AlertaManutencao
+import br.com.motoristafinanceiro.domain.Odometro
 import br.com.motoristafinanceiro.domain.ResumoVeiculo
 import br.com.motoristafinanceiro.domain.StatusAlerta
 import br.com.motoristafinanceiro.domain.descricaoManutencao
@@ -66,7 +67,7 @@ fun VeiculoScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item(key = "titulo") { TituloTela("Veículo") }
-        item(key = "resumo") { CartaoResumo(state.resumo, state.depreciacaoPorKmCentavos) }
+        item(key = "resumo") { CartaoResumo(state.resumo, state.odometro, state.depreciacaoPorKmCentavos) }
 
         item(key = "acoes") {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -103,12 +104,15 @@ fun VeiculoScreen(
 }
 
 @Composable
-private fun CartaoResumo(r: ResumoVeiculo, depreciacaoPorKmCentavos: Long) {
+private fun CartaoResumo(r: ResumoVeiculo, odometro: Odometro?, depreciacaoPorKmCentavos: Long) {
     val esquema = MaterialTheme.colorScheme
     Cartao(espacamento = 16.dp) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Odômetro atual", style = MaterialTheme.typography.titleSmall, color = esquema.onSurfaceVariant)
-            Text(r.odometroAtualKm?.formatarKm() ?: "—", style = MaterialTheme.typography.headlineLarge.copy(fontSize = 38.sp))
+            Text(rotuloOdometro(odometro), style = MaterialTheme.typography.titleSmall, color = esquema.onSurfaceVariant)
+            Text(odometro?.km?.formatarKm() ?: "—", style = MaterialTheme.typography.headlineLarge.copy(fontSize = 38.sp))
+            detalheOdometro(odometro)?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = esquema.onSurfaceVariant)
+            }
         }
         HorizontalDivider(color = esquema.outlineVariant)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
