@@ -34,6 +34,7 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Horas do turno pelo início e fim (meia-noite, só um dos horários, fim igual ao início, lançamento antigo sem horário) | `app/src/test/.../ui/lancamento/TurnoTest` | JUnit puro |
 | Backup automático (frequência, hora com folga, nome do arquivo, limpeza que mantém 7 e não toca nos manuais, executor com pasta de mentira: grava .zip válido, registra hora, erro sem pasta e ao gravar) e aviso de backup no Início | `app/src/test/.../data/backup/BackupAutomaticoTest`, `ExecutorBackupAutomaticoTest`, `.../data/ConfiguracoesTest`, `.../ui/home/TextoInicioTest`, `HomeEstadoTest`, `.../ui/ajustes/TextoBackupTest` | JUnit puro; executor com Robolectric |
 | Bloqueio (quando bloquear ao voltar, MainActivity coberta pela tela de bloqueio) | `app/src/test/.../ui/bloqueio/BloqueioTest` | JUnit puro (o pedido de digital é do Android: roteiro manual) |
+| Tela de bloqueio só pede a digital depois da abertura animada (e fica por baixo dela) | `app/src/test/.../ui/bloqueio/TelaBloqueioTest` | Compose + Robolectric |
 | Meta do dia, evolução mês a mês, repetir o último e relatório do mês (conteúdo) | `app/src/test/.../domain/MetasTest`, `EvolucaoTest`, `RelatorioMesTest`, `.../ui/meta/TextoMetaTest`, `.../ui/analises/TextoAnalisesTest`, `.../ui/lancamento/TurnoTest`, `.../data/RepositorioTest` | JUnit puro; Repositório com Robolectric |
 | Lembrete de lançamento (horário do próximo, só sem ganho hoje, despesa não conta, sem permissão) | `app/src/test/.../notificacoes/LembreteDeLancamentoTest`, `DestinoDaNotificacaoTest`, `.../app/NotificacaoManifestTest` | Robolectric |
 | Relatório em PDF (nome, título, pasta do FileProvider) | `app/src/test/.../data/relatorio/RelatorioPdfTest` | JUnit puro. O desenho do PDF é nativo do Android e não roda no PC: roteiro manual |
@@ -288,7 +289,7 @@ testImplementation("androidx.test:core:1.6.1")
     o "Último backup" muda. Restaurar esse arquivo funciona. Fechar o app: no dia seguinte há um arquivo novo. Desligado
     não grava. Trocar a pasta funciona
 102. **Bloqueio:** Ajustes > Segurança > Bloquear o app: pede a digital (ou PIN) e liga. Fechar o app de verdade e abrir:
-    a tela "DriverFlow bloqueado" aparece e pede a digital. Sair para outro app e voltar em menos de 2 minutos não pede;
+    a abertura animada toca inteira (sem o pedido de digital por cima) e, ao terminar, a tela "DriverFlow bloqueado" aparece e pede a digital. Sair para outro app e voltar em menos de 2 minutos não pede;
     depois de 2 minutos, pede. Girar a tela e tirar foto de comprovante não pedem. Cancelar mantém bloqueado e o botão
     "Desbloquear" pede de novo. Desligar a chave: não pede mais
 103. **Meta do dia:** com meta no mês, o cartão "Meta de hoje" mostra o valor de hoje e "Faltam R$ X hoje". Lançar ganhos até

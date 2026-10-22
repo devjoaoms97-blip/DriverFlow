@@ -40,7 +40,10 @@ android {
         unitTests.isIncludeAndroidResources = true
         unitTests.all { teste ->
             // Os testes de interface precisam da Activity de teste do ui-test-manifest, que só entra no debug.
-            if (teste.name == "testReleaseUnitTest") teste.filter.excludeTestsMatching("*.FluxosPrincipaisTest")
+            if (teste.name == "testReleaseUnitTest") {
+                teste.filter.excludeTestsMatching("*.FluxosPrincipaisTest")
+                teste.filter.excludeTestsMatching("*.TelaBloqueioTest")
+            }
         }
     }
 }

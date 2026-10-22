@@ -90,13 +90,14 @@ class MainActivity : FragmentActivity() {
                 Box(Modifier.fillMaxSize()) {
                     // O app carrega por baixo enquanto a animação toca.
                     AppNav(destinoPedido = destino, aoAbrirDestino = { destino = null })
-                    AnimatedVisibility(visible = abertura, exit = fadeOut(tween(300))) {
-                        AberturaAnimada(aoTerminar = { abertura = false })
-                    }
+                    // Por baixo da abertura: a animação toca inteira e, ao sumir, revela o bloqueio, que só então pede a digital.
                     if (bloqueado) {
-                        TelaBloqueio(onDesbloquear = {
+                        TelaBloqueio(pedirAgora = !abertura, onDesbloquear = {
                             pedirAutenticacao(this@MainActivity, "Desbloquear o DriverFlow", aoConseguir = { bloqueado = false })
                         })
+                    }
+                    AnimatedVisibility(visible = abertura, exit = fadeOut(tween(300))) {
+                        AberturaAnimada(aoTerminar = { abertura = false })
                     }
                 }
             }

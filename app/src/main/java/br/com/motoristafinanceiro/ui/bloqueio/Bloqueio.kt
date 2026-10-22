@@ -63,10 +63,13 @@ fun pedirAutenticacao(
     prompt.authenticate(info)
 }
 
-/** Tela que cobre o app enquanto está bloqueado. Pede a digital assim que aparece. */
+/**
+ * Tela que cobre o app enquanto está bloqueado. Pede a digital assim que [pedirAgora] fica verdadeiro
+ * (falso enquanto a abertura animada toca: o pedido do Android é uma janela por cima de tudo e a esconderia).
+ */
 @Composable
-fun TelaBloqueio(onDesbloquear: () -> Unit) {
-    LaunchedEffect(Unit) { onDesbloquear() }
+fun TelaBloqueio(pedirAgora: Boolean = true, onDesbloquear: () -> Unit) {
+    LaunchedEffect(pedirAgora) { if (pedirAgora) onDesbloquear() }
     Column(
         Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(MargemTela),
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
