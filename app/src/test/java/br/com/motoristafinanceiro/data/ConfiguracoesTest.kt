@@ -2,6 +2,7 @@ package br.com.motoristafinanceiro.data
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import br.com.motoristafinanceiro.data.backup.FrequenciaBackup
+import br.com.motoristafinanceiro.domain.LimitesCorrida
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -117,6 +118,31 @@ class ConfiguracoesTest {
             c.salvarLembrete(true, 21 * 60 + 30)
             assertEquals(true, c.lembreteAtivo.first())
             assertEquals(21 * 60 + 30, c.lembreteHorarioMinutos.first())
+        }
+    }
+
+    @Test
+    fun limitesCorrida_padraoDoisEUmECinquenta_eSalva() {
+        runBlocking {
+            val configuracoes = criar()
+            assertEquals(LimitesCorrida(200, 150), configuracoes.limitesCorrida.first())
+            configuracoes.salvarLimitesCorrida(LimitesCorrida(250, 180))
+            assertEquals(LimitesCorrida(250, 180), configuracoes.limitesCorrida.first())
+        }
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun limitesCorrida_recusaAmareloAcimaDoVerde() {
+        runBlocking { criar().salvarLimitesCorrida(LimitesCorrida(150, 200)) }
+    }
+
+    @Test
+    fun leitorGravando_padraoDesligado_eSalva() {
+        runBlocking {
+            val configuracoes = criar()
+            assertEquals(false, configuracoes.leitorGravando.first())
+            configuracoes.salvarLeitorGravando(true)
+            assertEquals(true, configuracoes.leitorGravando.first())
         }
     }
 }

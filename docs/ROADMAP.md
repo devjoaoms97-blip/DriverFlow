@@ -68,16 +68,19 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
   4. Restaurar o backup e conferir lançamentos, metas, reservas e fotos
 
 ## Ideias futuras
-Feitas em 22/10/2026: todas menos o leitor de corridas.
+Feitas em 22/10/2026: todas; o leitor de corridas está na primeira etapa (gravação e conta por cima), falta ajustar com cards reais e guardar o histórico das ofertas.
 
 **Proteger os dados**
 - ✅ Backup automático diário ou semanal numa pasta escolhida uma vez (seletor de pastas do Android), mantendo os 7 mais recentes, com aviso no Início quando o último backup tem 7 dias ou mais (ou nunca foi feito)
 - ✅ Bloqueio opcional com a digital ou o bloqueio de tela do celular, ao abrir e ao voltar depois de 2 minutos fora
 
 **Decidir melhor na rua**
-- ⬜ Leitor de corridas: quando uma corrida toca na Uber/99, o app lê o card (valor, km até o passageiro, km da viagem, tempo, nota do passageiro, destino) e mostra por cima, em menos de 1 s, o R$/km contando o deslocamento até o passageiro, o R$/h, o lucro estimado pelo custo por km real e uma cor (verde/amarelo/vermelho) por limites definidos pelo motorista. Guarda o histórico das ofertas (aceitas e recusadas) para as Análises
+- 🟡 Leitor de corridas: quando uma corrida toca na Uber/99, o app lê o card (valor, km até o passageiro, km da viagem, tempo, nota do passageiro, destino) e mostra por cima, em menos de 1 s, o R$/km contando o deslocamento até o passageiro, o R$/h, o lucro estimado pelo custo por km real e uma cor (verde/amarelo/vermelho) por limites definidos pelo motorista. Guarda o histórico das ofertas (aceitas e recusadas) para as Análises
   - Como: serviço de acessibilidade (lê o texto da tela de outros apps) + janela sobreposta. Se o card não expuser o texto, plano B: captura de tela com OCR (mais pesado, com aviso de gravação do Android)
   - Primeiro passo: "modo gravação" com corridas reais, para aprender o formato do card de cada app (não dá para simular uma corrida tocando)
+    - ✅ Etapa 1 (22/10/2026): serviço de acessibilidade só para Uber Driver e 99 Motorista, modo gravação (compartilhar e apagar), leitura do card por regras genéricas, janela por cima com R$/km, R$/h, lucro estimado pelo custo por km dos últimos 30 dias e cor pelas faixas de Ajustes
+    - ⬜ Etapa 2: ajustar a leitura com as gravações reais de cada app (e conferir o nome do pacote da 99)
+    - ⬜ Etapa 3: histórico das ofertas (aceitas e recusadas) nas Análises, sem nome nem nota do passageiro
   - Regras: só mostrar, **nunca aceitar sozinho** (aceitar automaticamente viola os termos das plataformas e pode bloquear a conta); nome e nota do passageiro não são guardados (LGPD)
   - Riscos: atualização da Uber/99 pode quebrar a leitura (manutenção contínua); ler a tela é zona cinzenta nos termos de uso; para publicar na Play Store, acessibilidade fora do uso para pessoas com deficiência exige declaração e revisão
 - ✅ Meta do dia: (meta do mês − lucro até ontem) ÷ dias que faltam; cartão no Início que fica verde ao bater

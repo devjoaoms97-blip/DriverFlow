@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import br.com.motoristafinanceiro.data.backup.FrequenciaBackup
+import br.com.motoristafinanceiro.domain.LimitesCorrida
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -111,8 +112,35 @@ class Configuracoes(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    /** Faixas de cor do leitor de corridas (R$/km). Padrão: verde a partir de R$ 2,00, amarelo a partir de R$ 1,50. */
+    val limitesCorrida: Flow<LimitesCorrida> = dataStore.data.map {
+        val padrao = LimitesCorrida()
+        LimitesCorrida(
+            bomPorKmCentavos = it[CHAVE_LEITOR_BOM] ?: padrao.bomPorKmCentavos,
+            minimoPorKmCentavos = it[CHAVE_LEITOR_MINIMO] ?: padrao.minimoPorKmCentavos,
+        )
+    }
+
+    suspend fun salvarLimitesCorrida(limites: LimitesCorrida) {
+        require(limites.validos) { "faixas inválidas: $limites" }
+        dataStore.edit {
+            it[CHAVE_LEITOR_BOM] = limites.bomPorKmCentavos
+            it[CHAVE_LEITOR_MINIMO] = limites.minimoPorKmCentavos
+        }
+    }
+
+    /** Modo gravação do leitor de corridas (guarda as telas da Uber/99 num arquivo). Padrão: desligado. */
+    val leitorGravando: Flow<Boolean> = dataStore.data.map { it[CHAVE_LEITOR_GRAVANDO] ?: false }
+
+    suspend fun salvarLeitorGravando(gravando: Boolean) {
+        dataStore.edit { it[CHAVE_LEITOR_GRAVANDO] = gravando }
+    }
+
     companion object {
         const val HORARIO_PADRAO_LEMBRETE = 22 * 60
+        private val CHAVE_LEITOR_BOM = longPreferencesKey("leitor_bom_por_km_centavos")
+        private val CHAVE_LEITOR_MINIMO = longPreferencesKey("leitor_minimo_por_km_centavos")
+        private val CHAVE_LEITOR_GRAVANDO = booleanPreferencesKey("leitor_gravando")
         private val CHAVE_LEMBRETE_ATIVO = booleanPreferencesKey("lembrete_ativo")
         private val CHAVE_LEMBRETE_HORARIO = intPreferencesKey("lembrete_horario_minutos")
         private val CHAVE_BLOQUEIO = booleanPreferencesKey("bloqueio_ativo")

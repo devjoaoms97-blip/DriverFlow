@@ -87,6 +87,7 @@ private fun FormAjustes(vm: AjustesViewModel, valorInicial: Long, onVoltar: () -
             }
             SecaoAparencia(vm)
             SecaoSeguranca(vm)
+            SecaoLeitorCorridas(vm)
             SecaoNotificacoes(vm)
             SecaoBackup(aoRestaurar)
             SecaoBackupAutomatico()

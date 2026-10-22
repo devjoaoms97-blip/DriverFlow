@@ -19,6 +19,7 @@ com lançamento rápido (poucos toques) e funcionamento offline.
 - Meta mensal de lucro líquido
 - Análises: melhores dias/horários, comparativo Uber × 99
 - Backup/restauração em arquivo JSON
+- Leitor de corridas: a conta da oferta da Uber/99 por cima do app, sem aceitar nada sozinho
 
 ### Fora do escopo (decisão do projeto)
 - Multiusuário, login, nuvem e sincronização
@@ -105,13 +106,22 @@ evitando lançamento duplo. Ao excluir o abastecimento/manutenção, a despesa v
 Datas armazenadas como `epochDay` (Long) via `TypeConverter`. Enums armazenados pelo nome.
 
 **Comprovantes:** o campo `fotoUri` da despesa guarda apenas o NOME do arquivo da foto, que fica em `filesDir/comprovantes/` (pasta privada do app). Fotos são reduzidas para cerca de 1.600 px e regravadas em JPEG, com a rotação do EXIF aplicada. Arquivos que nenhuma despesa usa são apagados na abertura do app, desde que tenham mais de 24 h.
-**Configurações** (depreciação por km, aviso de manutenção ligado/desligado, alertas já avisados, se a permissão já foi perguntada, aparência, bloqueio, lembrete e backup automático) ficam no DataStore, fora do Room.
+**Configurações** (depreciação por km, aviso de manutenção ligado/desligado, alertas já avisados, se a permissão já foi perguntada, aparência, bloqueio, lembrete, backup automático e as faixas e o modo gravação do leitor de corridas) ficam no DataStore, fora do Room.
 
 **Bloqueio do app:** opcional (Ajustes > Segurança), desligado por padrão. Usa a digital/rosto ou o bloqueio de tela do próprio celular (`BiometricPrompt` com `BIOMETRIC_WEAK | DEVICE_CREDENTIAL`), sem PIN próprio do app. Pede ao abrir e ao voltar depois de 2 minutos fora (girar a tela ou tirar a foto de um comprovante não bloqueia). Ao ligar, pede a digital uma vez; sem bloqueio de tela no celular, não liga e explica. Fica só no aparelho, fora do backup.
 
 **Lembrete de lançamento:** opcional (Ajustes > Notificações), desligado por padrão, às 22:00 se não mudar. No horário, avisa "Lançou o turno de hoje?" se não há **ganho** com a data de hoje (despesa sozinha não conta). Tocar abre o Novo lançamento. Agendado com WorkManager para o horário, e cada execução marca a do dia seguinte.
 
 **Repetir o último:** no ganho novo, um atalho copia a plataforma e os horários (início e fim) do ganho mais recente (maior data; no mesmo dia, o último lançado). O valor, os km e a gorjeta não são copiados.
+
+**Leitor de corridas:** serviço de acessibilidade (`leitor/LeitorDeCorridasService`) que o motorista liga em Configurações > Acessibilidade; Ajustes > Leitor de corridas mostra se está ligado e abre esse caminho. Só recebe eventos da Uber Driver (`com.ubercab.driver`) e da 99 Motorista (`com.app99.driver`). A cada rajada de eventos (no máximo a cada 250 ms) lê os textos visíveis das janelas desses apps e procura uma oferta (`domain/Corrida.kt`, `lerOferta`):
+- valor: o primeiro "R$ 12,50" que não seja acréscimo ("+R$ 3,00") nem taxa ("R$ 1,50/km");
+- trechos: cada linha com distância (km ou m) é um trecho, com o tempo da mesma linha (min, ou h e min); o primeiro é até o passageiro e o segundo é a viagem; um trecho só conta como a viagem;
+- nota: 1,00 a 5,00 numa linha com ★ ou sozinha. Sem valor ou sem distância, não é oferta.
+
+Com uma oferta, mostra no alto da tela uma janela de acessibilidade (`TYPE_ACCESSIBILITY_OVERLAY`, sem a permissão de sobrepor apps): **R$/km** = valor ÷ (km até o passageiro + km da viagem), **R$/h** = valor ÷ (tempo até o passageiro + tempo da viagem) e **lucro ≈** valor − custo por km × km total, com o custo por km dos últimos 30 dias (despesas + depreciação ÷ km, recalculado a cada 10 minutos; sem km lançado, o lucro não aparece). Cor pelo R$/km: verde a partir de R$ 2,00, amarelo a partir de R$ 1,50 e vermelho abaixo (faixas editáveis; o amarelo não pode passar do verde). A janela some 1,5 s depois de a oferta sair da tela, depois de 30 s ou ao tocar nela. **Nunca toca, aceita ou recusa** nada no outro app (o serviço não pede gestos). Nome e endereços não são guardados.
+
+**Modo gravação** (para aprender o formato real do card de cada app): com a chave ligada, o texto das telas da Uber/99 que têm "R$" ou "km" vai para `filesDir/leitor/gravacao.txt` (com hora, app, tipo e id de cada componente), pulando telas repetidas, até 5 MB. Ajustes mostra o tamanho e permite Compartilhar (FileProvider) e Apagar; o arquivo pode ter nome de passageiro. Ainda não há histórico das ofertas aceitas e recusadas: entra depois de ajustar a leitura com as gravações.
 
 **Relatório do mês (PDF):** botão no Histórico, para o mês da tela, com todos os lançamentos (sem os filtros). A4, com título, resumo (ganho bruto, despesas, lucro, dias trabalhados, km, horas), ganhos por plataforma, despesas por categoria e a lista de lançamentos por data (quebra de página quando não cabe). Rodapé diz que os valores foram lançados pelo próprio motorista. Salvar (seletor do Android) ou Compartilhar (arquivo temporário em `cacheDir/relatorios`, via FileProvider).
 Schema do Room exportado em `app/schemas/` para versionar migrações. **Versão atual: 2.** Migrações em
@@ -129,7 +139,7 @@ na aba Veículo, pergunta se é abastecimento ou manutenção. Reservas, Meta e 
 4. **Veículo:** odômetro em destaque ("estimado", com a última leitura e os km somados, quando há ganhos depois dela), consumo médio, último litro e custo por km do mês; botões Abastecer e Manutenção; um cartão por manutenção com intervalo (selo atrasada/próxima/em dia e barra do quanto do intervalo já foi rodado); manutenções feitas e abastecimentos
 5. **Reservas** (aberta pelo atalho do Início; o + do cabeçalho cadastra): despesas recorrentes e total a separar por dia
 6. **Análises:** período (30 dias, 90 dias ou tudo, sempre até hoje); resumo, ganho por hora por dia da semana (segunda a domingo, com barra, dias trabalhados e média por dia), melhor dia, ganho por hora por faixa de horário (com a melhor faixa e quantos lançamentos ficaram de fora), comparativo por plataforma e evolução dos últimos 6 meses
-7. **Ajustes:** depreciação por km, aparência (Automático, Claro ou Escuro), segurança (bloqueio), lembrete de lançamento, aviso de manutenção (chave que liga e desliga as notificações; pede a permissão do Android 13+ se ainda não liberada) e backup (Exportar backup, Restaurar backup e backup automático)
+7. **Ajustes:** depreciação por km, aparência (Automático, Claro ou Escuro), segurança (bloqueio), leitor de corridas (estado, faixas de cor do R$/km e modo gravação), lembrete de lançamento, aviso de manutenção (chave que liga e desliga as notificações; pede a permissão do Android 13+ se ainda não liberada) e backup (Exportar backup, Restaurar backup e backup automático)
 8. **Meta mensal** (aberta pelo card do Início): definir, editar e remover a meta do mês (R$ 0,01 a R$ 100.000,00). Cada mês tem a sua meta; mês novo começa sem meta
 
 ## 8. Arquitetura

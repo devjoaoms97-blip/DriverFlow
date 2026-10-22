@@ -15,6 +15,7 @@ Dados 100% locais no aparelho (sem login, sem servidor, sem nuvem).
 - **Histórico** por mês, agrupado por dia, com filtros, edição de tudo que foi lançado e **relatório do mês em PDF** para comprovar renda
 - **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km, com o odômetro estimado pelos km dos ganhos
 - **Análises:** ganho por hora por dia da semana e por faixa de horário, melhores dia e horário, comparativo entre plataformas (Uber × 99) e evolução dos últimos 6 meses
+- **Leitor de corridas** (em teste): quando uma oferta toca na Uber/99, mostra por cima o R$/km contando o deslocamento até o passageiro, o R$/h e o lucro estimado, em verde, amarelo ou vermelho; só mostra, nunca aceita sozinho
 - **Reservas** para despesas fixas (IPVA, seguro, parcela), com quanto separar por dia
 - **Visual "Painel de bordo":** fonte Manrope, números em destaque e barra inferior com o + no centro, ao alcance do polegar
 - **Ajustes:** depreciação por km, aparência, **bloqueio** com a digital, **lembrete** de lançar no fim do dia, **aviso de manutenção** e **backup** (exportar e restaurar um .zip com dados e fotos, e backup automático diário ou semanal numa pasta)

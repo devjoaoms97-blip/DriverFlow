@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">DriverFlow</string>
+    <string name="leitor_resumo">Mostra o R$/km das ofertas da Uber e da 99 por cima do app.</string>
+    <string name="leitor_descricao">Leitor de corridas do DriverFlow: quando a Uber Driver ou a 99 Motorista mostram uma oferta, lê o valor, as distâncias e os tempos do card e mostra por cima o R$/km (contando o deslocamento até o passageiro), o R$/h e o lucro estimado. Só lê o texto desses dois apps e nunca toca, aceita ou recusa nada. Nada sai do celular.</string>
 </resources>

@@ -9,6 +9,7 @@ import br.com.motoristafinanceiro.MotoristaApp
 import br.com.motoristafinanceiro.notificacoes.AgendadorDeLembrete
 import br.com.motoristafinanceiro.data.Configuracoes
 import br.com.motoristafinanceiro.data.ModoTema
+import br.com.motoristafinanceiro.domain.LimitesCorrida
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -51,6 +52,19 @@ class AjustesViewModel(
 
     fun definirBloqueio(ativo: Boolean) {
         viewModelScope.launch { configuracoes.salvarBloqueio(ativo) }
+    }
+
+    val limitesCorrida: Flow<LimitesCorrida> = configuracoes.limitesCorrida
+
+    fun salvarLimitesCorrida(limites: LimitesCorrida) {
+        if (!limites.validos) return
+        viewModelScope.launch { configuracoes.salvarLimitesCorrida(limites) }
+    }
+
+    val leitorGravando: Flow<Boolean> = configuracoes.leitorGravando
+
+    fun definirLeitorGravando(gravando: Boolean) {
+        viewModelScope.launch { configuracoes.salvarLeitorGravando(gravando) }
     }
 
     fun salvarDepreciacao(centavos: Long, aoConcluir: () -> Unit) {

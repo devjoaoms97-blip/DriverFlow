@@ -37,6 +37,7 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Meta do dia, evolução mês a mês, repetir o último e relatório do mês (conteúdo) | `app/src/test/.../domain/MetasTest`, `EvolucaoTest`, `RelatorioMesTest`, `.../ui/meta/TextoMetaTest`, `.../ui/analises/TextoAnalisesTest`, `.../ui/lancamento/TurnoTest`, `.../data/RepositorioTest` | JUnit puro; Repositório com Robolectric |
 | Lembrete de lançamento (horário do próximo, só sem ganho hoje, despesa não conta, sem permissão) | `app/src/test/.../notificacoes/LembreteDeLancamentoTest`, `DestinoDaNotificacaoTest`, `.../app/NotificacaoManifestTest` | Robolectric |
 | Relatório em PDF (nome, título, pasta do FileProvider) | `app/src/test/.../data/relatorio/RelatorioPdfTest` | JUnit puro. O desenho do PDF é nativo do Android e não roda no PC: roteiro manual |
+| Leitor de corridas (leitura do card: valor, acréscimo e taxa ignorados, milhar, metros, horas, nota, telas que não são oferta; R$/km com o deslocamento, R$/h, lucro e cores; textos da janela; faixas de Ajustes; gravação com pulo de repetidas e limite; serviço no manifest só para Uber/99 e sem gestos) | `app/src/test/.../domain/CorridaTest`, `.../leitor/TextoLeitorTest`, `GravadorDeTelaTest`, `LeitorManifestTest`, `.../data/ConfiguracoesTest` | JUnit puro. Ler a tela de outro app só no celular: roteiro manual (os cards dos testes imitam os reais até haver gravações) |
 | Formulários no visual novo (esqueleto comum, sem campos antigos) | `app/src/test/.../ui/componentes/FormulariosNoVisualTest`, `FormularioTest` | JUnit puro |
 | **Interface (Compose):** lançar ganho e despesa, Salvar desabilitado sem valor, filtrar, editar e excluir no Histórico, Reservas pelo Início e voltar, Abastecer, Análises vazia | `app/src/test/.../ui/FluxosPrincipaisTest` | Robolectric com `createComposeRule` e o app de verdade (banco limpo a cada teste); só na variante debug, porque a Activity de teste vem do `ui-test-manifest` |
 
@@ -302,3 +303,13 @@ testImplementation("androidx.test:core:1.6.1")
     conferir título, resumo, totais por plataforma e categoria, lista de lançamentos (com várias páginas quando o mês tem
     muitos) e o rodapé. Compartilhar: abre a lista de apps (WhatsApp, e-mail) com o PDF anexado. Mês sem lançamentos:
     o PDF diz "Nenhum lançamento neste mês"
+108. **Leitor: ligar:** Ajustes > Leitor de corridas mostra "Desligado". "Abrir acessibilidade do Android" > DriverFlow - leitor
+    de corridas > ligar (se o Android disser que é restrito: informações do app > ⋮ > Permitir configurações restritas). Voltar:
+    mostra "Ligado". Desligar pelo mesmo caminho: volta a "Desligado"
+109. **Leitor: gravação:** ligar o Modo gravação, ficar online na Uber Driver/99 Motorista e deixar tocar algumas ofertas
+    (aceitar ou não, como sempre). Voltar a Ajustes: o tamanho da gravação aparece; Compartilhar abre a lista de apps com o
+    .txt; Apagar zera. Telas de outros apps (WhatsApp, banco) nunca aparecem no arquivo
+110. **Leitor: janela:** quando uma oferta toca, aparece no alto, em menos de 1 s, o R$/km, o valor, o R$/h, o lucro estimado e
+    os km (total e até o passageiro), em verde, amarelo ou vermelho pelas faixas. Conferir a conta com o card. Quando a oferta
+    some, a janela some; tocar nela fecha. A janela não atrapalha o botão de aceitar. Mudar as faixas em Ajustes muda a cor
+    da próxima oferta

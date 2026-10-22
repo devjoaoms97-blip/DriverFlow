@@ -4,4 +4,6 @@
     <files-path name="comprovantes" path="comprovantes/" />
     <!-- cacheDir/relatorios/: PDF do relatório do mês, criado só para compartilhar -->
     <cache-path name="relatorios" path="relatorios/" />
+    <!-- filesDir/leitor/: gravação das telas da Uber/99 (modo gravação do leitor de corridas) -->
+    <files-path name="leitor" path="leitor/" />
 </paths>
