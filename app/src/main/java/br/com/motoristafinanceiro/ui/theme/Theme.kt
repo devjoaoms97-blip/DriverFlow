@@ -34,5 +34,10 @@ fun MotoristaTheme(modo: ModoTema = ModoTema.PADRAO, content: @Composable () -> 
             }
         }
     }
-    MaterialTheme(colorScheme = esquema, content = content)
+    MaterialTheme(
+        colorScheme = esquema,
+        typography = TipografiaDriverFlow,
+        shapes = FormasDriverFlow,
+        content = content,
+    )
 }

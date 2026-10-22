@@ -6,7 +6,9 @@ import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
+import br.com.motoristafinanceiro.data.model.Periodicidade
 import br.com.motoristafinanceiro.data.model.Plataforma
+import br.com.motoristafinanceiro.data.model.ReservaDespesa
 import br.com.motoristafinanceiro.data.model.TipoManutencao
 import br.com.motoristafinanceiro.domain.StatusAlerta
 import org.junit.Assert.assertEquals
@@ -200,5 +202,32 @@ class HomeEstadoTest {
 
         assertEquals(3_000L, s.semana.depreciacaoCentavos)
         assertEquals(10_000L, s.semana.lucroLiquidoCentavos)
+    }
+
+    @Test
+    fun reservas_totalDiarioEProximaParaOAtalhoDoInicio() {
+        val seguro = ReservaDespesa(
+            id = 1, nome = "Seguro", valorCentavos = 90_000,
+            periodicidade = Periodicidade.MENSAL, proximoVencimento = hoje.plusDays(3),
+        )
+        val ipva = ReservaDespesa(
+            id = 2, nome = "IPVA", valorCentavos = 365_000,
+            periodicidade = Periodicidade.ANUAL, proximoVencimento = hoje.plusDays(90),
+        )
+
+        val s = montarEstadoHome(
+            emptyList(), emptyList(), null, emptyList(), emptyList(), hoje,
+            reservas = listOf(ipva, seguro),
+        )
+
+        assertEquals(4_000L, s.reservas.totalDiarioCentavos) // 3.000 (seguro) + 1.000 (IPVA)
+        assertEquals("Seguro", s.reservas.itens.first().reserva.nome)
+    }
+
+    @Test
+    fun reservas_semCadastro_estadoVazio() {
+        val s = montar()
+        assertTrue(s.reservas.itens.isEmpty())
+        assertEquals(0L, s.reservas.totalDiarioCentavos)
     }
 }

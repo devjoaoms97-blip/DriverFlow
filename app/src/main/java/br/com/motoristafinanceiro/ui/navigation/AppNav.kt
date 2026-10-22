@@ -1,18 +1,7 @@
 package br.com.motoristafinanceiro.ui.navigation
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,7 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -44,16 +33,6 @@ import br.com.motoristafinanceiro.ui.veiculo.AbastecimentoScreen
 import br.com.motoristafinanceiro.ui.veiculo.ManutencaoScreen
 import br.com.motoristafinanceiro.ui.veiculo.VeiculoScreen
 
-private data class Destino(val rota: String, val rotulo: String, val icone: ImageVector)
-
-private val destinos = listOf(
-    Destino("inicio", "Início", Icons.Filled.Home),
-    Destino("historico", "Histórico", Icons.AutoMirrored.Filled.List),
-    Destino("veiculo", "Veículo", Icons.Filled.Build),
-    Destino("reservas", "Reservas", Icons.Filled.DateRange),
-    Destino("analises", "Análises", Icons.Filled.Star),
-)
-
 private const val ROTA_VEICULO = "veiculo"
 private const val ROTA_RESERVAS = "reservas"
 private const val ROTA_RESERVA = "reserva/{id}"
@@ -64,7 +43,20 @@ private const val ROTA_ABASTECIMENTO = "abastecimento/{id}"
 private const val ROTA_MANUTENCAO = "manutencao/{id}"
 private const val ROTA_AJUSTES = "ajustes"
 private const val ROTA_META = "meta"
-private val rotasFormulario = setOf(ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO, ROTA_AJUSTES, ROTA_RESERVA, ROTA_META)
+/** Telas sem a barra inferior: formulários e telas abertas a partir do Início (Reservas, Meta, Ajustes). */
+internal val rotasSemBarra = setOf(
+    ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO,
+    ROTA_AJUSTES, ROTA_RESERVA, ROTA_META, ROTA_RESERVAS,
+)
+
+/** Troca de aba sem empilhar telas: volta ao Início antes e restaura o estado da aba. */
+private fun NavController.abrirAba(rota: String) {
+    navigate(rota) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
 
 /**
  * [destinoPedido]: rota para abrir de fora (ex.: toque na notificação). Depois de navegar, chama
@@ -79,61 +71,24 @@ fun AppNav(destinoPedido: String? = null, aoAbrirDestino: () -> Unit = {}) {
     // Só navega depois que o NavHost montou o grafo (rotaAtual deixa de ser nula).
     LaunchedEffect(destinoPedido, grafoPronto) {
         if (destinoPedido != null && grafoPronto) {
-            nav.navigate(destinoPedido) {
-                popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }
+            nav.abrirAba(destinoPedido)
             aoAbrirDestino()
         }
     }
-    val emFormulario = rotaAtual in rotasFormulario
+    val semBarra = rotaAtual in rotasSemBarra
     val naTelaVeiculo = rotaAtual == ROTA_VEICULO
-    val naTelaReservas = rotaAtual == ROTA_RESERVAS
     var escolhendoRegistro by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
-            if (!emFormulario) {
-                NavigationBar {
-                    destinos.forEach { d ->
-                        NavigationBarItem(
-                            selected = rotaAtual == d.rota,
-                            onClick = {
-                                nav.navigate(d.rota) {
-                                    popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(d.icone, contentDescription = d.rotulo) },
-                            label = { Text(d.rotulo) },
-                        )
-                    }
-                }
-            }
-        },
-        floatingActionButton = {
-            if (!emFormulario) {
+            if (!semBarra) {
                 // Na aba Veículo o + pergunta se é abastecimento ou manutenção; nas demais, ganho/despesa.
-                FloatingActionButton(
-                    onClick = {
-                        when {
-                            naTelaVeiculo -> escolhendoRegistro = true
-                            naTelaReservas -> nav.navigate("reserva/0")
-                            else -> nav.navigate(ROTA_NOVO)
-                        }
-                    },
-                ) {
-                    Icon(
-                        Icons.Filled.Add,
-                        contentDescription = when {
-                            naTelaVeiculo -> "Novo registro do veículo"
-                            naTelaReservas -> "Nova reserva"
-                            else -> "Novo lançamento"
-                        },
-                    )
-                }
+                BarraInferior(
+                    rotaAtual = rotaAtual,
+                    onAbrir = { nav.abrirAba(it) },
+                    onNovo = { if (naTelaVeiculo) escolhendoRegistro = true else nav.navigate(ROTA_NOVO) },
+                    descricaoNovo = if (naTelaVeiculo) "Novo registro do veículo" else "Novo lançamento",
+                )
             }
         },
     ) { padding ->
@@ -142,6 +97,8 @@ fun AppNav(destinoPedido: String? = null, aoAbrirDestino: () -> Unit = {}) {
                 HomeScreen(
                     onAbrirAjustes = { nav.navigate(ROTA_AJUSTES) },
                     onAbrirMeta = { nav.navigate(ROTA_META) },
+                    onAbrirVeiculo = { nav.abrirAba(ROTA_VEICULO) },
+                    onAbrirReservas = { nav.navigate(ROTA_RESERVAS) },
                 )
             }
             composable(ROTA_AJUSTES) { AjustesScreen(onVoltar = { nav.popBackStack() }) }
@@ -158,10 +115,15 @@ fun AppNav(destinoPedido: String? = null, aoAbrirDestino: () -> Unit = {}) {
                 VeiculoScreen(
                     onEditarAbastecimento = { nav.navigate("abastecimento/$it") },
                     onEditarManutencao = { nav.navigate("manutencao/$it") },
+                    onNovoAbastecimento = { nav.navigate("abastecimento/0") },
+                    onNovaManutencao = { nav.navigate("manutencao/0") },
                 )
             }
             composable(ROTA_RESERVAS) {
-                ReservasScreen(onEditar = { nav.navigate("reserva/$it") })
+                ReservasScreen(
+                    onEditar = { nav.navigate("reserva/$it") },
+                    onVoltar = { nav.popBackStack() },
+                )
             }
             composable(
                 ROTA_RESERVA,

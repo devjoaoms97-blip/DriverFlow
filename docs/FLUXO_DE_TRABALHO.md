@@ -7,13 +7,14 @@ Vale para todo pedido de alteração, grande ou pequeno.
 
 | Quem | O que faz |
 |---|---|
-| Você | Pede a alteração e testa o app pelo Android Studio (emulador ou celular) |
-| Claude | Implementa a alteração com testes, roda a build e os testes, atualiza a documentação, faz o commit e o push |
+| Você | Pede a alteração, testa o app no celular (pelo Android Studio ou instalado pelo Claude) e autoriza o commit |
+| Claude | Implementa a alteração com testes, roda a build e os testes, atualiza a documentação e, com a sua autorização, faz o commit e o push |
 
 Você e o Claude usam **a mesma pasta**: `D:\DriverFlow`. O Claude Code é aberto nela, e o Android Studio
 também. Não há `git pull` nem comandos de build do seu lado.
 
-O Claude tem sua autorização para fazer commit e push direto no repositório.
+O Claude **só faz commit e push com a sua autorização explícita, a cada vez**. A autorização vale para aquele
+commit e push, não para os seguintes. Até lá, as alterações ficam na pasta (working tree), prontas para você testar.
 
 ## Passo a passo de cada alteração
 
@@ -24,11 +25,13 @@ O Claude tem sua autorização para fazer commit e push direto no repositório.
    (`ROADMAP.md`, `TESTES.md`, `ESPECIFICACAO.md`, quando mudam).
 4. **Claude roda a build e os testes** (`gradlew test assembleDebug`, comandos abaixo). Falhas e erros
    devem ser 0; se não forem, ele corrige antes de seguir.
-5. **Claude faz o commit e o push** e informa o total de testes e o roteiro de teste manual.
-6. **Você testa pelo Android Studio:** Run (▶) no emulador ou no celular, seguindo o roteiro manual
-   de [`TESTES.md`](TESTES.md). Se o Android Studio pedir, faça o Gradle Sync antes.
-7. **Se algo der errado**, descreva o que viu (ou cole o erro do Android Studio). O Claude corrige num
-   novo commit.
+5. **Claude informa** o total de testes e o roteiro de teste manual, e deixa as alterações sem commitar.
+6. **Você testa no celular**, seguindo o roteiro manual de [`TESTES.md`](TESTES.md): pelo Android Studio
+   (Run ▶; faça o Gradle Sync antes, se ele pedir) ou pedindo ao Claude para instalar o APK de debug
+   com o celular conectado (`adb install -r`, que mantém os dados).
+7. **Se algo der errado**, descreva o que viu (ou mande um print). O Claude corrige, roda os testes de novo e
+   reinstala.
+8. **Você autoriza** o commit e o push. O Claude faz um commit com tudo (código, testes e documentação) e sobe.
 
 ## Comandos de build (usados pelo Claude)
 
@@ -104,5 +107,5 @@ Prefixos das mensagens (sem acento, para não dar problema no terminal):
 2. Implementar partindo do código real, nunca de memória
 3. Escrever os testes junto e atualizar o roteiro manual e o roadmap
 4. Rodar `gradlew test assembleDebug` e conferir 0 falhas e 0 erros
-5. Fazer o commit (prefixos acima) e o push
-6. Entregar o total de testes e o roteiro de teste manual pelo Android Studio
+5. Entregar o total de testes e o roteiro de teste manual, sem commitar
+6. Só com a autorização explícita do usuário: fazer o commit (prefixos acima) e o push

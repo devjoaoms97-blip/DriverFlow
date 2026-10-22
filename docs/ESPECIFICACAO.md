@@ -52,7 +52,7 @@ com lançamento rápido (poucos toques) e funcionamento offline.
 - **Offline por padrão.** A única permissão é a de notificações (Android 13+), pedida uma única vez ao abrir o app, enquanto o aviso de manutenção estiver ligado (o padrão)
 - Lançamento em até 3 toques para os casos comuns
 - Valores monetários sempre em **centavos (Long)**
-- minSdk 26 (Android 8.0), tema claro/escuro, cores dinâmicas no Android 12+
+- minSdk 26 (Android 8.0), tema próprio claro/escuro (sem cores dinâmicas)
 - Lógica de cálculo em `domain/` sem dependência de UI, coberta por testes unitários
 
 ## 5. Regras de negócio e fórmulas
@@ -104,11 +104,14 @@ Schema do Room exportado em `app/schemas/` para versionar migrações.
 
 ## 7. Telas
 
-1. **Início:** lucro líquido (hoje/semana/mês), indicadores, card da meta (progresso e quanto falta por dia)
-2. **Novo lançamento** (botão +): abas Ganho / Despesa
+Navegação: barra inferior com Início, Histórico, **+** (no centro), Veículo e Análises. O + abre o Novo lançamento;
+na aba Veículo, pergunta se é abastecimento ou manutenção. Reservas, Meta e Ajustes abrem a partir do Início, sem a barra.
+
+1. **Início:** data, seletor Hoje/Semana/Mês, cartão do lucro líquido do período (barra lucro × despesas, ganho bruto e despesas; depreciação quando configurada), indicadores (ganho por km, ganho por hora, custo por km, km e horas rodados), aviso de manutenção (atrasadas e próximas, abre a aba Veículo), card da meta (progresso e quanto falta por dia) e atalho de Reservas (quanto separar hoje e o próximo vencimento)
+2. **Novo lançamento** (botão +): seletor Ganho / Despesa, valor em destaque na cor do tipo, plataforma ou categoria em chips, data com atalhos Hoje/Ontem, km/horas/gorjeta lado a lado e o botão de salvar fixo no rodapé
 3. **Histórico:** lista por mês filtrável por tipo (Todos/Ganhos/Despesas). Com Ganhos, filtra também por plataforma; com Despesas, por categoria. Os dois refinos são limpos ao trocar o tipo. Com um refino ativo, aparece o total e a quantidade exibidos ("Uber no mês: R$ 450,00 (3 lançamentos)"); o resumo do mês inteiro não muda. Editar/excluir continuam valendo
-4. **Veículo:** consumo médio, custo por km, abastecimentos, manutenções e alertas
-5. **Reservas:** despesas recorrentes e total a separar por dia
+4. **Veículo:** odômetro em destaque, consumo médio, último litro e custo por km do mês; botões Abastecer e Manutenção; um cartão por manutenção com intervalo (selo atrasada/próxima/em dia e barra do quanto do intervalo já foi rodado); manutenções feitas e abastecimentos
+5. **Reservas** (aberta pelo atalho do Início; o + do cabeçalho cadastra): despesas recorrentes e total a separar por dia
 6. **Análises:** período (30 dias, 90 dias ou tudo, sempre até hoje); resumo, ganho por hora por dia da semana (segunda a domingo, com barra, dias trabalhados e média por dia), melhor dia e comparativo por plataforma. Faixa de horário ainda não existe (ver decisões em aberto)
 7. **Ajustes:** depreciação por km, aparência (Automático, Claro ou Escuro), aviso de manutenção (chave que liga e desliga as notificações; pede a permissão do Android 13+ se ainda não liberada) e backup (Exportar backup, Restaurar backup)
 8. **Meta mensal** (aberta pelo card do Início): definir, editar e remover a meta do mês (R$ 0,01 a R$ 100.000,00). Cada mês tem a sua meta; mês novo começa sem meta
@@ -124,6 +127,7 @@ UI (Compose) → ViewModel (StateFlow) → Repositorio → DAOs (Room)
 - Injeção de dependência manual via `MotoristaApp` e `viewModelFactory` (Hilt pode entrar depois, se quiser)
 - Um `ViewModel` por tela
 - Fluxos reativos (`Flow`) do banco até a UI
+- Visual "Painel de bordo": fonte Manrope (`res/font/manrope.ttf`, arquivo variável, licença OFL em `docs/licencas/`) com algarismos tabulares, escala de texto e cantos em `ui/theme/Tipografia.kt`, e componentes comuns (cartão, indicador, seletor, chip, selo, barras, ícones de traço) em `ui/componentes/`
 - Tema próprio (`ui/theme`), escuro e claro, escolhido em Ajustes > Aparência (Automático, Claro ou Escuro; padrão Escuro). Azul-marinho do logo no fundo escuro, azul nas ações, verde nos ganhos, vermelho nas despesas e âmbar nos alertas próximos. Sem as cores dinâmicas do Android, para o app ter a mesma cara em qualquer celular. A escolha fica só no aparelho e não entra no backup
 - `notificacoes/`: `VerificadorDeManutencao` (regra, sem Android) + `NotificadorAndroid` (canal e notificação) + `VerificarManutencaoWorker` e `AgendadorDeNotificacoes` (WorkManager)
 

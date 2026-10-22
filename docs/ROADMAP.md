@@ -12,6 +12,8 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
 - ✅ Nome DriverFlow e abertura animada (Lottie, 2,5 s, toque pula): fundo azul-marinho, o logo do ícone, o nome e o lema "Sua operação sob controle."
 - ✅ Tema próprio do DriverFlow (azul-marinho do logo, azul nas ações, verde nos ganhos, vermelho nas despesas), sem as cores dinâmicas do Android
 - ✅ Aparência em Ajustes: Automático (segue o celular), Claro ou Escuro (padrão Escuro, como a abertura)
+- ✅ Novo visual "Painel de bordo": fonte Manrope com números tabulares, cartões com borda fina e números em destaque, barra inferior com o + no centro (Início, Histórico, +, Veículo, Análises) e Reservas aberta por um atalho no Início
+- ⬜ Levar o novo visual aos formulários secundários (Abastecimento, Manutenção, Reserva, Meta e Ajustes), que hoje só herdam a fonte e os cantos
 
 ## Etapa 1: Base, ganhos e despesas
 - ✅ Projeto Gradle, dependências e tema

@@ -16,6 +16,7 @@ Dados 100% locais no aparelho (sem login, sem servidor, sem nuvem).
 - **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km
 - **Análises:** ganho por hora por dia da semana, melhor dia e comparativo entre plataformas (Uber × 99), por período
 - **Reservas** para despesas fixas (IPVA, seguro, parcela), com quanto separar por dia
+- **Visual "Painel de bordo":** fonte Manrope, números em destaque e barra inferior com o + no centro, ao alcance do polegar
 - **Ajustes:** depreciação por km, **aviso de manutenção** (notificação quando uma manutenção fica próxima ou atrasada) e **backup** (exportar e restaurar um arquivo .zip com dados e fotos dos comprovantes)
 
 O que falta está no [`docs/ROADMAP.md`](docs/ROADMAP.md).
@@ -26,7 +27,7 @@ Kotlin · Jetpack Compose (Material 3) · Room (SQLite) · MVVM com StateFlow ·
 
 ## Como rodar
 
-O dia a dia do projeto (build, testes, commit e push pelo Claude; teste manual pelo Android Studio) está em
+O dia a dia do projeto (build e testes pelo Claude; teste no celular por você; commit e push pelo Claude só com sua autorização) está em
 [`docs/FLUXO_DE_TRABALHO.md`](docs/FLUXO_DE_TRABALHO.md).
 
 Para abrir pela primeira vez:
@@ -60,11 +61,12 @@ app/src/main/java/br/com/motoristafinanceiro/
 ├── notificacoes/            # Aviso de manutenção: verificador, notificação e WorkManager
 ├── util/                    # Formatação de dinheiro, números e km
 └── ui/
-    ├── theme/, navigation/  # Tema e NavHost + barra inferior
+    ├── theme/, navigation/  # Tema (cores, Manrope, cantos) e NavHost + barra inferior
+    ├── componentes/         # Cartão, indicador, seletor, chips, selos, barras e ícones do visual
     ├── home/, historico/    # Início e histórico
     ├── lancamento/          # Formulário de ganho/despesa
     ├── veiculo/             # Abastecimento, manutenção e alertas
-    ├── reservas/, ajustes/  # Reservas e Ajustes
+    ├── reservas/, ajustes/  # Reservas (aberta pelo Início) e Ajustes
     ├── analises/            # Análises por dia da semana e por plataforma
     ├── meta/                # Tela da meta mensal e textos do card
     └── comprovante/         # Miniatura e ampliação da foto

@@ -26,6 +26,7 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Notificações de manutenção (regra de avisar uma vez por estado, textos, verificador com Room e permissão negada, chave e alertas avisados no DataStore, estado da chave em Ajustes, manifest e ícone) | `app/src/test/.../domain/NotificacoesManutencaoTest`, `.../notificacoes`, `.../data/ConfiguracoesNotificacoesTest`, `.../ui/ajustes/EstadoNotificacaoTest`, `.../app/NotificacaoManifestTest` | JUnit puro; o verificador usa Robolectric com Room em memória |
 | Backup (leitura e validação do JSON, arquivo .zip, exportar/restaurar, textos) | `app/src/test/.../data/backup`, `.../data/RepositorioBackupTest`, `.../ui/ajustes` | JSON, zip e restauração com Robolectric; datas, fotos e textos em JUnit puro |
 | Estado e regras das telas (início, semana, histórico e seus filtros, veículo, alertas, textos da meta, análises) | `app/src/test/.../ui/...` | JUnit puro |
+| Novo visual (fonte Manrope e licença, números tabulares, escala de texto e cantos; textos do Início, siglas do Histórico, selo e barra das manutenções, barras e percentuais das Análises, data e prefixo R$ do lançamento; abas da barra inferior e telas sem barra) | `app/src/test/.../ui/theme/TipografiaTest`, `.../ui/home/TextoInicioTest`, `.../ui/historico/SiglasHistoricoTest`, `.../ui/veiculo/AlertasTextoTest`, `.../ui/analises/TextoAnalisesTest`, `.../ui/lancamento/CamposLancamentoTest`, `.../ui/navigation/BarraInferiorTest` | JUnit puro |
 | Repositório + Room (CRUD, vínculos, período) | `app/src/test/.../data` | Robolectric (no PC, sem celular) |
 
 ## Como rodar
@@ -104,7 +105,7 @@ testImplementation("androidx.test:core:1.6.1")
     19c. **Abertura só no início do app:** girar a tela depois que a animação acabou não toca de novo. Tocar numa
     notificação de manutenção com o app fechado abre direto a aba Veículo, sem a animação. Fechar o app de verdade (deslizar
     nos apps recentes) ou sair pelo botão voltar e abrir de novo: a animação toca outra vez. Minimizar e voltar sem fechar não toca
-20. **Reservas:** na aba Reservas, tocar em + e escolher o atalho IPVA (vem anual). Valor 3650,00 e um vencimento
+20. **Reservas:** no Início, tocar no atalho Reservas e, na tela que abre, no + do cabeçalho; escolher o atalho IPVA (vem anual). Valor 3650,00 e um vencimento
     daqui a alguns meses. O card "Separar por dia" deve mostrar R$ 10,00
 21. **Total:** cadastrar também um Seguro mensal de R$ 300,00. O total passa a R$ 20,00 por dia e R$ 140,00 por semana
 22. **Vencimento passado:** cadastrar uma parcela mensal com vencimento num mês que já passou. A lista deve mostrar
@@ -215,3 +216,31 @@ testImplementation("androidx.test:core:1.6.1")
 78. **Aparência lembrada:** com Claro escolhido, fechar o app e abrir de novo: a animação continua azul-marinho e, depois dela,
     o app aparece claro. Passar por todas as telas no modo Claro e anotar qualquer texto difícil de ler
 79. **Teclado no modo Claro:** abrir um formulário e o teclado: não aparece faixa escura atrás dele
+80. **Fonte e números:** todas as telas em Manrope (letras arredondadas, sem serifa). No Histórico, os valores da direita
+    ficam alinhados e não "pulam" de largura entre linhas
+81. **Barra inferior:** quatro abas (Início, Histórico, Veículo, Análises) e o + azul no centro, um pouco acima da barra.
+    A aba atual fica azul. Não há mais aba Reservas nem botão flutuante sobre o conteúdo. Nos formulários e em Reservas,
+    Meta e Ajustes a barra some
+82. **Início:** a data de hoje aparece acima de "Início". O seletor Hoje/Semana/Mês troca o cartão do lucro e os quatro
+    indicadores (com o roteiro do passo 1: Hoje mostra R$ 70,00, R$ 2,00/km, R$ 25,00/h, R$ 0,60/km e "50 km · 4 h").
+    A barra verde e vermelha do cartão mostra quanto do bruto virou lucro e quanto foi despesa. Girar a tela mantém o período
+83. **Aviso de manutenção no Início:** com uma manutenção atrasada ou próxima, aparece o aviso âmbar "N manutenção(ões)
+    pede(m) atenção" com as duas mais urgentes; tocar abre a aba Veículo. Sem alertas, o aviso não aparece
+84. **Atalho de Reservas:** sem reservas, o atalho convida a cadastrar; com reservas, mostra "Reservas: separe R$ X hoje" e a
+    próxima a vencer. Tocar abre Reservas, com o botão voltar no topo
+85. **Novo lançamento:** o + abre com Ganho escolhido (verde). O valor grande começa com "R$ 0,00" apagado; digitar 248,90.
+    Escolher a plataforma nos chips, conferir os atalhos Hoje/Ontem da data e preencher km, horas e gorjeta lado a lado.
+    O botão "Salvar ganho" fica fixo embaixo e só habilita com valor. Trocar para Despesa: tudo fica vermelho, as
+    categorias viram chips e aparece o cartão do comprovante (Tirar foto e Galeria). O X do topo fecha sem salvar
+86. **Editar lançamento:** no Histórico, tocar num ganho abre "Editar ganho" com o valor preenchido, "Salvar alterações" no
+    rodapé e "Excluir lançamento" (em vermelho) no fim dos campos
+87. **Histórico:** troca de mês num cartão no topo, três totais do mês (ganhos em verde, despesas em vermelho, líquido em azul),
+    filtros em chips e um cartão por dia, com o saldo do dia ao lado da data. Cada linha tem um quadradinho com a sigla
+    (U para Uber, 99, CB para combustível...)
+88. **Veículo:** odômetro grande no topo com consumo, último litro e custo/km. Os botões Abastecer e Manutenção abrem os
+    formulários direto (o + da barra continua perguntando). Com a troca de óleo do passo 11, o cartão da manutenção mostra
+    o selo (Em dia / Em N km / Atrasada) na cor certa e a barra enchendo conforme o odômetro avança; tocar abre a manutenção
+89. **Análises:** seletor 30 dias / 90 dias / Tudo, seis indicadores, gráfico de barras de segunda a domingo com o melhor
+    dia em azul e o valor por hora em cima, a lista com dias e média de cada dia, e o cartão Por plataforma com a barra dividida
+    e o percentual de cada uma (somando 100%)
+90. **Modo Claro no novo visual:** repetir os passos 81 a 89 com Ajustes > Aparência > Claro e anotar qualquer texto difícil de ler

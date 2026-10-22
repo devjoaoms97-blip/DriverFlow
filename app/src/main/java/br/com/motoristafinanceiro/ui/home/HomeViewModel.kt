@@ -13,6 +13,7 @@ import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
+import br.com.motoristafinanceiro.data.model.ReservaDespesa
 import br.com.motoristafinanceiro.domain.AlertaManutencao
 import br.com.motoristafinanceiro.domain.Estatisticas
 import br.com.motoristafinanceiro.domain.ProgressoMeta
@@ -23,6 +24,8 @@ import br.com.motoristafinanceiro.domain.StatusAlerta
 import br.com.motoristafinanceiro.domain.calcularAlertas
 import br.com.motoristafinanceiro.domain.calcularEstatisticas
 import br.com.motoristafinanceiro.domain.odometroAtual
+import br.com.motoristafinanceiro.ui.reservas.ReservasUiState
+import br.com.motoristafinanceiro.ui.reservas.montarEstadoReservas
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -42,6 +45,8 @@ data class HomeUiState(
     val progressoMeta: ProgressoMeta? = null,
     /** Manutenções atrasadas ou próximas (as em dia não aparecem no Início). */
     val alertasUrgentes: List<AlertaManutencao> = emptyList(),
+    /** Despesas fixas: quanto separar por dia e o próximo vencimento (atalho para a tela Reservas). */
+    val reservas: ReservasUiState = ReservasUiState(),
 )
 
 /** Regra pura do Início (sem Android), coberta por testes. */
@@ -56,6 +61,7 @@ internal fun montarEstadoHome(
     /** Lançamentos que cobrem a semana de [hoje]; podem vir de dois meses. Dias fora da semana são ignorados. */
     ganhosSemana: List<Ganho> = emptyList(),
     despesasSemana: List<Despesa> = emptyList(),
+    reservas: List<ReservaDespesa> = emptyList(),
 ): HomeUiState {
     val odometro = odometroAtual(abastecimentos, manutencoes)
     val alertas = if (odometro == null) {
@@ -82,6 +88,7 @@ internal fun montarEstadoHome(
         metaCentavos = meta?.valorAlvoLucroCentavos,
         progressoMeta = metaValida?.let { calcularProgressoMeta(it, estatisticasMes.lucroLiquidoCentavos, hoje) },
         alertasUrgentes = alertas,
+        reservas = montarEstadoReservas(reservas, hoje),
     )
 }
 
@@ -93,7 +100,11 @@ private data class DadosHome(
     val manutencoes: List<Manutencao>,
 )
 
-private data class DadosSemana(val ganhos: List<Ganho>, val despesas: List<Despesa>)
+private data class DadosSemana(
+    val ganhos: List<Ganho>,
+    val despesas: List<Despesa>,
+    val reservas: List<ReservaDespesa>,
+)
 
 class HomeViewModel(repo: Repositorio, configuracoes: Configuracoes) : ViewModel() {
 
@@ -104,7 +115,8 @@ class HomeViewModel(repo: Repositorio, configuracoes: Configuracoes) : ViewModel
     private val semana = combine(
         repo.ganhos(inicioSemana, fimSemana),
         repo.despesas(inicioSemana, fimSemana),
-    ) { ganhos, despesas -> DadosSemana(ganhos, despesas) }
+        repo.reservas(),
+    ) { ganhos, despesas, reservas -> DadosSemana(ganhos, despesas, reservas) }
 
     private val dados = combine(
         repo.ganhos(mesAtual.atDay(1), mesAtual.atEndOfMonth()),
@@ -126,6 +138,7 @@ class HomeViewModel(repo: Repositorio, configuracoes: Configuracoes) : ViewModel
             depreciacaoPorKmCentavos = depreciacao,
             ganhosSemana = s.ganhos,
             despesasSemana = s.despesas,
+            reservas = s.reservas,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 

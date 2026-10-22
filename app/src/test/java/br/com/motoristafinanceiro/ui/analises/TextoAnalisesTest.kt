@@ -77,4 +77,31 @@ class TextoAnalisesTest {
         assertEquals(0f, fracaoDaBarra(50, 0), 0.0001f)
         assertEquals(0f, fracaoDaBarra(0, 100), 0.0001f)
     }
+
+    @Test
+    fun siglasDosDias_tresLetras() {
+        assertEquals(
+            listOf("Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"),
+            DayOfWeek.values().map { siglaDiaSemana(it) },
+        )
+    }
+
+    @Test
+    fun rotuloDaBarra_reaisInteirosArredondados() {
+        assertEquals("38", rotuloBarraPorHora(3_750))
+        assertEquals("37", rotuloBarraPorHora(3_749))
+        assertEquals("", rotuloBarraPorHora(null))
+        assertEquals("", rotuloBarraPorHora(0))
+    }
+
+    @Test
+    fun percentuais_somamCem() {
+        assertEquals(listOf(68, 32), percentuais(listOf(296_000, 142_000)))
+        assertEquals(listOf(34, 33, 33), percentuais(listOf(1, 1, 1)))
+        assertEquals(listOf(100), percentuais(listOf(500)))
+        assertEquals(100, percentuais(listOf(7, 11, 13, 17)).sum())
+    }
+
+    @Test
+    fun percentuais_totalZero_tudoZero() = assertEquals(listOf(0, 0), percentuais(listOf(0, 0)))
 }
