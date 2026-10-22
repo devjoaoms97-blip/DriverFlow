@@ -66,3 +66,24 @@ Legenda: ✅ feito · 🟡 esqueleto/parcial · ⬜ a fazer
   2. Fazer a consolidação para a versão 1, garantindo que o backup exportado no passo 1 ainda seja lido
   3. Desinstalar o app e instalar a versão de lançamento
   4. Restaurar o backup e conferir lançamentos, metas, reservas e fotos
+
+## Ideias futuras
+Ordem sugerida: backup automático, leitor de corridas e lembrete de lançamento; o resto depois.
+
+**Proteger os dados**
+- ⬜ Backup automático diário ou semanal numa pasta escolhida uma vez (Google Drive, Downloads...), com aviso no Início quando o último backup estiver velho
+- ⬜ Bloqueio opcional com digital ou PIN ao abrir o app
+
+**Decidir melhor na rua**
+- ⬜ Leitor de corridas: quando uma corrida toca na Uber/99, o app lê o card (valor, km até o passageiro, km da viagem, tempo, nota do passageiro, destino) e mostra por cima, em menos de 1 s, o R$/km contando o deslocamento até o passageiro, o R$/h, o lucro estimado pelo custo por km real e uma cor (verde/amarelo/vermelho) por limites definidos pelo motorista. Guarda o histórico das ofertas (aceitas e recusadas) para as Análises
+  - Como: serviço de acessibilidade (lê o texto da tela de outros apps) + janela sobreposta. Se o card não expuser o texto, plano B: captura de tela com OCR (mais pesado, com aviso de gravação do Android)
+  - Primeiro passo: "modo gravação" com corridas reais, para aprender o formato do card de cada app (não dá para simular uma corrida tocando)
+  - Regras: só mostrar, **nunca aceitar sozinho** (aceitar automaticamente viola os termos das plataformas e pode bloquear a conta); nome e nota do passageiro não são guardados (LGPD)
+  - Riscos: atualização da Uber/99 pode quebrar a leitura (manutenção contínua); ler a tela é zona cinzenta nos termos de uso; para publicar na Play Store, acessibilidade fora do uso para pessoas com deficiência exige declaração e revisão
+- ⬜ Meta do dia: a partir da meta do mês, "hoje você precisa de R$ X" e aviso ao bater
+- ⬜ Evolução mês a mês: gráfico do lucro e do R$/h nos últimos meses
+
+**Menos atrito para lançar**
+- ⬜ Lembrete no fim do dia ("Lançou o turno de hoje?"), no horário escolhido, só em dias sem lançamento
+- ⬜ Repetir o último lançamento (mesma plataforma e horários do turno anterior; só troca o valor)
+- ⬜ Relatório do mês em PDF (ganhos, despesas e lucro) para comprovar renda
