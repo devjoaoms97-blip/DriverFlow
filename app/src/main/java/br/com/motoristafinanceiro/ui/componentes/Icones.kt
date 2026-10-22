@@ -31,6 +31,8 @@ object Icones {
     val Fechar = icone("Fechar", "M6 6l12 12M18 6 6 18", espessura = 2f)
     val Ganho = icone("Ganho", "M7 17 17 7M8 7h9v9", espessura = 2.2f)
     val Despesa = icone("Despesa", "M7 7l10 10M17 8v9H8", espessura = 2.2f)
+    val Documento = icone("Documento", "M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM14 3v5h5M9 13h6M9 17h6")
+    val Cadeado = icone("Cadeado", "M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1zM8 11V7a4 4 0 0 1 8 0v4M12 15v2")
     val Clipe = icone("Clipe", "M21 11.5 12.5 20a5 5 0 0 1-7-7L14 4.5a3.3 3.3 0 0 1 4.7 4.7L10.2 17.7a1.7 1.7 0 0 1-2.4-2.4L15.5 7.6")
 }
 

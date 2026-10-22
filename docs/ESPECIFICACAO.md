@@ -79,6 +79,8 @@ com lançamento rápido (poucos toques) e funcionamento offline.
 | Dias restantes | dias do mês de hoje até o último dia, **contando hoje** (dia 15 de outubro: 17 dias) |
 | Falta por dia | falta da meta ÷ dias restantes, arredondado para cima; no último dia do mês é tudo o que falta |
 | Meta batida | lucro líquido do mês ≥ meta; o card mostra quanto passou e não mostra mais "por dia" |
+| Meta do dia | (meta do mês − lucro líquido até ontem) ÷ dias que faltam no mês contando hoje, arredondado para cima. Fica fixa durante o dia; o lucro de hoje enche a barra e o cartão fica verde ao bater. Não aparece sem meta ou com o mês já batido até ontem |
+| Evolução mês a mês | os 6 meses até o atual: lucro líquido (ganhos − despesas) e R$/h (ganho bruto ÷ horas online) de cada mês. Prejuízo em vermelho. Melhor mês = mês fechado de maior lucro (o atual não entra), só com 2 ou mais meses fechados com lançamento |
 | Repetir meta | quando o mês ainda não tem meta e o anterior tinha (dentro do limite), o card do Início oferece "Repetir a de setembro: R$ X" (grava na hora) e a tela da meta oferece o mesmo atalho para preencher o campo |
 | Faixas de horário (Análises) | madrugada 0h–6h, manhã 6h–12h, tarde 12h–18h, noite 18h–24h. Cada ganho com início do turno e horas online é repartido entre as faixas na proporção do tempo que passou em cada uma (um turno das 17h às 20h: 1/3 na tarde e 2/3 na noite; turno que passa da meia-noite continua na madrugada). Ganho por hora da faixa = ganho repartido ÷ horas na faixa. Melhor faixa só com 2 ou mais faixas com horas. Ganhos sem início ou sem horas não entram, e a tela diz quantos ficaram de fora |
 
@@ -103,7 +105,15 @@ evitando lançamento duplo. Ao excluir o abastecimento/manutenção, a despesa v
 Datas armazenadas como `epochDay` (Long) via `TypeConverter`. Enums armazenados pelo nome.
 
 **Comprovantes:** o campo `fotoUri` da despesa guarda apenas o NOME do arquivo da foto, que fica em `filesDir/comprovantes/` (pasta privada do app). Fotos são reduzidas para cerca de 1.600 px e regravadas em JPEG, com a rotação do EXIF aplicada. Arquivos que nenhuma despesa usa são apagados na abertura do app, desde que tenham mais de 24 h.
-**Configurações** (depreciação por km, aviso de manutenção ligado/desligado, alertas já avisados, se a permissão já foi perguntada etc.) ficam no DataStore, fora do Room.
+**Configurações** (depreciação por km, aviso de manutenção ligado/desligado, alertas já avisados, se a permissão já foi perguntada, aparência, bloqueio, lembrete e backup automático) ficam no DataStore, fora do Room.
+
+**Bloqueio do app:** opcional (Ajustes > Segurança), desligado por padrão. Usa a digital/rosto ou o bloqueio de tela do próprio celular (`BiometricPrompt` com `BIOMETRIC_WEAK | DEVICE_CREDENTIAL`), sem PIN próprio do app. Pede ao abrir e ao voltar depois de 2 minutos fora (girar a tela ou tirar a foto de um comprovante não bloqueia). Ao ligar, pede a digital uma vez; sem bloqueio de tela no celular, não liga e explica. Fica só no aparelho, fora do backup.
+
+**Lembrete de lançamento:** opcional (Ajustes > Notificações), desligado por padrão, às 22:00 se não mudar. No horário, avisa "Lançou o turno de hoje?" se não há **ganho** com a data de hoje (despesa sozinha não conta). Tocar abre o Novo lançamento. Agendado com WorkManager para o horário, e cada execução marca a do dia seguinte.
+
+**Repetir o último:** no ganho novo, um atalho copia a plataforma e os horários (início e fim) do ganho mais recente (maior data; no mesmo dia, o último lançado). O valor, os km e a gorjeta não são copiados.
+
+**Relatório do mês (PDF):** botão no Histórico, para o mês da tela, com todos os lançamentos (sem os filtros). A4, com título, resumo (ganho bruto, despesas, lucro, dias trabalhados, km, horas), ganhos por plataforma, despesas por categoria e a lista de lançamentos por data (quebra de página quando não cabe). Rodapé diz que os valores foram lançados pelo próprio motorista. Salvar (seletor do Android) ou Compartilhar (arquivo temporário em `cacheDir/relatorios`, via FileProvider).
 Schema do Room exportado em `app/schemas/` para versionar migrações. **Versão atual: 2.** Migrações em
 `data/db/AppDatabase.kt` (`MIGRACOES`), nunca apagadas: 1 → 2 acrescenta `ganhos.inicioTurnoMinutos` (nulo nos
 lançamentos antigos). O `MigracaoTest` cria um banco da versão 1 com o SQL do schema exportado e abre com o app atual.
@@ -113,13 +123,13 @@ lançamentos antigos). O `MigracaoTest` cria um banco da versão 1 com o SQL do 
 Navegação: barra inferior com Início, Histórico, **+** (no centro), Veículo e Análises. O + abre o Novo lançamento;
 na aba Veículo, pergunta se é abastecimento ou manutenção. Reservas, Meta e Ajustes abrem a partir do Início, sem a barra.
 
-1. **Início:** data, seletor Hoje/Semana/Mês, cartão do lucro líquido do período (barra lucro × despesas, ganho bruto e despesas; depreciação quando configurada), indicadores (ganho por km, ganho por hora, custo por km, km e horas rodados), aviso de manutenção (atrasadas e próximas, abre a aba Veículo), card da meta (progresso e quanto falta por dia; sem meta, o atalho para repetir a do mês anterior) e atalho de Reservas (quanto separar hoje e o próximo vencimento)
-2. **Novo lançamento** (botão +): seletor Ganho / Despesa, valor em destaque na cor do tipo, plataforma ou categoria em chips, data com atalhos Hoje/Ontem, início e fim do turno (relógio de 24 h; as horas são calculadas e aparecem embaixo), km e gorjeta lado a lado, e o botão de salvar fixo no rodapé
-3. **Histórico:** lista por mês filtrável por tipo (Todos/Ganhos/Despesas). Com Ganhos, filtra também por plataforma; com Despesas, por categoria. Os dois refinos são limpos ao trocar o tipo. Com um refino ativo, aparece o total e a quantidade exibidos ("Uber no mês: R$ 450,00 (3 lançamentos)"); o resumo do mês inteiro não muda. Editar/excluir continuam valendo
+1. **Início:** data, seletor Hoje/Semana/Mês, cartão do lucro líquido do período (barra lucro × despesas, ganho bruto e despesas; depreciação quando configurada), indicadores (ganho por km, ganho por hora, custo por km, km e horas rodados), aviso de manutenção (atrasadas e próximas, abre a aba Veículo), meta do dia, aviso de backup velho, card da meta (progresso e quanto falta por dia; sem meta, o atalho para repetir a do mês anterior) e atalho de Reservas (quanto separar hoje e o próximo vencimento)
+2. **Novo lançamento** (botão +; no ganho novo, atalho "Repetir o último"): seletor Ganho / Despesa, valor em destaque na cor do tipo, plataforma ou categoria em chips, data com atalhos Hoje/Ontem, início e fim do turno (relógio de 24 h; as horas são calculadas e aparecem embaixo), km e gorjeta lado a lado, e o botão de salvar fixo no rodapé
+3. **Histórico:** botão do relatório do mês em PDF; lista por mês filtrável por tipo (Todos/Ganhos/Despesas). Com Ganhos, filtra também por plataforma; com Despesas, por categoria. Os dois refinos são limpos ao trocar o tipo. Com um refino ativo, aparece o total e a quantidade exibidos ("Uber no mês: R$ 450,00 (3 lançamentos)"); o resumo do mês inteiro não muda. Editar/excluir continuam valendo
 4. **Veículo:** odômetro em destaque ("estimado", com a última leitura e os km somados, quando há ganhos depois dela), consumo médio, último litro e custo por km do mês; botões Abastecer e Manutenção; um cartão por manutenção com intervalo (selo atrasada/próxima/em dia e barra do quanto do intervalo já foi rodado); manutenções feitas e abastecimentos
 5. **Reservas** (aberta pelo atalho do Início; o + do cabeçalho cadastra): despesas recorrentes e total a separar por dia
-6. **Análises:** período (30 dias, 90 dias ou tudo, sempre até hoje); resumo, ganho por hora por dia da semana (segunda a domingo, com barra, dias trabalhados e média por dia), melhor dia, ganho por hora por faixa de horário (com a melhor faixa e quantos lançamentos ficaram de fora) e comparativo por plataforma
-7. **Ajustes:** depreciação por km, aparência (Automático, Claro ou Escuro), aviso de manutenção (chave que liga e desliga as notificações; pede a permissão do Android 13+ se ainda não liberada) e backup (Exportar backup, Restaurar backup)
+6. **Análises:** período (30 dias, 90 dias ou tudo, sempre até hoje); resumo, ganho por hora por dia da semana (segunda a domingo, com barra, dias trabalhados e média por dia), melhor dia, ganho por hora por faixa de horário (com a melhor faixa e quantos lançamentos ficaram de fora), comparativo por plataforma e evolução dos últimos 6 meses
+7. **Ajustes:** depreciação por km, aparência (Automático, Claro ou Escuro), segurança (bloqueio), lembrete de lançamento, aviso de manutenção (chave que liga e desliga as notificações; pede a permissão do Android 13+ se ainda não liberada) e backup (Exportar backup, Restaurar backup e backup automático)
 8. **Meta mensal** (aberta pelo card do Início): definir, editar e remover a meta do mês (R$ 0,01 a R$ 100.000,00). Cada mês tem a sua meta; mês novo começa sem meta
 
 ## 8. Arquitetura
@@ -169,6 +179,8 @@ no aparelho fica de fora e é avisado ao final.
 minutos não negativos; ids positivos e sem repetição; despesa de abastecimento/manutenção apontando para um registro
 que existe no backup; nomes de foto simples (sem pasta nem `..`); depreciação dentro do teto. Entradas do `.zip` com
 caminho suspeito são ignoradas.
+
+**Backup automático:** Desligado (padrão), Diário ou Semanal, numa pasta escolhida uma vez no seletor de pastas do Android (a permissão fica guardada). Uma tarefa do WorkManager confere a cada 12 h (e ao abrir o app) se é hora, com 1 h de folga, e grava `driverflow-auto-AAAA-MM-DD.zip` (o do mesmo dia é substituído). Mantém os 7 automáticos mais recentes; arquivos sem esse prefixo (como os backups manuais) nunca são apagados. Falha (pasta sem permissão, sem espaço) fica registrada e aparece em Ajustes; a próxima rodada tenta de novo. O último backup, manual ou automático, é guardado: o Início avisa quando ele tem 7 dias ou mais, ou quando nunca houve backup e já há lançamentos. A pasta só aparece no seletor se o provedor aceitar pastas (Downloads, Documentos e cartão de memória aceitam; alguns apps de nuvem não).
 
 **Versões:** um backup mais novo que o app é recusado com pedido para atualizar. Quando o banco muda, a `versaoSchema`
 sobe e o app continua lendo as versões antigas. Versão 2: ganhos com `inicioTurnoMinutos` (opcional, de 0 a 1439;

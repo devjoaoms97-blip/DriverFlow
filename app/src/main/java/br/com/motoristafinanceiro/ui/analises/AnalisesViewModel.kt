@@ -12,11 +12,14 @@ import br.com.motoristafinanceiro.domain.Desempenho
 import br.com.motoristafinanceiro.domain.DesempenhoDia
 import br.com.motoristafinanceiro.domain.DesempenhoFaixa
 import br.com.motoristafinanceiro.domain.DesempenhoPlataforma
+import br.com.motoristafinanceiro.domain.MESES_NA_EVOLUCAO
 import br.com.motoristafinanceiro.domain.PeriodoAnalise
+import br.com.motoristafinanceiro.domain.ResumoMes
 import br.com.motoristafinanceiro.domain.analisarPorDiaDaSemana
 import br.com.motoristafinanceiro.domain.analisarPorFaixa
 import br.com.motoristafinanceiro.domain.analisarPorPlataforma
 import br.com.motoristafinanceiro.domain.desempenhoDe
+import br.com.motoristafinanceiro.domain.evolucaoMensal
 import br.com.motoristafinanceiro.domain.ganhosSemHorario
 import br.com.motoristafinanceiro.domain.inicio
 import br.com.motoristafinanceiro.domain.melhorDiaPorHora
@@ -25,10 +28,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
+import java.time.YearMonth
 
 data class AnalisesUiState(
     val periodo: PeriodoAnalise = PeriodoAnalise.ULTIMOS_30,
@@ -43,6 +48,8 @@ data class AnalisesUiState(
     val melhorFaixa: DesempenhoFaixa? = null,
     /** Lançamentos do período que ficaram fora da análise por faixa (sem horário de início ou sem horas). */
     val ganhosSemHorario: Int = 0,
+    /** Últimos meses (o atual por último), independente do período escolhido. */
+    val evolucao: List<ResumoMes> = emptyList(),
 ) {
     val temDados: Boolean get() = total.lancamentos > 0
 }
@@ -68,9 +75,21 @@ class AnalisesViewModel(private val repo: Repositorio) : ViewModel() {
 
     private val periodo = MutableStateFlow(PeriodoAnalise.ULTIMOS_30)
 
-    val uiState: StateFlow<AnalisesUiState> = periodo.flatMapLatest { p ->
+    private val porPeriodo = periodo.flatMapLatest { p ->
         val hoje = LocalDate.now()
         repo.ganhos(p.inicio(hoje), hoje).map { ganhos -> montarEstadoAnalises(p, ganhos) }
+    }
+
+    /** Evolução dos últimos meses: não depende do período escolhido. */
+    private val evolucao = YearMonth.now().let { mes ->
+        val inicio = mes.minusMonths(MESES_NA_EVOLUCAO - 1L).atDay(1)
+        combine(repo.ganhos(inicio, mes.atEndOfMonth()), repo.despesas(inicio, mes.atEndOfMonth())) { g, d ->
+            evolucaoMensal(g, d, mes)
+        }
+    }
+
+    val uiState: StateFlow<AnalisesUiState> = combine(porPeriodo, evolucao) { estado, meses ->
+        estado.copy(evolucao = meses)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AnalisesUiState())
 
     fun escolherPeriodo(novo: PeriodoAnalise) {

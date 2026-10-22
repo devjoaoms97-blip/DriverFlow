@@ -20,6 +20,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -140,6 +141,16 @@ private fun FormGanho(vm: NovoLancamentoViewModel, original: Ganho?, onConcluir:
 
     Column(modifier) {
         CorpoFormulario(Modifier.weight(1f)) {
+            if (original == null) {
+                vm.ultimoGanho?.let { ultimo ->
+                    val repeticao = repeticaoDe(ultimo)
+                    BotaoRepetirUltimo(textoRepeticao(repeticao)) {
+                        plataforma = repeticao.plataforma
+                        inicioTurno = repeticao.inicio
+                        fimTurno = repeticao.fim
+                    }
+                }
+            }
             CampoValor("Valor bruto", valor, { valor = it }, esquema.secondary)
             Escolhas(
                 "Plataforma", Plataforma.entries, plataforma, { it.rotulo }, { plataforma = it },
@@ -189,6 +200,31 @@ private fun FormGanho(vm: NovoLancamentoViewModel, original: Ganho?, onConcluir:
             onConfirmar = { vm.excluirGanho(original, onConcluir) },
             onCancelar = { confirmarExclusao = false },
         )
+    }
+}
+
+/** Atalho no topo do ganho novo: copia plataforma e horários do último lançamento. */
+@Composable
+private fun BotaoRepetirUltimo(detalhe: String, onClick: () -> Unit) {
+    val esquema = MaterialTheme.colorScheme
+    Surface(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.small,
+        color = esquema.secondaryContainer,
+        contentColor = esquema.onSecondaryContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(Icones.Historico, contentDescription = null, modifier = Modifier.size(20.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Repetir o último", style = MaterialTheme.typography.titleSmall)
+                Text(detalhe, style = MaterialTheme.typography.bodySmall)
+            }
+        }
     }
 }
 

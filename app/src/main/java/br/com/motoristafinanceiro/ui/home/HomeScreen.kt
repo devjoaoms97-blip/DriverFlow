@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.motoristafinanceiro.domain.Estatisticas
+import br.com.motoristafinanceiro.domain.MetaDoDia
 import br.com.motoristafinanceiro.domain.ProgressoMeta
 import br.com.motoristafinanceiro.ui.componentes.BarraDividida
 import br.com.motoristafinanceiro.ui.componentes.BarraProgresso
@@ -36,9 +37,11 @@ import br.com.motoristafinanceiro.ui.componentes.MargemTela
 import br.com.motoristafinanceiro.ui.componentes.SeletorSegmentado
 import br.com.motoristafinanceiro.ui.componentes.TituloTela
 import br.com.motoristafinanceiro.ui.componentes.ValorRotulado
+import br.com.motoristafinanceiro.ui.meta.detalheMetaDoDia
 import br.com.motoristafinanceiro.ui.meta.textoDiasRestantes
 import br.com.motoristafinanceiro.ui.meta.textoFaltaPorDia
 import br.com.motoristafinanceiro.ui.meta.textoRepetirMeta
+import br.com.motoristafinanceiro.ui.meta.tituloMetaDoDia
 import br.com.motoristafinanceiro.util.formatarReais
 import java.time.LocalDate
 
@@ -95,6 +98,24 @@ fun HomeScreen(
             )
         }
 
+        state.metaDoDia?.let { CartaoMetaDoDia(it) }
+
+        state.avisoBackup?.let { aviso ->
+            val esquema = MaterialTheme.colorScheme
+            LinhaAviso(
+                titulo = aviso.titulo,
+                detalhe = aviso.detalhe,
+                marcadorFundo = esquema.error,
+                marcadorCor = esquema.onError,
+                icone = Icones.Alerta,
+                onClick = onAbrirAjustes,
+                fundo = esquema.errorContainer,
+                borda = null,
+                corTexto = esquema.onErrorContainer,
+                corDetalhe = esquema.onErrorContainer,
+            )
+        }
+
         CartaoMeta(
             state.progressoMeta,
             onAbrirMeta,
@@ -141,8 +162,49 @@ private fun CartaoLucro(titulo: String, e: Estatisticas) {
     }
 }
 
+/** Meta de hoje: verde quando batida, barra com o lucro de hoje. */
 @Composable
+private fun CartaoMetaDoDia(m: MetaDoDia) {
+    val esquema = MaterialTheme.colorScheme
+    Cartao(
+        cor = if (m.batida) esquema.secondaryContainer else esquema.surfaceContainer,
+        borda = if (m.batida) null else esquema.outlineVariant,
+        espacamento = 10.dp,
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "Meta de hoje",
+                style = MaterialTheme.typography.labelMedium,
+                color = if (m.batida) esquema.onSecondaryContainer else esquema.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                m.metaCentavos.formatarReais(),
+                style = MaterialTheme.typography.titleSmall,
+                color = if (m.batida) esquema.onSecondaryContainer else esquema.onSurface,
+            )
+        }
+        Text(
+            tituloMetaDoDia(m),
+            style = MaterialTheme.typography.titleLarge,
+            color = if (m.batida) esquema.onSecondaryContainer else esquema.onSurface,
+        )
+        BarraProgresso(
+            m.fracao,
+            esquema.secondary,
+            altura = 10.dp,
+            trilho = if (m.batida) esquema.secondary.copy(alpha = 0.3f) else esquema.surfaceContainerHighest,
+        )
+        Text(
+            detalheMetaDoDia(m),
+            style = MaterialTheme.typography.bodySmall,
+            color = if (m.batida) esquema.onSecondaryContainer else esquema.onSurfaceVariant,
+        )
+    }
+}
+
 /** [repetir]: texto e ação do botão que copia a meta do mês anterior (só quando o mês ainda não tem meta). */
+@Composable
 private fun CartaoMeta(progresso: ProgressoMeta?, onAbrirMeta: () -> Unit, repetir: Pair<String, () -> Unit>?) {
     val esquema = MaterialTheme.colorScheme
     Cartao {

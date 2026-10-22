@@ -32,6 +32,11 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Faixas de horário (minutos por faixa, turno que passa da meia-noite, rateio do ganho, melhor faixa, textos) e repetir a meta | `app/src/test/.../domain/FaixasHorarioTest`, `.../domain/MetasTest`, `.../ui/analises/TextoAnalisesTest`, `.../ui/meta/TextoMetaTest`, `.../ui/home/HomeEstadoTest` | JUnit puro |
 | Migração do banco (v1 criado com o SQL do schema exportado, dados mantidos, campo novo grava; cadeia de migrações até a versão atual) e backup v2 | `app/src/test/.../data/db/MigracaoTest`, `.../data/backup/BackupJsonTest` | Robolectric |
 | Horas do turno pelo início e fim (meia-noite, só um dos horários, fim igual ao início, lançamento antigo sem horário) | `app/src/test/.../ui/lancamento/TurnoTest` | JUnit puro |
+| Backup automático (frequência, hora com folga, nome do arquivo, limpeza que mantém 7 e não toca nos manuais, executor com pasta de mentira: grava .zip válido, registra hora, erro sem pasta e ao gravar) e aviso de backup no Início | `app/src/test/.../data/backup/BackupAutomaticoTest`, `ExecutorBackupAutomaticoTest`, `.../data/ConfiguracoesTest`, `.../ui/home/TextoInicioTest`, `HomeEstadoTest`, `.../ui/ajustes/TextoBackupTest` | JUnit puro; executor com Robolectric |
+| Bloqueio (quando bloquear ao voltar, MainActivity coberta pela tela de bloqueio) | `app/src/test/.../ui/bloqueio/BloqueioTest` | JUnit puro (o pedido de digital é do Android: roteiro manual) |
+| Meta do dia, evolução mês a mês, repetir o último e relatório do mês (conteúdo) | `app/src/test/.../domain/MetasTest`, `EvolucaoTest`, `RelatorioMesTest`, `.../ui/meta/TextoMetaTest`, `.../ui/analises/TextoAnalisesTest`, `.../ui/lancamento/TurnoTest`, `.../data/RepositorioTest` | JUnit puro; Repositório com Robolectric |
+| Lembrete de lançamento (horário do próximo, só sem ganho hoje, despesa não conta, sem permissão) | `app/src/test/.../notificacoes/LembreteDeLancamentoTest`, `DestinoDaNotificacaoTest`, `.../app/NotificacaoManifestTest` | Robolectric |
+| Relatório em PDF (nome, título, pasta do FileProvider) | `app/src/test/.../data/relatorio/RelatorioPdfTest` | JUnit puro. O desenho do PDF é nativo do Android e não roda no PC: roteiro manual |
 | Formulários no visual novo (esqueleto comum, sem campos antigos) | `app/src/test/.../ui/componentes/FormulariosNoVisualTest`, `FormularioTest` | JUnit puro |
 | **Interface (Compose):** lançar ganho e despesa, Salvar desabilitado sem valor, filtrar, editar e excluir no Histórico, Reservas pelo Início e voltar, Abastecer, Análises vazia | `app/src/test/.../ui/FluxosPrincipaisTest` | Robolectric com `createComposeRule` e o app de verdade (banco limpo a cada teste); só na variante debug, porque a Activity de teste vem do `ui-test-manifest` |
 
@@ -275,3 +280,25 @@ testImplementation("androidx.test:core:1.6.1")
     reservas e fotos continuam lá, e os ganhos antigos aparecem sem horário
 99. **Backup v2:** Exportar backup e Restaurar o mesmo arquivo: os horários de início voltam. Um backup antigo (feito antes desta
     versão) restaura normalmente, com os ganhos sem horário
+100. **Aviso de backup:** com lançamentos e sem nenhum backup, o Início mostra em vermelho "Você ainda não fez backup";
+    tocar abre Ajustes. Depois de Exportar backup, o aviso some
+101. **Backup automático:** em Ajustes > Backup automático, escolher Diário: o seletor de pastas abre; escolher uma pasta
+    (ex.: Download). A pasta aparece pelo nome. "Fazer backup agora nesta pasta" cria `driverflow-auto-<hoje>.zip` nela e
+    o "Último backup" muda. Restaurar esse arquivo funciona. Fechar o app: no dia seguinte há um arquivo novo. Desligado
+    não grava. Trocar a pasta funciona
+102. **Bloqueio:** Ajustes > Segurança > Bloquear o app: pede a digital (ou PIN) e liga. Fechar o app de verdade e abrir:
+    a tela "DriverFlow bloqueado" aparece e pede a digital. Sair para outro app e voltar em menos de 2 minutos não pede;
+    depois de 2 minutos, pede. Girar a tela e tirar foto de comprovante não pedem. Cancelar mantém bloqueado e o botão
+    "Desbloquear" pede de novo. Desligar a chave: não pede mais
+103. **Meta do dia:** com meta no mês, o cartão "Meta de hoje" mostra o valor de hoje e "Faltam R$ X hoje". Lançar ganhos até
+    passar: o cartão fica verde com "Meta de hoje batida!" e quanto passou. A meta de hoje não muda ao lançar
+104. **Evolução:** em Análises, o cartão "Evolução mês a mês" mostra 6 meses com o lucro em cima das barras, o mês atual em
+    azul com "*" e o R$/h embaixo. Um mês com prejuízo aparece em vermelho. Com 2 ou mais meses fechados, aparece o melhor mês
+105. **Lembrete:** Ajustes > Notificações > Lembrar de lançar, horário daqui a 2 minutos. Sem ganho hoje: chega "Lançou o
+    turno de hoje?" e tocar abre o Novo lançamento. Com um ganho hoje: não chega. Desligar: não chega mais
+106. **Repetir o último:** com um ganho lançado (ex.: 99, 17:00 às 21:00), o + mostra "Repetir o último · 99 · 17:00 às 21:00";
+    tocar marca a plataforma e os horários e deixa o valor vazio
+107. **Relatório em PDF:** no Histórico, o botão de documento abre "Relatório de <mês>". Salvar: escolher onde, abrir o PDF e
+    conferir título, resumo, totais por plataforma e categoria, lista de lançamentos (com várias páginas quando o mês tem
+    muitos) e o rodapé. Compartilhar: abre a lista de apps (WhatsApp, e-mail) com o PDF anexado. Mês sem lançamentos:
+    o PDF diz "Nenhum lançamento neste mês"

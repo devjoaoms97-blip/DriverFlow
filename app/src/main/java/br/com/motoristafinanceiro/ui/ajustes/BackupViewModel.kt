@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.motoristafinanceiro.MotoristaApp
+import br.com.motoristafinanceiro.data.Configuracoes
 import br.com.motoristafinanceiro.data.backup.BackupInvalidoException
 import br.com.motoristafinanceiro.data.backup.BackupManager
 import br.com.motoristafinanceiro.data.backup.nomeArquivoBackup
@@ -30,6 +31,7 @@ sealed interface EstadoBackup {
 class BackupViewModel(
     private val backup: BackupManager,
     private val resolver: ContentResolver,
+    private val configuracoes: Configuracoes,
 ) : ViewModel() {
 
     var estado by mutableStateOf<EstadoBackup>(EstadoBackup.Ocioso)
@@ -48,7 +50,7 @@ class BackupViewModel(
                 // NonCancellable: sair da tela no meio não pode deixar o arquivo pela metade.
                 val resumo = withContext(Dispatchers.IO + NonCancellable) {
                     val saida = resolver.openOutputStream(destino) ?: error("Não foi possível abrir o arquivo escolhido.")
-                    saida.use { backup.exportar(it) }
+                    saida.use { backup.exportar(it) }.also { configuracoes.registrarBackupFeito(System.currentTimeMillis()) }
                 }
                 EstadoBackup.Resultado(textoBackupSalvo(resumo), erro = false)
             } catch (e: CancellationException) {
@@ -86,7 +88,7 @@ class BackupViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as MotoristaApp
-                BackupViewModel(app.backup, app.contentResolver)
+                BackupViewModel(app.backup, app.contentResolver, app.configuracoes)
             }
         }
     }

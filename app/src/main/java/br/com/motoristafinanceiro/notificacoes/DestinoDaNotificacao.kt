@@ -6,7 +6,10 @@ const val EXTRA_ABRIR = "abrir"
 /** Rota da aba Veículo (a mesma usada na navegação do app). */
 const val ABRIR_VEICULO = "veiculo"
 
-private val DESTINOS_PERMITIDOS = setOf(ABRIR_VEICULO)
+/** Rota do Novo lançamento (toque no lembrete de lançar). */
+const val ABRIR_NOVO_LANCAMENTO = "novo"
+
+private val DESTINOS_PERMITIDOS = setOf(ABRIR_VEICULO, ABRIR_NOVO_LANCAMENTO)
 
 /** O app é aberto por outros apps também: só aceita destinos conhecidos, ignora o resto. */
 fun destinoPedido(extra: String?): String? = extra?.takeIf { it in DESTINOS_PERMITIDOS }

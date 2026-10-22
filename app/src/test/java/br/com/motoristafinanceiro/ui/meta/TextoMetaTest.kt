@@ -1,6 +1,7 @@
 package br.com.motoristafinanceiro.ui.meta
 
 import br.com.motoristafinanceiro.domain.calcularProgressoMeta
+import br.com.motoristafinanceiro.domain.MetaDoDia
 import br.com.motoristafinanceiro.util.formatarReais
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -51,4 +52,16 @@ class TextoMetaTest {
         "Repetir a de setembro: ${500_000L.formatarReais()}",
         textoRepetirMeta(YearMonth.of(2026, 9), 500_000),
     )
+
+    @Test
+    fun metaDoDia_textosAntesEDepoisDeBater() {
+        val antes = MetaDoDia(17_091, 9_000)
+        assertEquals("Faltam ${8_091L.formatarReais()} hoje", tituloMetaDoDia(antes))
+        assertEquals("${9_000L.formatarReais()} de ${17_091L.formatarReais()}", detalheMetaDoDia(antes))
+
+        val batida = MetaDoDia(17_091, 20_000)
+        assertEquals("Meta de hoje batida!", tituloMetaDoDia(batida))
+        assertEquals("Você passou ${2_909L.formatarReais()} da meta de hoje.", detalheMetaDoDia(batida))
+        assertEquals("Exatamente a meta de hoje.", detalheMetaDoDia(MetaDoDia(17_091, 17_091)))
+    }
 }

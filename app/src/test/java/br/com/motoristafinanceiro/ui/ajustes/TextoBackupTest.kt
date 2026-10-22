@@ -3,6 +3,8 @@ package br.com.motoristafinanceiro.ui.ajustes
 import br.com.motoristafinanceiro.data.backup.ResumoBackup
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 class TextoBackupTest {
     private fun resumo(
@@ -67,5 +69,19 @@ class TextoBackupTest {
             "Backup restaurado: 1 despesa. 3 comprovantes não estavam no arquivo e foram removidos das despesas.",
             textoBackupRestaurado(resumo(despesas = 1, fotosAusentes = 3)),
         )
+    }
+
+    @Test
+    fun ultimoBackup_dataEHoraOuNunca() {
+        val ms = LocalDateTime.of(2026, 10, 22, 3, 10).atZone(ZoneOffset.UTC).toInstant().toEpochMilli()
+        assertEquals("Último backup: 22/10 às 03:10", textoUltimoBackup(ms, ZoneOffset.UTC))
+        assertEquals("Nenhum backup feito ainda", textoUltimoBackup(null))
+    }
+
+    @Test
+    fun pasta_nomeGenericoOuNenhuma() {
+        assertEquals("Download", textoPasta("content://x", "Download"))
+        assertEquals("Pasta escolhida", textoPasta("content://x", null))
+        assertEquals("Nenhuma", textoPasta(null, null))
     }
 }

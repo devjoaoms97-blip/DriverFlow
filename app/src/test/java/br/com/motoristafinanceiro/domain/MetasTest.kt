@@ -151,4 +151,39 @@ class MetasTest {
         assertNull(metaParaRepetirCentavos(null, null)) // o anterior não tinha
         assertNull(metaParaRepetirCentavos(null, META_MAXIMA_CENTAVOS + 1)) // fora do limite
     }
+
+    @Test
+    fun metaDoDia_faltaAteOntemDivididaPelosDiasQueRestam() {
+        // 21/10: restam 11 dias (contando hoje). Lucro até ontem R$ 3.000; meta R$ 5.000 → R$ 2.000 ÷ 11.
+        val m = calcularMetaDoDia(500_000, lucroMesCentavos = 300_000 + 5_000, lucroHojeCentavos = 5_000, hoje = LocalDate.of(2026, 10, 21))!!
+        assertEquals(18_182L, m.metaCentavos) // 18.181,8... arredondado para cima
+        assertEquals(5_000L, m.lucroHojeCentavos)
+        assertFalse(m.batida)
+        assertEquals(13_182L, m.faltaCentavos)
+    }
+
+    @Test
+    fun metaDoDia_naoMudaComOQueSeGanhaHoje() {
+        val dia = LocalDate.of(2026, 10, 21)
+        val cedo = calcularMetaDoDia(500_000, 300_000, 0, dia)!!
+        val tarde = calcularMetaDoDia(500_000, 320_000, 20_000, dia)!!
+        assertEquals(cedo.metaCentavos, tarde.metaCentavos)
+        assertTrue(tarde.batida)
+        assertEquals(20_000L - tarde.metaCentavos, tarde.excedenteCentavos)
+    }
+
+    @Test
+    fun metaDoDia_ultimoDiaDoMes_ehTudoOQueFalta() =
+        assertEquals(40_000L, calcularMetaDoDia(500_000, 460_000, 0, LocalDate.of(2026, 10, 31))!!.metaCentavos)
+
+    @Test
+    fun metaDoDia_mesJaBatidoAteOntem_ehNula() =
+        assertNull(calcularMetaDoDia(500_000, 520_000, 10_000, LocalDate.of(2026, 10, 21)))
+
+    @Test
+    fun metaDoDia_prejuizoHoje_barraVazia() {
+        val m = calcularMetaDoDia(500_000, 290_000, -10_000, LocalDate.of(2026, 10, 21))!!
+        assertEquals(0f, m.fracao, 0f)
+        assertFalse(m.batida)
+    }
 }

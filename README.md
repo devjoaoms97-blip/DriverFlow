@@ -11,13 +11,13 @@ Dados 100% locais no aparelho (sem login, sem servidor, sem nuvem).
 
 - **Ganhos e despesas** com data, plataforma, categoria, início e fim do turno e foto do comprovante (câmera ou galeria)
 - **Início** com lucro líquido do dia, da semana (segunda a domingo) e do mês, ganho por km e por hora, custo por km, depreciação e alertas
-- **Meta mensal** de lucro líquido, com progresso, quanto falta por dia até o fim do mês e atalho para repetir a do mês anterior
-- **Histórico** por mês, agrupado por dia, com filtro por tipo, plataforma e categoria e edição de tudo que foi lançado
+- **Meta mensal e meta do dia**, com progresso, quanto falta por dia até o fim do mês e atalho para repetir a do mês anterior
+- **Histórico** por mês, agrupado por dia, com filtros, edição de tudo que foi lançado e **relatório do mês em PDF** para comprovar renda
 - **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km, com o odômetro estimado pelos km dos ganhos
-- **Análises:** ganho por hora por dia da semana e por faixa de horário, melhores dia e horário e comparativo entre plataformas (Uber × 99), por período
+- **Análises:** ganho por hora por dia da semana e por faixa de horário, melhores dia e horário, comparativo entre plataformas (Uber × 99) e evolução dos últimos 6 meses
 - **Reservas** para despesas fixas (IPVA, seguro, parcela), com quanto separar por dia
 - **Visual "Painel de bordo":** fonte Manrope, números em destaque e barra inferior com o + no centro, ao alcance do polegar
-- **Ajustes:** depreciação por km, **aviso de manutenção** (notificação quando uma manutenção fica próxima ou atrasada) e **backup** (exportar e restaurar um arquivo .zip com dados e fotos dos comprovantes)
+- **Ajustes:** depreciação por km, aparência, **bloqueio** com a digital, **lembrete** de lançar no fim do dia, **aviso de manutenção** e **backup** (exportar e restaurar um .zip com dados e fotos, e backup automático diário ou semanal numa pasta)
 
 O que falta está no [`docs/ROADMAP.md`](docs/ROADMAP.md).
 

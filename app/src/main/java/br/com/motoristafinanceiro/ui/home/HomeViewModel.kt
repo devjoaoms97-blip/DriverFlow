@@ -16,8 +16,10 @@ import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.ReservaDespesa
 import br.com.motoristafinanceiro.domain.AlertaManutencao
 import br.com.motoristafinanceiro.domain.Estatisticas
+import br.com.motoristafinanceiro.domain.MetaDoDia
 import br.com.motoristafinanceiro.domain.Odometro
 import br.com.motoristafinanceiro.domain.ProgressoMeta
+import br.com.motoristafinanceiro.domain.calcularMetaDoDia
 import br.com.motoristafinanceiro.domain.calcularProgressoMeta
 import br.com.motoristafinanceiro.domain.metaParaRepetirCentavos
 import br.com.motoristafinanceiro.domain.fimDaSemana
@@ -33,7 +35,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.YearMonth
 
 data class HomeUiState(
@@ -46,12 +50,16 @@ data class HomeUiState(
     val metaCentavos: Long? = null,
     /** Meta do mês anterior que o card oferece repetir; null se o mês já tem meta ou o anterior não tinha. */
     val metaParaRepetirCentavos: Long? = null,
+    /** Meta de hoje tirada da do mês; null sem meta ou com o mês já batido até ontem. */
+    val metaDoDia: MetaDoDia? = null,
     /** Progresso e "quanto falta por dia"; null quando não há meta definida para o mês. */
     val progressoMeta: ProgressoMeta? = null,
     /** Manutenções atrasadas ou próximas (as em dia não aparecem no Início). */
     val alertasUrgentes: List<AlertaManutencao> = emptyList(),
     /** Despesas fixas: quanto separar por dia e o próximo vencimento (atalho para a tela Reservas). */
     val reservas: ReservasUiState = ReservasUiState(),
+    /** Aviso de backup velho ou nunca feito; null quando está em dia. */
+    val avisoBackup: TextoAviso? = null,
 )
 
 /** Regra pura do Início (sem Android), coberta por testes. */
@@ -70,6 +78,8 @@ internal fun montarEstadoHome(
     /** Odômetro com os km dos ganhos (estimado); null usa só as leituras de abastecimentos e manutenções. */
     odometroEstimado: Odometro? = null,
     metaMesAnterior: Meta? = null,
+    /** Dia do último backup (manual ou automático); null = nunca. */
+    ultimoBackup: LocalDate? = null,
 ): HomeUiState {
     val odometro = odometroEstimado?.km ?: odometroAtual(abastecimentos, manutencoes)
     val alertas = if (odometro == null) {
@@ -80,12 +90,13 @@ internal fun montarEstadoHome(
     val estatisticasMes = calcularEstatisticas(ganhosMes, despesasMes, depreciacaoPorKmCentavos)
     val semanaDeHoje = inicioDaSemana(hoje)..fimDaSemana(hoje)
     val metaValida = meta?.valorAlvoLucroCentavos?.takeIf { it > 0 }
+    val estatisticasHoje = calcularEstatisticas(
+        ganhosMes.filter { it.data == hoje },
+        despesasMes.filter { it.data == hoje },
+        depreciacaoPorKmCentavos,
+    )
     return HomeUiState(
-        hoje = calcularEstatisticas(
-            ganhosMes.filter { it.data == hoje },
-            despesasMes.filter { it.data == hoje },
-            depreciacaoPorKmCentavos,
-        ),
+        hoje = estatisticasHoje,
         semana = calcularEstatisticas(
             ganhosSemana.filter { it.data in semanaDeHoje },
             despesasSemana.filter { it.data in semanaDeHoje },
@@ -95,9 +106,18 @@ internal fun montarEstadoHome(
         mes = estatisticasMes,
         metaCentavos = meta?.valorAlvoLucroCentavos,
         metaParaRepetirCentavos = metaParaRepetirCentavos(meta?.valorAlvoLucroCentavos, metaMesAnterior?.valorAlvoLucroCentavos),
+        metaDoDia = metaValida?.let {
+            calcularMetaDoDia(it, estatisticasMes.lucroLiquidoCentavos, estatisticasHoje.lucroLiquidoCentavos, hoje)
+        },
         progressoMeta = metaValida?.let { calcularProgressoMeta(it, estatisticasMes.lucroLiquidoCentavos, hoje) },
         alertasUrgentes = alertas,
         reservas = montarEstadoReservas(reservas, hoje),
+        avisoBackup = textoAvisoBackup(
+            ultimoBackup,
+            hoje,
+            temDados = ganhosMes.isNotEmpty() || despesasMes.isNotEmpty() || abastecimentos.isNotEmpty() ||
+                manutencoes.isNotEmpty() || reservas.isNotEmpty(),
+        ),
     )
 }
 
@@ -147,7 +167,8 @@ class HomeViewModel(private val repo: Repositorio, configuracoes: Configuracoes)
         dados,
         semana,
         configuracoes.depreciacaoPorKmCentavos,
-    ) { d, s, depreciacao ->
+        configuracoes.ultimoBackupMs,
+    ) { d, s, depreciacao, ultimoBackupMs ->
         montarEstadoHome(
             d.ganhos, d.despesas, d.meta, d.abastecimentos, d.manutencoes,
             depreciacaoPorKmCentavos = depreciacao,
@@ -156,6 +177,7 @@ class HomeViewModel(private val repo: Repositorio, configuracoes: Configuracoes)
             reservas = s.reservas,
             odometroEstimado = s.odometro,
             metaMesAnterior = s.metaAnterior,
+            ultimoBackup = ultimoBackupMs?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate() },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 

@@ -3,8 +3,13 @@ package br.com.motoristafinanceiro.ui.analises
 import br.com.motoristafinanceiro.domain.DesempenhoDia
 import br.com.motoristafinanceiro.domain.DesempenhoFaixa
 import br.com.motoristafinanceiro.domain.FaixaHorario
+import br.com.motoristafinanceiro.domain.ResumoMes
 import br.com.motoristafinanceiro.util.formatarReais
 import java.time.DayOfWeek
+import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.Locale
+import kotlin.math.abs
 
 fun rotuloDiaSemana(dia: DayOfWeek): String = when (dia) {
     DayOfWeek.MONDAY -> "Segunda"
@@ -86,3 +91,28 @@ fun textoSemHorario(quantidade: Int): String = when (quantidade) {
     1 -> "1 lançamento sem horário de início (ou sem horas) não entra aqui."
     else -> "$quantidade lançamentos sem horário de início (ou sem horas) não entram aqui."
 }
+
+/** "out" (3 letras, minúsculas) embaixo das barras da evolução. */
+fun siglaMes(mes: YearMonth): String = mes.month.getDisplayName(TextStyle.SHORT, Locale("pt", "BR")).take(3).lowercase()
+
+/** Valor em cima da barra, em reais inteiros abreviados: "R$ 3,1 mil", "R$ 850", "−R$ 120". */
+fun rotuloBarraLucro(centavos: Long): String {
+    val reais = centavos / 100
+    val sinal = if (reais < 0) "−" else ""
+    val abs = abs(reais)
+    val texto = if (abs >= 1_000) {
+        val mil = abs / 100 / 10.0 // uma casa decimal
+        (if (mil % 1.0 == 0.0) mil.toLong().toString() else mil.toString().replace('.', ',')) + " mil"
+    } else {
+        abs.toString()
+    }
+    return "${sinal}R$ $texto"
+}
+
+/** "R$ 31/h" embaixo do mês; vazio sem horas. */
+fun rotuloPorHoraMes(centavos: Long?): String = centavos?.let { "R$ ${(it + 50) / 100}/h" } ?: ""
+
+fun textoMelhorMes(m: ResumoMes): String =
+    "Melhor mês: ${nomeMesCompleto(m.mes)} (${m.lucroCentavos.formatarReais()} de lucro)"
+
+private fun nomeMesCompleto(mes: YearMonth): String = mes.month.getDisplayName(TextStyle.FULL, Locale("pt", "BR"))

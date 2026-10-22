@@ -216,4 +216,15 @@ class RepositorioTest {
         assertEquals(1, depois.size)
         assertEquals(400_000L, depois[0].valorCentavos)
     }
+
+    @Test
+    fun ultimoGanho_maisRecentePorDataEDepoisPeloUltimoLancado() = runBlocking {
+        assertNull(repo.ultimoGanho())
+        val dia = LocalDate.of(2026, 10, 20)
+        repo.salvarGanho(Ganho(data = dia.plusDays(1), plataforma = Plataforma.UBER, valorCentavos = 1))
+        repo.salvarGanho(Ganho(data = dia, plataforma = Plataforma.NOVE_NOVE, valorCentavos = 2)) // lançado depois, mas é de ontem
+        repo.salvarGanho(Ganho(data = dia.plusDays(1), plataforma = Plataforma.INDRIVE, valorCentavos = 3))
+
+        assertEquals(Plataforma.INDRIVE, repo.ultimoGanho()!!.plataforma)
+    }
 }

@@ -35,9 +35,14 @@ class NovoLancamentoViewModel(
     var despesaOriginal by mutableStateOf<Despesa?>(null)
         private set
 
+    /** Último ganho lançado, para o atalho "Repetir o último" (só ao criar). */
+    var ultimoGanho by mutableStateOf<Ganho?>(null)
+        private set
+
     private var ocupado = false
 
     init {
+        if (id == 0L) viewModelScope.launch { ultimoGanho = repo.ultimoGanho() }
         if (id != 0L) {
             viewModelScope.launch {
                 when (tipo) {

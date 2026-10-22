@@ -1,10 +1,13 @@
 package br.com.motoristafinanceiro.ui.lancamento
 
+import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.Plataforma
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
 
 class TurnoTest {
 
@@ -81,4 +84,27 @@ class TurnoTest {
         assertEquals("", e.texto)
         assertFalse(e.erro)
     }
+
+    @Test
+    fun repetirOUltimo_copiaPlataformaEHorarios() {
+        val ultimo = Ganho(
+            data = LocalDate.of(2026, 10, 21), plataforma = Plataforma.NOVE_NOVE, valorCentavos = 24_890,
+            km = 120.0, minutosOnline = 240, inicioTurnoMinutos = h(17),
+        )
+        val r = repeticaoDe(ultimo)
+        assertEquals(Repeticao(Plataforma.NOVE_NOVE, h(17), h(21)), r)
+        assertEquals("99 · 17:00 às 21:00", textoRepeticao(r))
+    }
+
+    @Test
+    fun repetirOUltimo_semHorario_soAPlataforma() {
+        val antigo = Ganho(data = LocalDate.of(2026, 10, 1), plataforma = Plataforma.UBER, valorCentavos = 10_000, minutosOnline = 300)
+        val r = repeticaoDe(antigo)
+        assertEquals(Repeticao(Plataforma.UBER, null, null), r)
+        assertEquals("Uber", textoRepeticao(r))
+    }
+
+    @Test
+    fun repetirOUltimo_soComInicio() =
+        assertEquals("Uber · 06:30", textoRepeticao(Repeticao(Plataforma.UBER, h(6, 30), null)))
 }

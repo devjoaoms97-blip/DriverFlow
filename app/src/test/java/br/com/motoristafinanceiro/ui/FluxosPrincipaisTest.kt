@@ -3,6 +3,7 @@ package br.com.motoristafinanceiro.ui
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -132,6 +133,22 @@ class FluxosPrincipaisTest {
         tela.onNodeWithText("Excluir").performClick()
 
         esperarTexto("Nenhum lançamento neste período")
+    }
+
+    @Test
+    fun novoGanho_repetirOUltimoCopiaAPlataforma() {
+        tela.onNodeWithTag(TAG_BOTAO_NOVO).performClick()
+        tela.onNodeWithText("Repetir o último").assertDoesNotExist() // ainda não há lançamento
+        tela.onNodeWithText("99").performClick()
+        tela.onNodeWithContentDescription("Valor bruto").performTextInput("80")
+        tela.onNodeWithText("Salvar ganho").performClick()
+        esperarTexto("Novo lançamento", presente = false)
+
+        tela.onNodeWithTag(TAG_BOTAO_NOVO).performClick()
+        esperarTexto("Repetir o último")
+        tocar("Repetir o último")
+        tela.onNode(hasText("99") and isSelected()).assertExists()
+        tela.onNodeWithText("Salvar ganho").assertIsNotEnabled() // o valor não é copiado
     }
 
     @Test

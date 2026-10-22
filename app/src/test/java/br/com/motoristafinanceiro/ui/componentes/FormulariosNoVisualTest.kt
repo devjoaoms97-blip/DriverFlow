@@ -39,7 +39,12 @@ class FormulariosNoVisualTest {
     fun ajustes_temCabecalhoESecoesEmCartao() {
         val ajustes = texto("ajustes/AjustesScreen.kt")
         assertTrue(ajustes.contains("CabecalhoVoltar(\"Ajustes\""))
-        listOf("SecaoAparencia.kt" to "Aparência", "SecaoNotificacoes.kt" to "Notificações", "SecaoBackup.kt" to "Backup")
-            .forEach { (arquivo, titulo) -> assertTrue(texto("ajustes/$arquivo").contains("SecaoAjustes(\"$titulo\")")) }
+        listOf(
+            "SecaoAparencia.kt" to "Aparência",
+            "SecaoSeguranca.kt" to "Segurança",
+            "SecaoNotificacoes.kt" to "Notificações",
+            "SecaoBackup.kt" to "Backup",
+            "SecaoBackupAutomatico.kt" to "Backup automático",
+        ).forEach { (arquivo, titulo) -> assertTrue(texto("ajustes/$arquivo").contains("SecaoAjustes(\"$titulo\")")) }
     }
 }

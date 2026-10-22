@@ -67,3 +67,27 @@ fun metaParaRepetirCentavos(metaDoMes: Long?, metaDoMesAnterior: Long?): Long? {
     if (metaDoMes != null && metaDoMes > 0) return null
     return metaDoMesAnterior?.takeIf { it in 1..META_MAXIMA_CENTAVOS }
 }
+
+/** Meta de hoje, tirada da meta do mês, e quanto já foi feito hoje. */
+data class MetaDoDia(val metaCentavos: Long, val lucroHojeCentavos: Long) {
+    val batida: Boolean get() = lucroHojeCentavos >= metaCentavos
+
+    val faltaCentavos: Long get() = (metaCentavos - lucroHojeCentavos).coerceAtLeast(0)
+
+    val excedenteCentavos: Long get() = (lucroHojeCentavos - metaCentavos).coerceAtLeast(0)
+
+    /** Para a barra: entre 0 e 1. */
+    val fracao: Float get() = (lucroHojeCentavos.coerceAtLeast(0).toDouble() / metaCentavos).coerceIn(0.0, 1.0).toFloat()
+}
+
+/**
+ * Meta de hoje = (meta do mês − lucro até ontem) ÷ dias que faltam, contando hoje, arredondado para cima.
+ * Fica fixa durante o dia: o que se ganha hoje enche a barra, sem mudar a meta. Null quando o mês já
+ * estava batido até ontem (não há o que cumprir hoje).
+ */
+fun calcularMetaDoDia(metaMesCentavos: Long, lucroMesCentavos: Long, lucroHojeCentavos: Long, hoje: LocalDate): MetaDoDia? {
+    val faltaAteOntem = metaMesCentavos - (lucroMesCentavos - lucroHojeCentavos)
+    if (faltaAteOntem <= 0) return null
+    val dias = hoje.lengthOfMonth() - hoje.dayOfMonth + 1
+    return MetaDoDia((faltaAteOntem + dias - 1) / dias, lucroHojeCentavos)
+}

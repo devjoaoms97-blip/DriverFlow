@@ -12,12 +12,15 @@ import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
 import br.com.motoristafinanceiro.data.model.Plataforma
 import br.com.motoristafinanceiro.domain.Estatisticas
+import br.com.motoristafinanceiro.domain.RelatorioMes
 import br.com.motoristafinanceiro.domain.calcularEstatisticas
+import br.com.motoristafinanceiro.domain.montarRelatorioMes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
@@ -137,6 +140,14 @@ class HistoricoViewModel(private val repo: Repositorio) : ViewModel() {
             montarEstadoHistorico(m, f, ganhos, despesas, plataforma = plat, categoria = cat)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HistoricoUiState())
+
+    /** Relatório em PDF do mês que está na tela (todos os lançamentos, sem os filtros). */
+    suspend fun relatorioDoMes(): RelatorioMes {
+        val m = mes.value
+        val inicio = m.atDay(1)
+        val fim = m.atEndOfMonth()
+        return montarRelatorioMes(m, repo.ganhos(inicio, fim).first(), repo.despesas(inicio, fim).first())
+    }
 
     fun mesAnterior() {
         mes.value = mes.value.minusMonths(1)

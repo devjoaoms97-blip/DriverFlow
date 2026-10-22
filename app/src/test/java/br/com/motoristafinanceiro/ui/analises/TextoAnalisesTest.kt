@@ -4,10 +4,12 @@ import br.com.motoristafinanceiro.domain.Desempenho
 import br.com.motoristafinanceiro.domain.DesempenhoDia
 import br.com.motoristafinanceiro.domain.DesempenhoFaixa
 import br.com.motoristafinanceiro.domain.FaixaHorario
+import br.com.motoristafinanceiro.domain.ResumoMes
 import br.com.motoristafinanceiro.util.formatarReais
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.DayOfWeek
+import java.time.YearMonth
 
 class TextoAnalisesTest {
 
@@ -132,4 +134,21 @@ class TextoAnalisesTest {
         assertEquals("1 lançamento sem horário de início (ou sem horas) não entra aqui.", textoSemHorario(1))
         assertEquals("3 lançamentos sem horário de início (ou sem horas) não entram aqui.", textoSemHorario(3))
     }
+
+    @Test
+    fun evolucao_siglaDoMesERotulos() {
+        assertEquals("out", siglaMes(YearMonth.of(2026, 10)))
+        assertEquals("R$ 850", rotuloBarraLucro(85_000))
+        assertEquals("R$ 3,1 mil", rotuloBarraLucro(312_000))
+        assertEquals("R$ 12 mil", rotuloBarraLucro(1_200_000))
+        assertEquals("−R$ 120", rotuloBarraLucro(-12_000))
+        assertEquals("R$ 31/h", rotuloPorHoraMes(3_111))
+        assertEquals("", rotuloPorHoraMes(null))
+    }
+
+    @Test
+    fun evolucao_melhorMes() = assertEquals(
+        "Melhor mês: setembro (${350_000L.formatarReais()} de lucro)",
+        textoMelhorMes(ResumoMes(YearMonth.of(2026, 9), 350_000, null, true)),
+    )
 }

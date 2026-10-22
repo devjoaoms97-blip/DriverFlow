@@ -6,6 +6,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -14,12 +15,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.com.motoristafinanceiro.notificacoes.NotificadorAndroid
 import br.com.motoristafinanceiro.ui.componentes.LinhaChave
+import br.com.motoristafinanceiro.ui.lancamento.CampoHora
 
 /** Chave "Avisar sobre manutenção" em Ajustes, com o pedido de permissão do Android 13+. */
 @Composable
@@ -42,6 +45,14 @@ fun SecaoNotificacoes(vm: AjustesViewModel) {
         vm.definirNotificacoes(concedida)
     }
 
+    val lembreteAtivo by vm.lembreteAtivo.collectAsStateWithLifecycle(initialValue = false)
+    val lembreteHorario by vm.lembreteHorarioMinutos.collectAsStateWithLifecycle(initialValue = 22 * 60)
+    val pedirPermissaoLembrete = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedida ->
+        sistemaPermite = NotificadorAndroid.permitido(contexto)
+        negouPermissao = !concedida
+        vm.definirLembrete(concedida)
+    }
+
     SecaoAjustes("Notificações") {
         LinhaChave(
             "Avisar sobre manutenção",
@@ -57,7 +68,28 @@ fun SecaoNotificacoes(vm: AjustesViewModel) {
             }
         }
 
-        if (estadoNotificacao(ativas, sistemaPermite) == EstadoNotificacao.SEM_PERMISSAO || negouPermissao) {
+        LinhaChave(
+            "Lembrar de lançar",
+            "Se nenhum ganho foi lançado até o horário escolhido, avisa: \"Lançou o turno de hoje?\".",
+            lembreteAtivo,
+        ) { quer ->
+            when {
+                !quer -> vm.definirLembrete(false)
+                precisaPedirPermissao(Build.VERSION.SDK_INT, sistemaPermite) ->
+                    pedirPermissaoLembrete.launch(Manifest.permission.POST_NOTIFICATIONS)
+                else -> vm.definirLembrete(true)
+            }
+        }
+        if (lembreteAtivo) {
+            CampoHora(
+                "Horário do lembrete",
+                lembreteHorario,
+                { novo -> novo?.let { vm.definirLembrete(true, it) } },
+                Modifier.fillMaxWidth(),
+            )
+        }
+
+        if (estadoNotificacao(ativas || lembreteAtivo, sistemaPermite) == EstadoNotificacao.SEM_PERMISSAO || negouPermissao) {
             Text(
                 "As notificações do app estão bloqueadas no Android. Libere para receber os avisos.",
                 style = MaterialTheme.typography.bodySmall,

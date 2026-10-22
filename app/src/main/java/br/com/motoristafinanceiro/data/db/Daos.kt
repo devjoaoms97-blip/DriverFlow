@@ -31,6 +31,10 @@ interface GanhoDao {
     @Query("SELECT * FROM ganhos ORDER BY id")
     suspend fun listarTodos(): List<Ganho>
 
+    /** O de data mais recente; no mesmo dia, o lançado por último. */
+    @Query("SELECT * FROM ganhos ORDER BY data DESC, id DESC LIMIT 1")
+    suspend fun maisRecente(): Ganho?
+
     @Query("DELETE FROM ganhos")
     suspend fun apagarTodos()
 

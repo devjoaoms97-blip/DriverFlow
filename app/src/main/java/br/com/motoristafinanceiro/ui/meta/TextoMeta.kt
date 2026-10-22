@@ -1,5 +1,6 @@
 package br.com.motoristafinanceiro.ui.meta
 
+import br.com.motoristafinanceiro.domain.MetaDoDia
 import br.com.motoristafinanceiro.domain.ProgressoMeta
 import br.com.motoristafinanceiro.util.formatarReais
 import java.time.YearMonth
@@ -27,3 +28,14 @@ fun nomeDoMes(mes: YearMonth): String = mes.month.getDisplayName(TextStyle.FULL,
 /** Botão de repetir a meta: "Repetir a de setembro: R$ 5.000,00". */
 fun textoRepetirMeta(mesAnterior: YearMonth, centavos: Long): String =
     "Repetir a de ${nomeDoMes(mesAnterior)}: ${centavos.formatarReais()}"
+
+/** Título do cartão do dia: "Faltam R$ 80,00 hoje" ou "Meta de hoje batida!". */
+fun tituloMetaDoDia(m: MetaDoDia): String =
+    if (m.batida) "Meta de hoje batida!" else "Faltam ${m.faltaCentavos.formatarReais()} hoje"
+
+/** "R$ 90,00 de R$ 170,91"; batida e passando: "Você passou R$ 20,00 da meta de hoje." */
+fun detalheMetaDoDia(m: MetaDoDia): String = when {
+    m.batida && m.excedenteCentavos > 0 -> "Você passou ${m.excedenteCentavos.formatarReais()} da meta de hoje."
+    m.batida -> "Exatamente a meta de hoje."
+    else -> "${m.lucroHojeCentavos.coerceAtLeast(0).formatarReais()} de ${m.metaCentavos.formatarReais()}"
+}

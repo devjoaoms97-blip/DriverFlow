@@ -2,4 +2,6 @@
 <paths>
     <!-- filesDir/comprovantes/: onde ficam as fotos dos comprovantes -->
     <files-path name="comprovantes" path="comprovantes/" />
+    <!-- cacheDir/relatorios/: PDF do relatório do mês, criado só para compartilhar -->
+    <cache-path name="relatorios" path="relatorios/" />
 </paths>

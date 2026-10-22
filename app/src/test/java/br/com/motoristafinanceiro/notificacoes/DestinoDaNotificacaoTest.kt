@@ -21,4 +21,7 @@ class DestinoDaNotificacaoTest {
         assertNull(destinoPedido("reserva/0"))
         assertNull(destinoPedido(""))
     }
+
+    @Test
+    fun novoLancamento_eAceito() = assertEquals("novo", destinoPedido(ABRIR_NOVO_LANCAMENTO))
 }

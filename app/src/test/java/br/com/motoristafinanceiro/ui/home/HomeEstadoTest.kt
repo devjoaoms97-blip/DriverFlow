@@ -260,4 +260,26 @@ class HomeEstadoTest {
         assertNull(comMeta.metaParaRepetirCentavos)
         assertNull(montar().metaParaRepetirCentavos)
     }
+
+    @Test
+    fun avisoBackup_comDadosESemBackup_eSomeDepoisDoBackup() {
+        val ganhos = listOf(Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 10_000))
+
+        val semBackup = montarEstadoHome(ganhos, emptyList(), null, emptyList(), emptyList(), hoje)
+        val comBackup = montarEstadoHome(ganhos, emptyList(), null, emptyList(), emptyList(), hoje, ultimoBackup = hoje)
+
+        assertEquals("Você ainda não fez backup", semBackup.avisoBackup?.titulo)
+        assertNull(comBackup.avisoBackup)
+        assertNull(montar().avisoBackup) // sem nada lançado, nada a guardar
+    }
+
+    @Test
+    fun metaDoDia_soComMetaNoMes() {
+        val ganhosHoje = listOf(Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 5_000))
+        assertNull(montar(ganhos = ganhosHoje).metaDoDia)
+
+        val m = montar(ganhos = ganhosHoje, meta = Meta("2026-10", 170_000)).metaDoDia!!
+        assertEquals(10_000L, m.metaCentavos) // 15/10: restam 17 dias; R$ 1.700 ÷ 17
+        assertEquals(5_000L, m.lucroHojeCentavos)
+    }
 }

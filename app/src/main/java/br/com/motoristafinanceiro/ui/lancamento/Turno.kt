@@ -1,7 +1,10 @@
 package br.com.motoristafinanceiro.ui.lancamento
 
+import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.Plataforma
 import br.com.motoristafinanceiro.domain.MINUTOS_NO_DIA
 import br.com.motoristafinanceiro.util.minutosParaHorasTexto
+import br.com.motoristafinanceiro.util.minutosParaHorario
 
 /**
  * Duração do turno em minutos; passa da meia-noite normalmente (22:00 às 02:00 = 240).
@@ -41,4 +44,17 @@ fun estadoTurno(inicio: Int?, fim: Int?, minutosOriginais: Int = 0): EstadoTurno
             EstadoTurno(minutosOriginais, "${minutosOriginais.minutosParaHorasTexto()} h online (lançado sem horário)", erro = false)
         else -> EstadoTurno(0, "", erro = false)
     }
+}
+
+/** O que "Repetir o último" copia do ganho anterior: a plataforma e os horários (o valor muda todo dia). */
+data class Repeticao(val plataforma: Plataforma, val inicio: Int?, val fim: Int?)
+
+fun repeticaoDe(ultimo: Ganho): Repeticao =
+    Repeticao(ultimo.plataforma, ultimo.inicioTurnoMinutos, fimDoTurno(ultimo.inicioTurnoMinutos, ultimo.minutosOnline))
+
+/** "Uber · 17:00 às 21:00", ou só "Uber" quando o último não tinha horário. */
+fun textoRepeticao(r: Repeticao): String {
+    if (r.inicio == null) return r.plataforma.rotulo
+    val fim = r.fim?.let { " às ${it.minutosParaHorario()}" } ?: ""
+    return "${r.plataforma.rotulo} · ${r.inicio.minutosParaHorario()}$fim"
 }

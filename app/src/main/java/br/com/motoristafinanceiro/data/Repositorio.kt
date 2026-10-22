@@ -37,6 +37,9 @@ class Repositorio(private val db: AppDatabase) {
 
     suspend fun ganhoPorId(id: Long): Ganho? = db.ganhoDao().buscarPorId(id)
 
+    /** Último ganho lançado (para "Repetir o último" no Novo lançamento). */
+    suspend fun ultimoGanho(): Ganho? = db.ganhoDao().maisRecente()
+
     suspend fun salvarGanho(ganho: Ganho) {
         if (ganho.id == 0L) db.ganhoDao().inserir(ganho) else db.ganhoDao().atualizar(ganho)
     }

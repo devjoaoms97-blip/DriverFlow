@@ -1,6 +1,9 @@
 package br.com.motoristafinanceiro.ui.ajustes
 
 import br.com.motoristafinanceiro.data.backup.ResumoBackup
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /** 1 -> "1 ganho"; 3 -> "3 ganhos". */
 fun contagem(n: Int, singular: String, plural: String): String = if (n == 1) "1 $singular" else "$n $plural"
@@ -47,4 +50,18 @@ fun textoBackupRestaurado(r: ResumoBackup): String {
         "$n comprovantes não estavam no arquivo e foram removidos das despesas."
     }
     return "$base $aviso"
+}
+
+private val formatoUltimoBackup = DateTimeFormatter.ofPattern("dd/MM 'às' HH:mm")
+
+/** "Último backup: 22/10 às 03:10" ou "Nenhum backup feito ainda". */
+fun textoUltimoBackup(ms: Long?, zona: ZoneId = ZoneId.systemDefault()): String =
+    if (ms == null) "Nenhum backup feito ainda"
+    else "Último backup: " + Instant.ofEpochMilli(ms).atZone(zona).format(formatoUltimoBackup)
+
+/** Pasta do backup automático: o nome, um texto genérico se não deu para ler, ou "Nenhuma". */
+fun textoPasta(uri: String?, nome: String?): String = when {
+    uri == null -> "Nenhuma"
+    nome.isNullOrBlank() -> "Pasta escolhida"
+    else -> nome
 }

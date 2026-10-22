@@ -31,7 +31,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.motoristafinanceiro.domain.DesempenhoDia
 import br.com.motoristafinanceiro.domain.DesempenhoFaixa
 import br.com.motoristafinanceiro.domain.DesempenhoPlataforma
+import br.com.motoristafinanceiro.domain.MESES_NA_EVOLUCAO
 import br.com.motoristafinanceiro.domain.PeriodoAnalise
+import br.com.motoristafinanceiro.domain.ResumoMes
+import br.com.motoristafinanceiro.domain.melhorMes
 import br.com.motoristafinanceiro.ui.componentes.BarraDividida
 import br.com.motoristafinanceiro.ui.componentes.BarraProgresso
 import br.com.motoristafinanceiro.ui.componentes.Cartao
@@ -41,6 +44,8 @@ import br.com.motoristafinanceiro.ui.componentes.MargemTela
 import br.com.motoristafinanceiro.ui.componentes.SeletorSegmentado
 import br.com.motoristafinanceiro.ui.componentes.TituloTela
 import br.com.motoristafinanceiro.util.formatarReais
+import java.time.YearMonth
+import kotlin.math.abs
 
 /** Altura máxima das barras do gráfico por dia da semana. */
 private val alturaBarras = 120.dp
@@ -60,6 +65,8 @@ fun AnalisesScreen(vm: AnalisesViewModel = viewModel(factory = AnalisesViewModel
 
         if (!state.temDados) {
             Text("Nenhum ganho lançado neste período.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // A evolução não depende do período: mostra mesmo assim, se houver meses com lançamento.
+            if (state.evolucao.any { it.temLancamentos }) CartaoEvolucao(state.evolucao)
             return@Column
         }
 
@@ -80,6 +87,8 @@ fun AnalisesScreen(vm: AnalisesViewModel = viewModel(factory = AnalisesViewModel
         CartaoFaixas(state.faixas, state.melhorFaixa, state.ganhosSemHorario)
 
         if (state.plataformas.isNotEmpty()) CartaoPlataformas(state.plataformas)
+
+        if (state.evolucao.any { it.temLancamentos }) CartaoEvolucao(state.evolucao)
 
         Text(
             "Ganho bruto (sem descontar despesas). O ganho por hora considera só os lançamentos com horas " +
@@ -156,6 +165,76 @@ private fun CartaoDiasDaSemana(dias: List<DesempenhoDia>, melhor: DesempenhoDia?
                 }
             }
         }
+    }
+}
+
+/** Lucro dos últimos meses em barras (prejuízo em vermelho), com o R$/h embaixo; o mês atual em destaque. */
+@Composable
+private fun CartaoEvolucao(meses: List<ResumoMes>) {
+    val esquema = MaterialTheme.colorScheme
+    val atual = YearMonth.now()
+    val maximo = meses.maxOf { abs(it.lucroCentavos) }.coerceAtLeast(1)
+    Cartao(espacamento = 14.dp) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text("Evolução mês a mês", style = MaterialTheme.typography.titleMedium)
+            Text(
+                melhorMes(meses, atual)?.let { textoMelhorMes(it) } ?: "Lucro líquido dos últimos $MESES_NA_EVOLUCAO meses",
+                style = MaterialTheme.typography.bodySmall,
+                color = esquema.onSurfaceVariant,
+            )
+        }
+        val descricao = meses.joinToString("; ") { "${siglaMes(it.mes)}: ${it.lucroCentavos.formatarReais()}" }
+        Row(
+            Modifier.fillMaxWidth().semantics { contentDescription = descricao },
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            meses.forEach { m ->
+                val ehAtual = m.mes == atual
+                val prejuizo = m.lucroCentavos < 0
+                val fracao = (abs(m.lucroCentavos).toFloat() / maximo).coerceIn(0f, 1f)
+                Column(
+                    Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        if (m.temLancamentos) rotuloBarraLucro(m.lucroCentavos) else "",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (prejuizo) esquema.error else if (ehAtual) esquema.onSurface else esquema.onSurfaceVariant,
+                        maxLines = 1,
+                    )
+                    Box(Modifier.height(alturaBarras).fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
+                        if (fracao > 0f) {
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(alturaBarras * fracao)
+                                    .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 2.dp, bottomEnd = 2.dp))
+                                    .background(
+                                        when {
+                                            prejuizo -> esquema.error
+                                            ehAtual -> esquema.primary
+                                            else -> esquema.surfaceContainerHighest
+                                        }
+                                    ),
+                            )
+                        }
+                    }
+                    Text(
+                        siglaMes(m.mes) + if (ehAtual) "*" else "",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = esquema.onSurfaceVariant,
+                    )
+                    Text(rotuloPorHoraMes(m.ganhoPorHoraCentavos), style = MaterialTheme.typography.labelSmall, color = esquema.onSurfaceVariant, maxLines = 1)
+                }
+            }
+        }
+        Text(
+            "* mês em andamento. Embaixo de cada mês, o ganho por hora.",
+            style = MaterialTheme.typography.bodySmall,
+            color = esquema.onSurfaceVariant,
+        )
     }
 }
 

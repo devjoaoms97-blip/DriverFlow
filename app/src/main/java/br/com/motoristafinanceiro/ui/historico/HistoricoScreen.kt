@@ -86,7 +86,9 @@ fun HistoricoScreen(
         contentPadding = PaddingValues(start = MargemTela, end = MargemTela, top = 20.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item(key = "titulo") { TituloTela("Histórico") }
+        item(key = "titulo") {
+            TituloTela("Histórico") { BotaoRelatorio(state.mes, vm::relatorioDoMes) }
+        }
 
         item(key = "mes") {
             Cartao(forma = MaterialTheme.shapes.medium, espacamentoInterno = PaddingValues(4.dp)) {

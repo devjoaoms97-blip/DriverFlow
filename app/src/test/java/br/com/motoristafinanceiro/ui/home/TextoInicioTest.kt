@@ -94,4 +94,20 @@ class TextoInicioTest {
         assertEquals("Reservas: separe ${4_000L.formatarReais()} hoje", t.titulo) // 3.000 + 1.000 por dia
         assertEquals("Próxima: Seguro · vence amanhã", t.detalhe)
     }
+
+    @Test
+    fun avisoBackup_semDados_naoAvisa() = assertNull(textoAvisoBackup(null, hoje, temDados = false))
+
+    @Test
+    fun avisoBackup_nuncaFeito() {
+        val t = textoAvisoBackup(null, hoje, temDados = true)!!
+        assertEquals("Você ainda não fez backup", t.titulo)
+    }
+
+    @Test
+    fun avisoBackup_soDepoisDeSeteDias() {
+        assertNull(textoAvisoBackup(hoje.minusDays(6), hoje, temDados = true))
+        assertEquals("Último backup há 7 dias", textoAvisoBackup(hoje.minusDays(7), hoje, temDados = true)!!.titulo)
+        assertEquals("Último backup há 30 dias", textoAvisoBackup(hoje.minusDays(30), hoje, temDados = true)!!.titulo)
+    }
 }

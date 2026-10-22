@@ -12,6 +12,7 @@ import br.com.motoristafinanceiro.util.minutosParaHorasTexto
 import br.com.motoristafinanceiro.util.paraTextoNumero
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 private val ptBR = Locale("pt", "BR")
@@ -58,4 +59,21 @@ fun textoAvisoReservas(r: ReservasUiState): TextoAviso {
         "Reservas: separe ${r.totalDiarioCentavos.formatarReais()} hoje",
         "Próxima: ${proxima.reserva.nome} · " + textoVencimento(proxima.diasParaVencer).replaceFirstChar { it.lowercase() },
     )
+}
+
+/** Dias sem backup a partir dos quais o Início avisa. */
+const val DIAS_PARA_AVISAR_BACKUP = 7
+
+/**
+ * Aviso de backup do Início: nunca feito (com dados lançados) ou feito há [DIAS_PARA_AVISAR_BACKUP] dias ou mais.
+ * Null quando está em dia ou ainda não há nada para guardar.
+ */
+fun textoAvisoBackup(ultimoBackup: LocalDate?, hoje: LocalDate, temDados: Boolean): TextoAviso? {
+    if (!temDados) return null
+    if (ultimoBackup == null) {
+        return TextoAviso("Você ainda não fez backup", "Seus dados ficam só neste celular. Toque para configurar.")
+    }
+    val dias = ChronoUnit.DAYS.between(ultimoBackup, hoje)
+    if (dias < DIAS_PARA_AVISAR_BACKUP) return null
+    return TextoAviso("Último backup há $dias dias", "Faça um backup ou ligue o automático em Ajustes.")
 }

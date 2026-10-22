@@ -1,6 +1,7 @@
 package br.com.motoristafinanceiro.data
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import br.com.motoristafinanceiro.data.backup.FrequenciaBackup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -64,6 +65,58 @@ class ConfiguracoesTest {
             val configuracoes = criar()
             configuracoes.salvarDepreciacaoPorKm(-5)
             assertEquals(0L, configuracoes.depreciacaoPorKmCentavos.first())
+        }
+    }
+
+    @Test
+    fun backupAutomatico_padraoDesligadoSemPastaENuncaFeito() {
+        runBlocking {
+            val c = criar()
+            assertEquals(FrequenciaBackup.DESLIGADO, c.frequenciaBackup.first())
+            assertEquals(null, c.pastaBackup.first())
+            assertEquals(null, c.ultimoBackupMs.first())
+            assertEquals(null, c.erroBackupAutomatico.first())
+        }
+    }
+
+    @Test
+    fun backupAutomatico_salvaFrequenciaPastaEHora_eBackupFeitoApagaOErro() {
+        runBlocking {
+            val c = criar()
+            c.salvarFrequenciaBackup(FrequenciaBackup.SEMANAL)
+            c.salvarPastaBackup("content://pasta")
+            c.registrarErroBackupAutomatico("falhou")
+            c.registrarBackupFeito(123L)
+
+            assertEquals(FrequenciaBackup.SEMANAL, c.frequenciaBackup.first())
+            assertEquals("content://pasta", c.pastaBackup.first())
+            assertEquals(123L, c.ultimoBackupMs.first())
+            assertEquals(null, c.erroBackupAutomatico.first())
+
+            c.salvarPastaBackup(null)
+            assertEquals(null, c.pastaBackup.first())
+        }
+    }
+
+    @Test
+    fun bloqueio_padraoDesligado_eSalva() {
+        runBlocking {
+            val c = criar()
+            assertEquals(false, c.bloqueioAtivo.first())
+            c.salvarBloqueio(true)
+            assertEquals(true, c.bloqueioAtivo.first())
+        }
+    }
+
+    @Test
+    fun lembrete_padraoDesligadoAs22h_eSalva() {
+        runBlocking {
+            val c = criar()
+            assertEquals(false, c.lembreteAtivo.first())
+            assertEquals(22 * 60, c.lembreteHorarioMinutos.first())
+            c.salvarLembrete(true, 21 * 60 + 30)
+            assertEquals(true, c.lembreteAtivo.first())
+            assertEquals(21 * 60 + 30, c.lembreteHorarioMinutos.first())
         }
     }
 }

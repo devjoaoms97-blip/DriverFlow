@@ -15,9 +15,11 @@ class NotificacaoManifestTest {
     }
 
     @Test
-    fun iconeDaNotificacao_existeEEhUmaCorSo() {
-        val icone = File("src/main/res/drawable/ic_stat_manutencao.xml")
-        assertTrue(icone.exists())
-        assertTrue(icone.readText().contains("#FFFFFF"))
+    fun iconesDasNotificacoes_existemESaoUmaCorSo() {
+        listOf("ic_stat_manutencao", "ic_stat_lembrete").forEach { nome ->
+            val icone = File("src/main/res/drawable/$nome.xml")
+            assertTrue("$nome.xml não existe", icone.exists())
+            assertTrue(icone.readText().contains("#FFFFFF"))
+        }
     }
 }
