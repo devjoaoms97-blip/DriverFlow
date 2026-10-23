@@ -4,6 +4,7 @@ import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.CategoriaDespesa
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.OrigemDespesa
@@ -32,8 +33,9 @@ object BackupJson {
     /**
      * Versão do formato. Suba quando o formato mudar e continue lendo as versões antigas.
      * 1: primeira versão. 2: ganhos com "inicioTurnoMinutos" (opcional; na 1 não existe).
+     * 3: ganhos com "corridas" (opcional) e a tabela "kmPessoais" (nas anteriores não existe: fica vazia).
      */
-    const val VERSAO_ATUAL = 2
+    const val VERSAO_ATUAL = 3
 
     fun gerar(dados: DadosBackup, criadoEmMs: Long): String =
         JSONObject()
@@ -53,6 +55,7 @@ object BackupJson {
                     .put("minutosOnline", it.minutosOnline)
                     .put("observacao", it.observacao)
                     .put("inicioTurnoMinutos", it.inicioTurnoMinutos ?: JSONObject.NULL)
+                    .put("corridas", it.corridas ?: JSONObject.NULL)
             })
             .put("despesas", array(dados.despesas) {
                 JSONObject()
@@ -97,6 +100,13 @@ object BackupJson {
                     .put("mes", it.mes)
                     .put("valorAlvoLucroCentavos", it.valorAlvoLucroCentavos)
             })
+            .put("kmPessoais", array(dados.kmPessoais) {
+                JSONObject()
+                    .put("id", it.id)
+                    .put("data", it.data.toString())
+                    .put("km", it.km)
+                    .put("observacao", it.observacao)
+            })
             .toString()
 
     /** @throws BackupInvalidoException se o texto não for um backup válido e completo. */
@@ -137,6 +147,10 @@ object BackupJson {
                     if (minutos !in 0 until MINUTOS_NO_DIA) {
                         throw BackupInvalidoException("campo \"inicioTurnoMinutos\" fora de 0 a 1439.")
                     }
+                },
+                // Opcional: backups de antes da versão 3 não têm o campo.
+                corridas = it.inteiroOpc("corridas")?.also { n ->
+                    if (n < 0) throw BackupInvalidoException("campo \"corridas\" não pode ser negativo.")
                 },
             )
         }
@@ -196,15 +210,30 @@ object BackupJson {
             Meta(mes = mes, valorAlvoLucroCentavos = it.centavos("valorAlvoLucroCentavos"))
         }
 
+        // Opcional: backups de antes da versão 3 não têm a tabela.
+        val kmPessoais = if (raiz.has("kmPessoais")) {
+            tabela(raiz, "kmPessoais") {
+                KmPessoal(
+                    id = it.idPositivo(),
+                    data = it.data("data"),
+                    km = it.duploNaoNegativo("km"),
+                    observacao = it.textoOpc("observacao"),
+                )
+            }
+        } else {
+            emptyList()
+        }
+
         exigirUnicos("ganhos", ganhos.map { it.id })
         exigirUnicos("despesas", despesas.map { it.id })
         exigirUnicos("abastecimentos", abastecimentos.map { it.id })
         exigirUnicos("manutencoes", manutencoes.map { it.id })
         exigirUnicos("reservas", reservas.map { it.id })
         exigirUnicos("metas", metas.map { it.mes })
+        exigirUnicos("kmPessoais", kmPessoais.map { it.id })
         conferirVinculos(despesas, abastecimentos.map { it.id }.toSet(), manutencoes.map { it.id }.toSet())
 
-        return DadosBackup(ganhos, despesas, abastecimentos, manutencoes, reservas, metas, depreciacao, notificacoes)
+        return DadosBackup(ganhos, despesas, abastecimentos, manutencoes, reservas, metas, kmPessoais, depreciacao, notificacoes)
     }
 
     /** Despesa gerada por abastecimento/manutenção precisa apontar para um registro que existe no backup. */

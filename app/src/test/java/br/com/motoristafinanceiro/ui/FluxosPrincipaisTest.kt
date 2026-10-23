@@ -12,12 +12,14 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import br.com.motoristafinanceiro.ui.navigation.AppNav
 import br.com.motoristafinanceiro.ui.navigation.TAG_BOTAO_NOVO
 import br.com.motoristafinanceiro.ui.navigation.tagDaAba
 import br.com.motoristafinanceiro.ui.theme.MotoristaTheme
+import br.com.motoristafinanceiro.ui.veiculo.TAG_LISTA_VEICULO
 import br.com.motoristafinanceiro.util.formatarReais
 import org.junit.Before
 import org.junit.Rule
@@ -82,6 +84,36 @@ class FluxosPrincipaisTest {
         lancarGanho("100")
         lancarDespesa("30")
         esperarTexto(7_000L.formatarReais())
+    }
+
+    @Test
+    fun ganhoComCorridas_mostraOGanhoPorCorridaNoInicio() {
+        tela.onNodeWithTag(TAG_BOTAO_NOVO).performClick()
+        tela.onNodeWithContentDescription("Valor bruto").performTextInput("100")
+        tela.onNodeWithContentDescription("Corridas").performScrollTo().performTextInput("4")
+        tela.onNodeWithText("Salvar ganho").performClick()
+        esperarTexto("Novo lançamento", presente = false)
+
+        esperarTexto("Por corrida")
+        tela.onNodeWithText(2_500L.formatarReais()).assertExists()
+    }
+
+    @Test
+    fun kmPessoal_lancadoPeloMais_apareceNoInicioENoVeiculo() {
+        tela.onNodeWithTag(TAG_BOTAO_NOVO).performClick()
+        tela.onNodeWithText("Km pessoal").performClick()
+        tela.onNodeWithText("Salvar km pessoal").assertIsNotEnabled()
+        tela.onNodeWithContentDescription("Km rodados").performTextInput("40")
+        tela.onNodeWithText("Salvar km pessoal").performClick()
+        esperarTexto("Novo lançamento", presente = false)
+
+        esperarTexto("Custo do uso pessoal")
+        tela.onNodeWithText("40 km").assertExists()
+
+        abrirAba("veiculo")
+        esperarTexto("Veículo")
+        tela.onNodeWithTag(TAG_LISTA_VEICULO).performScrollToNode(hasText("Uso pessoal"))
+        esperarTexto("40 km")
     }
 
     @Test

@@ -42,6 +42,7 @@ import br.com.motoristafinanceiro.data.ProcessadorDeImagem
 import br.com.motoristafinanceiro.data.model.CategoriaDespesa
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Plataforma
 import br.com.motoristafinanceiro.ui.componentes.CabecalhoVoltar
 import br.com.motoristafinanceiro.ui.componentes.BarraSalvar
@@ -68,8 +69,8 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
 /**
- * Tela única para novo lançamento (tipo = null, com seletor Ganho/Despesa) e para editar/excluir
- * um ganho ou uma despesa existente (tipo + id).
+ * Tela única para novo lançamento (tipo = null, com seletor Ganho/Despesa/Km pessoal) e para editar/excluir
+ * um ganho, uma despesa ou um km pessoal existente (tipo + id).
  */
 @Composable
 fun NovoLancamentoScreen(tipo: TipoLancamento?, id: Long, onConcluir: () -> Unit) {
@@ -79,6 +80,7 @@ fun NovoLancamentoScreen(tipo: TipoLancamento?, id: Long, onConcluir: () -> Unit
     )
     val ganhoOriginal = vm.ganhoOriginal
     val despesaOriginal = vm.despesaOriginal
+    val kmPessoalOriginal = vm.kmPessoalOriginal
 
     when {
         vm.carregando -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -86,6 +88,7 @@ fun NovoLancamentoScreen(tipo: TipoLancamento?, id: Long, onConcluir: () -> Unit
         }
         tipo == TipoLancamento.GANHO && ganhoOriginal == null -> NaoEncontrado("Lançamento não encontrado", onConcluir)
         tipo == TipoLancamento.DESPESA && despesaOriginal == null -> NaoEncontrado("Lançamento não encontrado", onConcluir)
+        tipo == TipoLancamento.KM_PESSOAL && kmPessoalOriginal == null -> NaoEncontrado("Lançamento não encontrado", onConcluir)
         tipo == TipoLancamento.GANHO -> Column(Modifier.fillMaxSize()) {
             CabecalhoVoltar("Editar ganho", onConcluir)
             FormGanho(vm, ganhoOriginal, onConcluir, Modifier.weight(1f))
@@ -93,6 +96,10 @@ fun NovoLancamentoScreen(tipo: TipoLancamento?, id: Long, onConcluir: () -> Unit
         tipo == TipoLancamento.DESPESA -> Column(Modifier.fillMaxSize()) {
             CabecalhoVoltar("Editar despesa", onConcluir)
             FormDespesa(vm, despesaOriginal, onConcluir, Modifier.weight(1f))
+        }
+        tipo == TipoLancamento.KM_PESSOAL -> Column(Modifier.fillMaxSize()) {
+            CabecalhoVoltar("Editar km pessoal", onConcluir)
+            FormKmPessoal(vm, kmPessoalOriginal, onConcluir, Modifier.weight(1f))
         }
         else -> NovoComSeletor(vm, onConcluir)
     }
@@ -105,18 +112,31 @@ private fun NovoComSeletor(vm: NovoLancamentoViewModel, onConcluir: () -> Unit) 
     Column(Modifier.fillMaxSize()) {
         CabecalhoVoltar("Novo lançamento", onConcluir, icone = Icones.Fechar, descricaoVoltar = "Fechar")
         SeletorSegmentado(
-            opcoes = listOf("Ganho", "Despesa"),
+            opcoes = listOf("Ganho", "Despesa", "Km pessoal"),
             selecionado = aba,
             onSelecionar = { aba = it },
-            corSelecionada = { if (it == 0) esquema.secondary else esquema.error },
-            corTextoSelecionado = { if (it == 0) esquema.onSecondary else esquema.onError },
-            icones = listOf(Icones.Ganho, Icones.Despesa),
+            corSelecionada = {
+                when (it) {
+                    0 -> esquema.secondary
+                    1 -> esquema.error
+                    else -> esquema.primary
+                }
+            },
+            corTextoSelecionado = {
+                when (it) {
+                    0 -> esquema.onSecondary
+                    1 -> esquema.onError
+                    else -> esquema.onPrimary
+                }
+            },
+            icones = listOf(Icones.Ganho, Icones.Despesa, Icones.Veiculo),
             altura = 44.dp,
             modifier = Modifier.padding(horizontal = MargemTela, vertical = 8.dp),
         )
         when (aba) {
             0 -> FormGanho(vm, null, onConcluir, Modifier.weight(1f))
-            else -> FormDespesa(vm, null, onConcluir, Modifier.weight(1f))
+            1 -> FormDespesa(vm, null, onConcluir, Modifier.weight(1f))
+            else -> FormKmPessoal(vm, null, onConcluir, Modifier.weight(1f))
         }
     }
 }
@@ -130,6 +150,7 @@ private fun FormGanho(vm: NovoLancamentoViewModel, original: Ganho?, onConcluir:
         mutableStateOf(original?.gorjetaBonusCentavos?.takeIf { it > 0 }?.paraTextoReais() ?: "")
     }
     var km by remember { mutableStateOf(original?.km?.takeIf { it > 0 }?.paraTextoNumero() ?: "") }
+    var corridas by remember { mutableStateOf(original?.corridas?.takeIf { it > 0 }?.toString() ?: "") }
     var obs by remember { mutableStateOf(original?.observacao ?: "") }
     var inicioTurno by remember { mutableStateOf(original?.inicioTurnoMinutos) }
     var fimTurno by remember { mutableStateOf(original?.let { fimDoTurno(it.inicioTurnoMinutos, it.minutosOnline) }) }
@@ -166,8 +187,12 @@ private fun FormGanho(vm: NovoLancamentoViewModel, original: Ganho?, onConcluir:
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 CampoCompacto("Km rodados", km, { km = it }, Modifier.weight(1f), dica = "0", teclado = KeyboardType.Decimal)
-                CampoCompacto("Gorjeta/bônus", gorjeta, { gorjeta = it }, Modifier.weight(1f), dica = "R$ 0,00", teclado = KeyboardType.Decimal)
+                CampoCompacto(
+                    "Corridas", corridas, { corridas = it.filter(Char::isDigit).take(3) }, Modifier.weight(1f),
+                    dica = "0", teclado = KeyboardType.Number,
+                )
             }
+            CampoCompacto("Gorjeta/bônus", gorjeta, { gorjeta = it }, Modifier.fillMaxWidth(), dica = "R$ 0,00", teclado = KeyboardType.Decimal)
             CampoCompacto("Observação (opcional)", obs, { obs = it }, Modifier.fillMaxWidth(), umaLinha = false)
             if (original != null) BotaoExcluir("Excluir lançamento") { confirmarExclusao = true }
         }
@@ -188,6 +213,7 @@ private fun FormGanho(vm: NovoLancamentoViewModel, original: Ganho?, onConcluir:
                     minutosOnline = turno.minutosOnline,
                     observacao = obs.ifBlank { null },
                     inicioTurnoMinutos = inicioTurno,
+                    corridas = corridas.toIntOrNull()?.takeIf { it > 0 },
                 ),
                 onConcluir,
             )
@@ -198,6 +224,48 @@ private fun FormGanho(vm: NovoLancamentoViewModel, original: Ganho?, onConcluir:
         DialogoConfirmar(
             "Excluir lançamento?", "Essa ação não pode ser desfeita.", "Excluir",
             onConfirmar = { vm.excluirGanho(original, onConcluir) },
+            onCancelar = { confirmarExclusao = false },
+        )
+    }
+}
+
+/** Km rodados com o carro fora do trabalho: só data, km e observação (não mexe no dinheiro). */
+@Composable
+private fun FormKmPessoal(vm: NovoLancamentoViewModel, original: KmPessoal?, onConcluir: () -> Unit, modifier: Modifier) {
+    var data by rememberSaveable { mutableStateOf(original?.data ?: LocalDate.now()) }
+    var km by rememberSaveable { mutableStateOf(original?.km?.paraTextoNumero() ?: "") }
+    var obs by rememberSaveable { mutableStateOf(original?.observacao ?: "") }
+    var confirmarExclusao by remember { mutableStateOf(false) }
+
+    val kmValor = km.replace(',', '.').toDoubleOrNull()
+    val esquema = MaterialTheme.colorScheme
+
+    Column(modifier) {
+        CorpoFormulario(Modifier.weight(1f)) {
+            CampoCompacto("Km rodados", km, { km = it }, Modifier.fillMaxWidth(), dica = "0", teclado = KeyboardType.Decimal)
+            TextoDeApoio(
+                "Uso do carro fora do trabalho (mercado, passeio, viagem). Entra no custo por km e no odômetro, " +
+                    "não no ganho.",
+            )
+            CampoData(data, { data = it })
+            CampoCompacto("Observação (opcional)", obs, { obs = it }, Modifier.fillMaxWidth(), umaLinha = false)
+            if (original != null) BotaoExcluir("Excluir lançamento") { confirmarExclusao = true }
+        }
+        BarraSalvar(
+            texto = if (original == null) "Salvar km pessoal" else "Salvar alterações",
+            habilitado = kmValor != null && kmValor > 0,
+            cor = esquema.primary,
+            corTexto = esquema.onPrimary,
+        ) {
+            val base = original ?: KmPessoal(data = data, km = 0.0)
+            vm.salvarKmPessoal(base.copy(data = data, km = kmValor ?: 0.0, observacao = obs.ifBlank { null }), onConcluir)
+        }
+    }
+
+    if (confirmarExclusao && original != null) {
+        DialogoConfirmar(
+            "Excluir lançamento?", "Essa ação não pode ser desfeita.", "Excluir",
+            onConfirmar = { vm.excluirKmPessoal(original, onConcluir) },
             onCancelar = { confirmarExclusao = false },
         )
     }

@@ -110,7 +110,7 @@ class LeitorDeCorridasService : AccessibilityService() {
 
     private val sumir = Runnable { esconder() }
 
-    /** Custo por km dos últimos 30 dias (despesas + depreciação ÷ km), recalculado a cada 10 minutos. */
+    /** Custo por km dos últimos 30 dias (despesas + depreciação ÷ km de trabalho e pessoais), recalculado a cada 10 minutos. */
     private fun atualizarCustoSePreciso() {
         val agora = SystemClock.elapsedRealtime()
         if (agora - custoCalculadoEm < RECALCULAR_CUSTO_MS) return
@@ -124,6 +124,7 @@ class LeitorDeCorridasService : AccessibilityService() {
                         app.repositorio.ganhos(inicio, hoje).first(),
                         app.repositorio.despesas(inicio, hoje).first(),
                         app.configuracoes.depreciacaoPorKmCentavos.first(),
+                        app.repositorio.kmPessoais(inicio, hoje).first(),
                     ).custoPorKmCentavos
                 }.getOrNull()
             }

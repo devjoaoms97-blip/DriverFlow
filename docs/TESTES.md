@@ -33,6 +33,7 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Migração do banco (v1 criado com o SQL do schema exportado, dados mantidos, campo novo grava; cadeia de migrações até a versão atual) e backup v2 | `app/src/test/.../data/db/MigracaoTest`, `.../data/backup/BackupJsonTest` | Robolectric |
 | Horas do turno pelo início e fim (meia-noite, só um dos horários, fim igual ao início, lançamento antigo sem horário) | `app/src/test/.../ui/lancamento/TurnoTest` | JUnit puro |
 | Backup automático (frequência, hora com folga, nome do arquivo, limpeza que mantém 7 e não toca nos manuais, executor com pasta de mentira: grava .zip válido, registra hora, erro sem pasta e ao gravar) e aviso de backup no Início | `app/src/test/.../data/backup/BackupAutomaticoTest`, `ExecutorBackupAutomaticoTest`, `.../data/ConfiguracoesTest`, `.../ui/home/TextoInicioTest`, `HomeEstadoTest`, `.../ui/ajustes/TextoBackupTest` | JUnit puro; executor com Robolectric |
+| Km pessoal e corridas (custo por km com os km pessoais, custo do uso pessoal, ganho e tempo por corrida, odômetro estimado, conferência do odômetro e seus textos, cada período do Início com os seus km pessoais, lista do Veículo; CRUD, odômetro e conferência pelo Repositório; migração v2 → v3; backup v3 e leitura da v2) | `app/src/test/.../domain/KmPessoalECorridasTest`, `.../ui/veiculo/TextoOdometroTest`, `VeiculoEstadoTest`, `.../ui/home/TextoInicioTest`, `HomeEstadoTest`, `.../data/RepositorioOdometroTest`, `.../data/db/MigracaoTest`, `.../data/backup/BackupJsonTest` | JUnit puro; Repositório, migração e backup com Robolectric |
 | Bloqueio (quando bloquear ao voltar, MainActivity coberta pela tela de bloqueio) | `app/src/test/.../ui/bloqueio/BloqueioTest` | JUnit puro (o pedido de digital é do Android: roteiro manual) |
 | Tela de bloqueio só pede a digital depois da abertura animada (e fica por baixo dela) | `app/src/test/.../ui/bloqueio/TelaBloqueioTest` | Compose + Robolectric |
 | Meta do dia, evolução mês a mês, repetir o último e relatório do mês (conteúdo) | `app/src/test/.../domain/MetasTest`, `EvolucaoTest`, `RelatorioMesTest`, `.../ui/meta/TextoMetaTest`, `.../ui/analises/TextoAnalisesTest`, `.../ui/lancamento/TurnoTest`, `.../data/RepositorioTest` | JUnit puro; Repositório com Robolectric |
@@ -40,7 +41,7 @@ mudanças futuras não quebrem o que já funciona. Isso vale para todas as etapa
 | Relatório em PDF (nome, título, pasta do FileProvider) | `app/src/test/.../data/relatorio/RelatorioPdfTest` | JUnit puro. O desenho do PDF é nativo do Android e não roda no PC: roteiro manual |
 | Leitor de corridas (leitura do card: valor, acréscimo e taxa ignorados, milhar, metros, horas, nota, telas que não são oferta; R$/km com o deslocamento, R$/h, lucro e cores; textos da janela; faixas de Ajustes; gravação com pulo de repetidas e limite; serviço no manifest só para Uber/99 e sem gestos) | `app/src/test/.../domain/CorridaTest`, `.../leitor/TextoLeitorTest`, `GravadorDeTelaTest`, `LeitorManifestTest`, `.../data/ConfiguracoesTest` | JUnit puro. Ler a tela de outro app só no celular: roteiro manual (os cards dos testes imitam os reais até haver gravações) |
 | Formulários no visual novo (esqueleto comum, sem campos antigos) | `app/src/test/.../ui/componentes/FormulariosNoVisualTest`, `FormularioTest` | JUnit puro |
-| **Interface (Compose):** lançar ganho e despesa, Salvar desabilitado sem valor, filtrar, editar e excluir no Histórico, Reservas pelo Início e voltar, Abastecer, Análises vazia | `app/src/test/.../ui/FluxosPrincipaisTest` | Robolectric com `createComposeRule` e o app de verdade (banco limpo a cada teste); só na variante debug, porque a Activity de teste vem do `ui-test-manifest` |
+| **Interface (Compose):** lançar ganho e despesa, ganho com corridas ("Por corrida" no Início), km pessoal pelo + (no Início e no Veículo), Salvar desabilitado sem valor, filtrar, editar e excluir no Histórico, Reservas pelo Início e voltar, Abastecer, Análises vazia | `app/src/test/.../ui/FluxosPrincipaisTest` | Robolectric com `createComposeRule` e o app de verdade (banco limpo a cada teste); só na variante debug, porque a Activity de teste vem do `ui-test-manifest` |
 
 ## Como rodar
 
@@ -314,3 +315,16 @@ testImplementation("androidx.test:core:1.6.1")
     os km (total e até o passageiro), em verde, amarelo ou vermelho pelas faixas. Conferir a conta com o card. Quando a oferta
     some, a janela some; tocar nela fecha. A janela não atrapalha o botão de aceitar. Mudar as faixas em Ajustes muda a cor
     da próxima oferta
+111. **Corridas:** lançar um ganho de R$ 100 com 4 corridas e o turno preenchido: o Início mostra "Por corrida" R$ 25,00 e
+    "Corridas" com o tempo médio. Sem corridas lançadas no período, os dois cartões não aparecem. Editar o ganho mostra as 4
+    corridas. Análises mostra "Por corrida" no total e o R$/corrida em cada plataforma
+112. **Km pessoal:** no +, escolher Km pessoal: o Salvar só habilita com km. Lançar 40 km hoje: o cartão do lucro de Hoje mostra
+    "Uso pessoal 40 km" e "Custo do uso pessoal ≈ R$ X", e o custo por km cai (os km pessoais entram no divisor). O lucro
+    líquido não muda. Na aba Veículo, a seção "Uso pessoal" lista o lançamento; tocar abre "Editar km pessoal" (editar e
+    excluir). O odômetro estimado sobe os km lançados depois da última leitura
+113. **Conferência do odômetro:** com dois abastecimentos com mais de 100 km de diferença em dias diferentes, o Veículo mostra
+    "Km lançados × odômetro" com o % lançado. Com menos de 90% lançado, o cartão fica em destaque e diz quantos km ficaram sem
+    lançamento; acima de 110%, avisa que foram lançados km a mais
+114. **Atualização v2 → v3 sem perder dados:** instalar por cima da versão anterior: lançamentos, metas, reservas e fotos
+    continuam lá, e os ganhos antigos aparecem sem corridas. Exportar e restaurar o backup: corridas e km pessoais voltam.
+    Um backup feito antes desta versão restaura normalmente, sem km pessoais

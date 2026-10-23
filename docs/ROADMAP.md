@@ -86,6 +86,16 @@ Feitas em 22/10/2026: todas; o leitor de corridas está na primeira etapa (grava
 - ✅ Meta do dia: (meta do mês − lucro até ontem) ÷ dias que faltam; cartão no Início que fica verde ao bater
 - ✅ Evolução mês a mês nas Análises: lucro dos últimos 6 meses em barras, com o R$/h e o melhor mês fechado
 
+**Números mais certos** (22/10/2026)
+- ✅ Km pessoal: terceiro tipo no + (Ganho / Despesa / Km pessoal), com data, km e observação; entra no custo por km e no odômetro estimado, aparece no cartão do lucro (custo do uso pessoal) e na seção "Uso pessoal" do Veículo (editar e excluir). Banco e backup na versão 3
+- ✅ Corridas no ganho (opcional): ganho por corrida e tempo médio por corrida no Início e nas Análises (total e por plataforma)
+- ✅ Conferência do odômetro no Veículo: km reais entre duas leituras × km lançados (turnos + pessoais), com o % lançado e aviso de km esquecidos ou lançados a mais
+  - O km vazio (sem passageiro) não é separado: o "Km rodados" do ganho já é o turno inteiro. Dá para separar depois com o "km com passageiro" que o leitor de corridas vai guardar no histórico das ofertas
+- ⬜ Reservas com saldo ("já separei R$ X") e aviso quando o vencimento chega sem o valor guardado
+- ⬜ Turno com cronômetro (Iniciar/Encerrar, também num bloco das Configurações rápidas) que preenche início e horas
+- ⬜ Widget na tela inicial com o lucro do dia e o quanto falta na meta do dia
+- ⬜ Etanol × gasolina: tipo de combustível no abastecimento e, com o km/l real de cada um, qual compensa pelo preço da bomba
+
 **Menos atrito para lançar**
 - ✅ Lembrete no fim do dia ("Lançou o turno de hoje?"), no horário escolhido, só em dias sem ganho lançado; tocar abre o Novo lançamento
 - ✅ Repetir o último lançamento (mesma plataforma e horários do turno anterior; só troca o valor)

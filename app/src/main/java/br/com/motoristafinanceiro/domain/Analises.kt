@@ -32,6 +32,7 @@ data class Desempenho(
     val minutosOnline: Int = 0,
     val ganhoComKmCentavos: Long = 0,
     val kmTotal: Double = 0.0,
+    val corridas: ResumoCorridas = ResumoCorridas(),
 ) {
     val ganhoPorHoraCentavos: Long?
         get() = if (minutosOnline > 0) (ganhoComHorasCentavos * 60.0 / minutosOnline).roundToLong() else null
@@ -59,6 +60,7 @@ fun desempenhoDe(ganhos: List<Ganho>): Desempenho {
         minutosOnline = comHoras.sumOf { it.minutosOnline },
         ganhoComKmCentavos = comKm.sumOf { it.totalCentavos },
         kmTotal = comKm.sumOf { it.km },
+        corridas = resumoCorridas(ganhos),
     )
 }
 

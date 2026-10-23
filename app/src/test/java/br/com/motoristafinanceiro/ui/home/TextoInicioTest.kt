@@ -6,6 +6,7 @@ import br.com.motoristafinanceiro.data.model.ReservaDespesa
 import br.com.motoristafinanceiro.data.model.TipoManutencao
 import br.com.motoristafinanceiro.domain.AlertaManutencao
 import br.com.motoristafinanceiro.domain.Estatisticas
+import br.com.motoristafinanceiro.domain.ResumoCorridas
 import br.com.motoristafinanceiro.domain.statusAlerta
 import br.com.motoristafinanceiro.ui.reservas.ReservasUiState
 import br.com.motoristafinanceiro.ui.reservas.montarEstadoReservas
@@ -109,5 +110,12 @@ class TextoInicioTest {
         assertNull(textoAvisoBackup(hoje.minusDays(6), hoje, temDados = true))
         assertEquals("Último backup há 7 dias", textoAvisoBackup(hoje.minusDays(7), hoje, temDados = true)!!.titulo)
         assertEquals("Último backup há 30 dias", textoAvisoBackup(hoje.minusDays(30), hoje, temDados = true)!!.titulo)
+    }
+
+    @Test
+    fun textoCorridas_quantidadeETempoMedio() {
+        assertEquals("42 · 14 min cada", textoCorridas(ResumoCorridas(42, 100_000, 588, 42)))
+        assertEquals("8", textoCorridas(ResumoCorridas(8, 20_000, 0, 0)))
+        assertEquals("—", textoCorridas(ResumoCorridas()))
     }
 }

@@ -23,6 +23,7 @@ private fun descreverConteudo(r: ResumoBackup): String {
         if (r.manutencoes > 0) add(contagem(r.manutencoes, "manutenção", "manutenções"))
         if (r.reservas > 0) add(contagem(r.reservas, "reserva", "reservas"))
         if (r.metas > 0) add(contagem(r.metas, "meta", "metas"))
+        if (r.kmPessoais > 0) add(contagem(r.kmPessoais, "km pessoal", "km pessoais"))
         if (r.fotos > 0) add(contagem(r.fotos, "foto", "fotos"))
     }
     return if (itens.isEmpty()) "sem lançamentos" else listaEmPortugues(itens)

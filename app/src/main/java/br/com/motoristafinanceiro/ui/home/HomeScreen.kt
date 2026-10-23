@@ -43,6 +43,7 @@ import br.com.motoristafinanceiro.ui.meta.textoFaltaPorDia
 import br.com.motoristafinanceiro.ui.meta.textoRepetirMeta
 import br.com.motoristafinanceiro.ui.meta.tituloMetaDoDia
 import br.com.motoristafinanceiro.util.formatarReais
+import br.com.motoristafinanceiro.util.paraTextoNumero
 import java.time.LocalDate
 
 @Composable
@@ -74,12 +75,17 @@ fun HomeScreen(
         CartaoLucro(tituloLucroPeriodo(periodo, state.rotuloSemana), estatisticas)
 
         GradeDuasColunas(
-            listOf(
-                { m -> Indicador("Ganho por km", estatisticas.ganhoPorKmCentavos?.formatarReais() ?: "—", m) },
-                { m -> Indicador("Ganho por hora", estatisticas.ganhoPorHoraCentavos?.formatarReais() ?: "—", m) },
-                { m -> Indicador("Custo por km", estatisticas.custoPorKmCentavos?.formatarReais() ?: "—", m) },
-                { m -> Indicador("Rodado", textoRodado(estatisticas), m) },
-            )
+            buildList<@Composable (Modifier) -> Unit> {
+                add { m -> Indicador("Ganho por km", estatisticas.ganhoPorKmCentavos?.formatarReais() ?: "—", m) }
+                add { m -> Indicador("Ganho por hora", estatisticas.ganhoPorHoraCentavos?.formatarReais() ?: "—", m) }
+                add { m -> Indicador("Custo por km", estatisticas.custoPorKmCentavos?.formatarReais() ?: "—", m) }
+                add { m -> Indicador("Rodado", textoRodado(estatisticas), m) }
+                // Só aparecem quando algum ganho do período informa as corridas.
+                estatisticas.corridas.ganhoPorCorridaCentavos?.let { porCorrida ->
+                    add { m -> Indicador("Por corrida", porCorrida.formatarReais(), m) }
+                    add { m -> Indicador("Corridas", textoCorridas(estatisticas.corridas), m) }
+                }
+            }
         )
 
         textoAtencaoManutencao(state.alertasUrgentes)?.let { aviso ->
@@ -157,6 +163,13 @@ private fun CartaoLucro(titulo: String, e: Estatisticas) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ValorRotulado("Depreciação estimada", e.depreciacaoCentavos.formatarReais(), Modifier.weight(1f))
                 ValorRotulado("Após depreciação", e.lucroAposDepreciacaoCentavos.formatarReais(), Modifier.weight(1f))
+            }
+        }
+        e.custoUsoPessoalCentavos?.let { custo ->
+            HorizontalDivider(color = esquema.outlineVariant)
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ValorRotulado("Uso pessoal", e.kmPessoal.paraTextoNumero() + " km", Modifier.weight(1f))
+                ValorRotulado("Custo do uso pessoal", "≈ " + custo.formatarReais(), Modifier.weight(1f))
             }
         }
     }

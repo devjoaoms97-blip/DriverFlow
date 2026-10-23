@@ -4,6 +4,7 @@ import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.CategoriaDespesa
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Plataforma
 import br.com.motoristafinanceiro.data.model.TipoManutencao
@@ -124,5 +125,21 @@ class VeiculoEstadoTest {
         assertEquals(estimado, s.odometro)
         assertEquals(300, s.alertas.single().kmRestantes) // sem a estimativa seriam 600
         assertEquals(10_400, s.resumo.odometroAtualKm) // a leitura real continua no resumo
+    }
+
+    @Test
+    fun kmPessoais_maisRecentesPrimeiro_eSoOsDoMesNoCustoPorKm() {
+        val hoje = LocalDate.of(2026, 10, 21)
+        val ganhos = listOf(Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 10_000, km = 100.0))
+        val despesas = listOf(Despesa(data = hoje, categoria = CategoriaDespesa.COMBUSTIVEL, valorCentavos = 20_000))
+        val antigo = KmPessoal(id = 1, data = LocalDate.of(2026, 9, 10), km = 500.0)
+        val recente = KmPessoal(id = 2, data = LocalDate.of(2026, 10, 20), km = 100.0)
+        val s = montarEstadoVeiculo(
+            emptyList(), emptyList(), ganhos, despesas,
+            kmPessoais = listOf(antigo, recente),
+            hoje = hoje,
+        )
+        assertEquals(listOf(recente, antigo), s.kmPessoais)
+        assertEquals(100L, s.resumo.custoPorKmMesCentavos) // R$ 200 ÷ (100 + 100) km; o de setembro fica de fora
     }
 }

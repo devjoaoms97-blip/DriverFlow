@@ -10,6 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.ReservaDespesa
@@ -22,8 +23,9 @@ import br.com.motoristafinanceiro.data.model.ReservaDespesa
         Manutencao::class,
         ReservaDespesa::class,
         Meta::class,
+        KmPessoal::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(Conversores::class)
@@ -34,6 +36,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun manutencaoDao(): ManutencaoDao
     abstract fun reservaDao(): ReservaDao
     abstract fun metaDao(): MetaDao
+    abstract fun kmPessoalDao(): KmPessoalDao
 
     companion object {
         const val NOME = "motorista.db"
@@ -52,6 +55,18 @@ val MIGRACAO_1_2 = object : Migration(1, 2) {
     }
 }
 
+/** v2 → v3: quantidade de corridas nos ganhos (opcional) e a tabela de km pessoais. */
+val MIGRACAO_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE ganhos ADD COLUMN corridas INTEGER")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `km_pessoais` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`data` INTEGER NOT NULL, `km` REAL NOT NULL, `observacao` TEXT)"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_km_pessoais_data` ON `km_pessoais` (`data`)")
+    }
+}
+
 /** Todas as migrações, em ordem. Nunca apague uma: o celular pode estar em qualquer versão antiga. */
-val MIGRACOES = arrayOf(MIGRACAO_1_2)
+val MIGRACOES = arrayOf(MIGRACAO_1_2, MIGRACAO_2_3)
 

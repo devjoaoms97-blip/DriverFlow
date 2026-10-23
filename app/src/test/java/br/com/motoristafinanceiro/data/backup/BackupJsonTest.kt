@@ -197,4 +197,39 @@ class BackupJsonTest {
         alterado { it.getJSONArray("ganhos").getJSONObject(0).put("inicioTurnoMinutos", 1440) },
         "inicioTurnoMinutos",
     )
+
+    // ---- Versão 3: corridas e km pessoais ----
+
+    @Test
+    fun gerarELer_guardaCorridasEKmPessoais() {
+        val lido = BackupJson.ler(BackupJson.gerar(dadosDeExemplo(), 0L))
+        assertEquals(12, lido.ganhos.first { it.id == 1L }.corridas)
+        assertEquals(null, lido.ganhos.first { it.id == 2L }.corridas)
+        assertEquals(dadosDeExemplo().kmPessoais, lido.kmPessoais)
+    }
+
+    @Test
+    fun ler_backupDaVersao2_semCorridasNemKmPessoais() {
+        val texto = alterado { json ->
+            json.put("versaoSchema", 2)
+            json.remove("kmPessoais")
+            val ganhos = json.getJSONArray("ganhos")
+            for (i in 0 until ganhos.length()) ganhos.getJSONObject(i).remove("corridas")
+        }
+        val lido = BackupJson.ler(texto)
+        assertTrue(lido.ganhos.all { it.corridas == null })
+        assertTrue(lido.kmPessoais.isEmpty())
+    }
+
+    @Test
+    fun recusa_corridasNegativas() =
+        assertInvalido(alterado { it.getJSONArray("ganhos").getJSONObject(0).put("corridas", -1) }, "corridas")
+
+    @Test
+    fun recusa_kmPessoalNegativo() =
+        assertInvalido(alterado { it.getJSONArray("kmPessoais").getJSONObject(0).put("km", -5) }, "kmPessoais #1")
+
+    @Test
+    fun recusa_kmPessoalRepetido() =
+        assertInvalido(alterado { it.getJSONArray("kmPessoais").getJSONObject(1).put("id", 1) }, "kmPessoais")
 }

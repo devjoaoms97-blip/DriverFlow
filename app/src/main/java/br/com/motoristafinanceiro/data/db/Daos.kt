@@ -9,6 +9,7 @@ import androidx.room.Upsert
 import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.OrigemDespesa
@@ -161,4 +162,24 @@ interface MetaDao {
     suspend fun apagarTodos()
 
     @Insert suspend fun inserirTodos(lista: List<Meta>)
+}
+
+@Dao
+interface KmPessoalDao {
+    @Upsert suspend fun salvar(km: KmPessoal): Long
+    @Delete suspend fun excluir(km: KmPessoal)
+
+    @Query("SELECT * FROM km_pessoais WHERE id = :id")
+    suspend fun buscarPorId(id: Long): KmPessoal?
+
+    @Query("SELECT * FROM km_pessoais WHERE data BETWEEN :inicio AND :fim ORDER BY data DESC, id DESC")
+    fun observarPorPeriodo(inicio: LocalDate, fim: LocalDate): Flow<List<KmPessoal>>
+
+    @Query("SELECT * FROM km_pessoais ORDER BY id")
+    suspend fun listarTodos(): List<KmPessoal>
+
+    @Query("DELETE FROM km_pessoais")
+    suspend fun apagarTodos()
+
+    @Insert suspend fun inserirTodos(lista: List<KmPessoal>)
 }

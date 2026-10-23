@@ -7,11 +7,15 @@ import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.CategoriaDespesa
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.OrigemDespesa
 import br.com.motoristafinanceiro.data.model.ReservaDespesa
+import br.com.motoristafinanceiro.domain.ConferenciaKm
+import br.com.motoristafinanceiro.domain.DIAS_CONFERENCIA_KM
 import br.com.motoristafinanceiro.domain.Odometro
+import br.com.motoristafinanceiro.domain.conferirKm
 import br.com.motoristafinanceiro.domain.descricaoManutencao
 import br.com.motoristafinanceiro.domain.odometroEstimado
 import br.com.motoristafinanceiro.domain.ultimaLeitura
@@ -29,6 +33,7 @@ class Repositorio(private val db: AppDatabase) {
     private companion object {
         /** Limite final para "daqui em diante" nas buscas por período. */
         val FIM_DOS_TEMPOS: LocalDate = LocalDate.of(9999, 12, 31)
+        val INICIO_DOS_TEMPOS: LocalDate = LocalDate.of(2000, 1, 1)
     }
 
     // ---- Ganhos ----
@@ -45,6 +50,17 @@ class Repositorio(private val db: AppDatabase) {
     }
 
     suspend fun excluirGanho(ganho: Ganho) = db.ganhoDao().excluir(ganho)
+
+    // ---- Km pessoais ----
+    fun kmPessoais(inicio: LocalDate, fim: LocalDate): Flow<List<KmPessoal>> =
+        db.kmPessoalDao().observarPorPeriodo(inicio, fim)
+
+    /** Todos, mais recentes primeiro. */
+    fun kmPessoais(): Flow<List<KmPessoal>> = kmPessoais(INICIO_DOS_TEMPOS, FIM_DOS_TEMPOS)
+
+    suspend fun kmPessoalPorId(id: Long): KmPessoal? = db.kmPessoalDao().buscarPorId(id)
+    suspend fun salvarKmPessoal(km: KmPessoal) = db.kmPessoalDao().salvar(km)
+    suspend fun excluirKmPessoal(km: KmPessoal) = db.kmPessoalDao().excluir(km)
 
     // ---- Despesas ----
     fun despesas(inicio: LocalDate, fim: LocalDate): Flow<List<Despesa>> =
@@ -99,8 +115,8 @@ class Repositorio(private val db: AppDatabase) {
 
     // ---- Odômetro ----
     /**
-     * Odômetro dos alertas: última leitura (abastecimento ou manutenção) + km dos ganhos lançados depois dela.
-     * Só busca os ganhos a partir do dia seguinte à leitura; muda quando qualquer um dos três muda.
+     * Odômetro dos alertas: última leitura (abastecimento ou manutenção) + km dos ganhos e km pessoais lançados
+     * depois dela. Só busca os lançamentos a partir do dia seguinte à leitura; muda quando qualquer um muda.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun odometro(): Flow<Odometro?> =
@@ -110,7 +126,24 @@ class Repositorio(private val db: AppDatabase) {
                 if (leitura == null) {
                     flowOf(null)
                 } else {
-                    ganhos(leitura.data.plusDays(1), FIM_DOS_TEMPOS).map { odometroEstimado(a, m, it) }
+                    val desde = leitura.data.plusDays(1)
+                    combine(ganhos(desde, FIM_DOS_TEMPOS), kmPessoais(desde, FIM_DOS_TEMPOS)) { g, p ->
+                        odometroEstimado(a, m, g, p)
+                    }
+                }
+            }
+
+    /** Km do odômetro × km lançados entre as leituras dos últimos [DIAS_CONFERENCIA_KM] dias (ver [conferirKm]). */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun conferenciaKm(): Flow<ConferenciaKm?> =
+        combine(abastecimentos(), manutencoes()) { a, m -> a to m }
+            .flatMapLatest { (a, m) ->
+                val fim = ultimaLeitura(a, m)
+                if (fim == null) {
+                    flowOf(null)
+                } else {
+                    val inicio = fim.data.minusDays(DIAS_CONFERENCIA_KM.toLong())
+                    combine(ganhos(inicio, fim.data), kmPessoais(inicio, fim.data)) { g, p -> conferirKm(a, m, g, p) }
                 }
             }
 
@@ -170,6 +203,7 @@ class Repositorio(private val db: AppDatabase) {
             manutencoes = db.manutencaoDao().listarTodos(),
             reservas = db.reservaDao().listarTodos(),
             metas = db.metaDao().listarTodos(),
+            kmPessoais = db.kmPessoalDao().listarTodos(),
             depreciacaoPorKmCentavos = depreciacaoPorKmCentavos,
         )
     }
@@ -182,6 +216,7 @@ class Repositorio(private val db: AppDatabase) {
         db.manutencaoDao().apagarTodos()
         db.reservaDao().apagarTodos()
         db.metaDao().apagarTodos()
+        db.kmPessoalDao().apagarTodos()
 
         db.ganhoDao().inserirTodos(d.ganhos)
         db.despesaDao().inserirTodos(d.despesas)
@@ -189,5 +224,6 @@ class Repositorio(private val db: AppDatabase) {
         db.manutencaoDao().inserirTodos(d.manutencoes)
         db.reservaDao().inserirTodos(d.reservas)
         db.metaDao().inserirTodos(d.metas)
+        db.kmPessoalDao().inserirTodos(d.kmPessoais)
     }
 }

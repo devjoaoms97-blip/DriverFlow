@@ -13,10 +13,11 @@ import br.com.motoristafinanceiro.data.ComprovanteStorage
 import br.com.motoristafinanceiro.data.Repositorio
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.domain.fotoSubstituidaOuRemovida
 import kotlinx.coroutines.launch
 
-enum class TipoLancamento { GANHO, DESPESA }
+enum class TipoLancamento { GANHO, DESPESA, KM_PESSOAL }
 
 /**
  * Serve para criar (tipo = null, id = 0) e para editar/excluir (tipo + id) um lançamento.
@@ -34,6 +35,8 @@ class NovoLancamentoViewModel(
         private set
     var despesaOriginal by mutableStateOf<Despesa?>(null)
         private set
+    var kmPessoalOriginal by mutableStateOf<KmPessoal?>(null)
+        private set
 
     /** Último ganho lançado, para o atalho "Repetir o último" (só ao criar). */
     var ultimoGanho by mutableStateOf<Ganho?>(null)
@@ -48,6 +51,7 @@ class NovoLancamentoViewModel(
                 when (tipo) {
                     TipoLancamento.GANHO -> ganhoOriginal = repo.ganhoPorId(id)
                     TipoLancamento.DESPESA -> despesaOriginal = repo.despesaPorId(id)
+                    TipoLancamento.KM_PESSOAL -> kmPessoalOriginal = repo.kmPessoalPorId(id)
                     null -> Unit
                 }
                 carregando = false
@@ -60,6 +64,12 @@ class NovoLancamentoViewModel(
 
     fun excluirGanho(ganho: Ganho, aoConcluir: () -> Unit) =
         executar(aoConcluir) { repo.excluirGanho(ganho) }
+
+    fun salvarKmPessoal(km: KmPessoal, aoConcluir: () -> Unit) =
+        executar(aoConcluir) { repo.salvarKmPessoal(km) }
+
+    fun excluirKmPessoal(km: KmPessoal, aoConcluir: () -> Unit) =
+        executar(aoConcluir) { repo.excluirKmPessoal(km) }
 
     /** Ao salvar, a foto antiga (trocada ou removida) é apagada do aparelho. */
     fun salvarDespesa(despesa: Despesa, aoConcluir: () -> Unit) {

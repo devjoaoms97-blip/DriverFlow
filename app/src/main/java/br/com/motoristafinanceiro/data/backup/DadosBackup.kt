@@ -3,13 +3,14 @@ package br.com.motoristafinanceiro.data.backup
 import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.ReservaDespesa
 import java.time.LocalDate
 
 /**
- * Tudo o que o backup guarda, além das fotos: as seis tabelas e duas configurações (DataStore):
+ * Tudo o que o backup guarda, além das fotos: as sete tabelas e duas configurações (DataStore):
  * a depreciação por km e a chave do aviso de manutenção.
  */
 data class DadosBackup(
@@ -19,6 +20,7 @@ data class DadosBackup(
     val manutencoes: List<Manutencao> = emptyList(),
     val reservas: List<ReservaDespesa> = emptyList(),
     val metas: List<Meta> = emptyList(),
+    val kmPessoais: List<KmPessoal> = emptyList(),
     val depreciacaoPorKmCentavos: Long = 0,
     /** Null = backup feito antes dessa opção existir: ao restaurar, mantém a chave atual. */
     val notificacoesManutencaoAtivas: Boolean? = null,
@@ -38,6 +40,7 @@ data class ResumoBackup(
     val fotos: Int,
     /** Comprovantes que não estavam disponíveis (no aparelho, ao exportar; no arquivo, ao restaurar). */
     val fotosAusentes: Int,
+    val kmPessoais: Int = 0,
 )
 
 fun DadosBackup.paraResumo(fotos: Int, fotosAusentes: Int) = ResumoBackup(
@@ -47,6 +50,7 @@ fun DadosBackup.paraResumo(fotos: Int, fotosAusentes: Int) = ResumoBackup(
     manutencoes = manutencoes.size,
     reservas = reservas.size,
     metas = metas.size,
+    kmPessoais = kmPessoais.size,
     fotos = fotos,
     fotosAusentes = fotosAusentes,
 )

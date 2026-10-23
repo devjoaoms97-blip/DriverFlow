@@ -11,6 +11,7 @@ import br.com.motoristafinanceiro.data.Repositorio
 import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.ReservaDespesa
@@ -80,6 +81,8 @@ internal fun montarEstadoHome(
     metaMesAnterior: Meta? = null,
     /** Dia do último backup (manual ou automático); null = nunca. */
     ultimoBackup: LocalDate? = null,
+    /** Km pessoais que cobrem o mês e a semana de [hoje]; cada período filtra os seus. */
+    kmPessoais: List<KmPessoal> = emptyList(),
 ): HomeUiState {
     val odometro = odometroEstimado?.km ?: odometroAtual(abastecimentos, manutencoes)
     val alertas = if (odometro == null) {
@@ -87,13 +90,17 @@ internal fun montarEstadoHome(
     } else {
         calcularAlertas(manutencoes, odometro).filter { it.status != StatusAlerta.EM_DIA }
     }
-    val estatisticasMes = calcularEstatisticas(ganhosMes, despesasMes, depreciacaoPorKmCentavos)
     val semanaDeHoje = inicioDaSemana(hoje)..fimDaSemana(hoje)
+    val mesDeHoje = YearMonth.from(hoje)
+    val estatisticasMes = calcularEstatisticas(
+        ganhosMes, despesasMes, depreciacaoPorKmCentavos, kmPessoais.filter { YearMonth.from(it.data) == mesDeHoje },
+    )
     val metaValida = meta?.valorAlvoLucroCentavos?.takeIf { it > 0 }
     val estatisticasHoje = calcularEstatisticas(
         ganhosMes.filter { it.data == hoje },
         despesasMes.filter { it.data == hoje },
         depreciacaoPorKmCentavos,
+        kmPessoais.filter { it.data == hoje },
     )
     return HomeUiState(
         hoje = estatisticasHoje,
@@ -101,6 +108,7 @@ internal fun montarEstadoHome(
             ganhosSemana.filter { it.data in semanaDeHoje },
             despesasSemana.filter { it.data in semanaDeHoje },
             depreciacaoPorKmCentavos,
+            kmPessoais.filter { it.data in semanaDeHoje },
         ),
         rotuloSemana = rotuloSemana(hoje),
         mes = estatisticasMes,
@@ -163,12 +171,19 @@ class HomeViewModel(private val repo: Repositorio, configuracoes: Configuracoes)
         DadosHome(ganhos, despesas, meta, abastecimentos, manutencoes)
     }
 
+    /** Km pessoais do mês e da semana (a semana pode começar no mês anterior ou terminar no seguinte). */
+    private val kmPessoais = repo.kmPessoais(
+        minOf(inicioSemana, mesAtual.atDay(1)),
+        maxOf(fimSemana, mesAtual.atEndOfMonth()),
+    )
+
     val uiState: StateFlow<HomeUiState> = combine(
         dados,
         semana,
         configuracoes.depreciacaoPorKmCentavos,
         configuracoes.ultimoBackupMs,
-    ) { d, s, depreciacao, ultimoBackupMs ->
+        kmPessoais,
+    ) { d, s, depreciacao, ultimoBackupMs, pessoais ->
         montarEstadoHome(
             d.ganhos, d.despesas, d.meta, d.abastecimentos, d.manutencoes,
             depreciacaoPorKmCentavos = depreciacao,
@@ -178,6 +193,7 @@ class HomeViewModel(private val repo: Repositorio, configuracoes: Configuracoes)
             odometroEstimado = s.odometro,
             metaMesAnterior = s.metaAnterior,
             ultimoBackup = ultimoBackupMs?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate() },
+            kmPessoais = pessoais,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 

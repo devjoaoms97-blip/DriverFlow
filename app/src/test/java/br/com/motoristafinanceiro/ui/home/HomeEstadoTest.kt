@@ -4,6 +4,7 @@ import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.CategoriaDespesa
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.Periodicidade
@@ -281,5 +282,28 @@ class HomeEstadoTest {
         val m = montar(ganhos = ganhosHoje, meta = Meta("2026-10", 170_000)).metaDoDia!!
         assertEquals(10_000L, m.metaCentavos) // 15/10: restam 17 dias; R$ 1.700 ÷ 17
         assertEquals(5_000L, m.lucroHojeCentavos)
+    }
+
+    @Test
+    fun kmPessoais_cadaPeriodoUsaOsSeus() {
+        val hoje = LocalDate.of(2026, 10, 21) // quarta; a semana vai de 19 a 25/10
+        val ganhos = listOf(Ganho(data = hoje, plataforma = Plataforma.UBER, valorCentavos = 10_000, km = 100.0))
+        val despesas = listOf(Despesa(data = hoje, categoria = CategoriaDespesa.COMBUSTIVEL, valorCentavos = 20_000))
+        val s = montarEstadoHome(
+            ganhos, despesas, null, emptyList(), emptyList(), hoje,
+            ganhosSemana = ganhos,
+            despesasSemana = despesas,
+            kmPessoais = listOf(
+                KmPessoal(data = hoje, km = 100.0),
+                KmPessoal(data = LocalDate.of(2026, 10, 19), km = 50.0),
+                KmPessoal(data = LocalDate.of(2026, 10, 2), km = 50.0),
+                KmPessoal(data = LocalDate.of(2026, 9, 30), km = 999.0), // outro mês e fora da semana
+            ),
+        )
+        assertEquals(100.0, s.hoje.kmPessoal, 0.0)
+        assertEquals(150.0, s.semana.kmPessoal, 0.0)
+        assertEquals(200.0, s.mes.kmPessoal, 0.0)
+        assertEquals(100L, s.hoje.custoPorKmCentavos) // R$ 200 ÷ (100 + 100) km
+        assertEquals(10_000L, s.hoje.custoUsoPessoalCentavos)
     }
 }

@@ -9,11 +9,12 @@ Dados 100% locais no aparelho (sem login, sem servidor, sem nuvem).
 
 ## O que o app faz hoje
 
-- **Ganhos e despesas** com data, plataforma, categoria, início e fim do turno e foto do comprovante (câmera ou galeria)
+- **Ganhos e despesas** com data, plataforma, categoria, início e fim do turno, corridas e foto do comprovante (câmera ou galeria)
+- **Km pessoal:** o uso do carro fora do trabalho entra no custo por km e no odômetro, com o custo do uso pessoal no Início
 - **Início** com lucro líquido do dia, da semana (segunda a domingo) e do mês, ganho por km e por hora, custo por km, depreciação e alertas
 - **Meta mensal e meta do dia**, com progresso, quanto falta por dia até o fim do mês e atalho para repetir a do mês anterior
 - **Histórico** por mês, agrupado por dia, com filtros, edição de tudo que foi lançado e **relatório do mês em PDF** para comprovar renda
-- **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km, com o odômetro estimado pelos km dos ganhos
+- **Veículo:** abastecimentos, consumo médio (km/l) e manutenções com alertas por km, com o odômetro estimado pelos km lançados e a conferência dos km lançados com o odômetro
 - **Análises:** ganho por hora por dia da semana e por faixa de horário, melhores dia e horário, comparativo entre plataformas (Uber × 99) e evolução dos últimos 6 meses
 - **Leitor de corridas** (em teste): quando uma oferta toca na Uber/99, mostra por cima o R$/km contando o deslocamento até o passageiro, o R$/h e o lucro estimado, em verde, amarelo ou vermelho; só mostra, nunca aceita sozinho
 - **Reservas** para despesas fixas (IPVA, seguro, parcela), com quanto separar por dia

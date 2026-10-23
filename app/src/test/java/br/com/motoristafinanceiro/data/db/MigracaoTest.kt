@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import br.com.motoristafinanceiro.data.Repositorio
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Plataforma
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -118,5 +119,27 @@ class MigracaoTest {
             versao = proxima.endVersion
         }
         assertEquals(atual, versao)
+    }
+
+    @Test
+    fun v2ParaAtual_ganhosSemCorridas_eKmPessoaisGravam() = runBlocking {
+        val dia = LocalDate.of(2026, 10, 21)
+        criarBancoNaVersao(2) {
+            it.execSQL(
+                "INSERT INTO ganhos (id, data, plataforma, valorCentavos, gorjetaBonusCentavos, km, minutosOnline, observacao, inicioTurnoMinutos) " +
+                    "VALUES (3, ${dia.toEpochDay()}, 'NOVE_NOVE', 15000, 0, 80.0, 300, NULL, 1080)"
+            )
+        }
+
+        val repo = Repositorio(abrirComOAppAtual())
+        val ganho = repo.ganhos(dia, dia).first().single()
+        assertEquals(1080, ganho.inicioTurnoMinutos)
+        assertNull(ganho.corridas)
+
+        repo.salvarGanho(ganho.copy(corridas = 9))
+        assertEquals(9, repo.ganhos(dia, dia).first().single().corridas)
+
+        repo.salvarKmPessoal(KmPessoal(data = dia, km = 22.5, observacao = "Mercado"))
+        assertEquals(22.5, repo.kmPessoais(dia, dia).first().single().km, 0.0)
     }
 }

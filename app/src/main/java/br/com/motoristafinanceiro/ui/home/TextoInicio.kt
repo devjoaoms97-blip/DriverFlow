@@ -14,6 +14,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+import br.com.motoristafinanceiro.domain.ResumoCorridas
+import kotlin.math.roundToInt
 
 private val ptBR = Locale("pt", "BR")
 private val formatoDiaEMes = DateTimeFormatter.ofPattern("d 'de' MMMM", ptBR)
@@ -40,6 +42,15 @@ fun textoRodado(e: Estatisticas): String = listOfNotNull(
     e.kmTotal.takeIf { it > 0 }?.let { "${it.paraTextoNumero()} km" },
     e.minutosOnline.takeIf { it > 0 }?.let { "${it.minutosParaHorasTexto()} h" },
 ).joinToString(" · ").ifEmpty { "—" }
+
+/** "42 · 14 min cada": quantidade de corridas e o tempo médio (quando há horas); "—" sem corridas. */
+fun textoCorridas(c: ResumoCorridas): String {
+    if (c.corridas <= 0) return "—"
+    return listOfNotNull(
+        c.corridas.toString(),
+        c.minutosPorCorrida?.let { "${it.roundToInt()} min cada" },
+    ).joinToString(" · ")
+}
 
 /** Aviso de manutenção do Início; null sem alertas. Mostra no máximo os dois mais urgentes no detalhe. */
 fun textoAtencaoManutencao(alertas: List<AlertaManutencao>): TextoAviso? {

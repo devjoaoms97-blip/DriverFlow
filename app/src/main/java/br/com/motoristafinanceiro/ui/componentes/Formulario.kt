@@ -137,7 +137,7 @@ fun CampoCompacto(
                         campo()
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = rotulo },
             )
         }
     }

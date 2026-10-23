@@ -20,6 +20,8 @@ data class Ganho(
     val observacao: String? = null,
     /** Hora em que o turno começou, em minutos desde a meia-noite (0 a 1439); null = não informada. */
     val inicioTurnoMinutos: Int? = null,
+    /** Quantas corridas o turno teve; null = não informado. */
+    val corridas: Int? = null,
 ) {
     val totalCentavos: Long get() = valorCentavos + gorjetaBonusCentavos
 }
@@ -55,6 +57,15 @@ data class Manutencao(
     val valorCentavos: Long,
     /** Intervalo em km até a próxima troca/revisão (null = sem alerta). */
     val intervaloKm: Int? = null,
+    val observacao: String? = null,
+)
+
+/** Km rodados com o carro fora do trabalho (uso pessoal): entram no custo por km e no odômetro, nunca no ganho. */
+@Entity(tableName = "km_pessoais", indices = [Index("data")])
+data class KmPessoal(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val data: LocalDate,
+    val km: Double,
     val observacao: String? = null,
 )
 

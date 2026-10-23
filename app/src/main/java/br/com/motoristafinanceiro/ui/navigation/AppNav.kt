@@ -39,13 +39,14 @@ private const val ROTA_RESERVA = "reserva/{id}"
 private const val ROTA_NOVO = "novo"
 private const val ROTA_GANHO = "ganho/{id}"
 private const val ROTA_DESPESA = "despesa/{id}"
+private const val ROTA_KM_PESSOAL = "kmpessoal/{id}"
 private const val ROTA_ABASTECIMENTO = "abastecimento/{id}"
 private const val ROTA_MANUTENCAO = "manutencao/{id}"
 private const val ROTA_AJUSTES = "ajustes"
 private const val ROTA_META = "meta"
 /** Telas sem a barra inferior: formulários e telas abertas a partir do Início (Reservas, Meta, Ajustes). */
 internal val rotasSemBarra = setOf(
-    ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO,
+    ROTA_NOVO, ROTA_GANHO, ROTA_DESPESA, ROTA_KM_PESSOAL, ROTA_ABASTECIMENTO, ROTA_MANUTENCAO,
     ROTA_AJUSTES, ROTA_RESERVA, ROTA_META, ROTA_RESERVAS,
 )
 
@@ -117,6 +118,7 @@ fun AppNav(destinoPedido: String? = null, aoAbrirDestino: () -> Unit = {}) {
                     onEditarManutencao = { nav.navigate("manutencao/$it") },
                     onNovoAbastecimento = { nav.navigate("abastecimento/0") },
                     onNovaManutencao = { nav.navigate("manutencao/0") },
+                    onEditarKmPessoal = { nav.navigate("kmpessoal/$it") },
                 )
             }
             composable(ROTA_RESERVAS) {
@@ -155,6 +157,16 @@ fun AppNav(destinoPedido: String? = null, aoAbrirDestino: () -> Unit = {}) {
             ) { e ->
                 NovoLancamentoScreen(
                     tipo = TipoLancamento.DESPESA,
+                    id = e.arguments?.getLong("id") ?: 0L,
+                    onConcluir = { nav.popBackStack() },
+                )
+            }
+            composable(
+                ROTA_KM_PESSOAL,
+                arguments = listOf(navArgument("id") { type = NavType.LongType }),
+            ) { e ->
+                NovoLancamentoScreen(
+                    tipo = TipoLancamento.KM_PESSOAL,
                     id = e.arguments?.getLong("id") ?: 0L,
                     onConcluir = { nav.popBackStack() },
                 )

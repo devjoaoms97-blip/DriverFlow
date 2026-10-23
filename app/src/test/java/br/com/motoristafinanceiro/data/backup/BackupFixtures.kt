@@ -4,6 +4,7 @@ import br.com.motoristafinanceiro.data.model.Abastecimento
 import br.com.motoristafinanceiro.data.model.CategoriaDespesa
 import br.com.motoristafinanceiro.data.model.Despesa
 import br.com.motoristafinanceiro.data.model.Ganho
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.data.model.Meta
 import br.com.motoristafinanceiro.data.model.OrigemDespesa
@@ -22,7 +23,7 @@ internal fun dadosDeExemplo(): DadosBackup {
             Ganho(
                 id = 1, data = d12, plataforma = Plataforma.UBER, valorCentavos = 10_000,
                 gorjetaBonusCentavos = 500, km = 50.5, minutosOnline = 240, observacao = "Aeroporto",
-                inicioTurnoMinutos = 18 * 60 + 30,
+                inicioTurnoMinutos = 18 * 60 + 30, corridas = 12,
             ),
             Ganho(id = 2, data = d13, plataforma = Plataforma.NOVE_NOVE, valorCentavos = 6_000),
         ),
@@ -44,6 +45,10 @@ internal fun dadosDeExemplo(): DadosBackup {
             ReservaDespesa(id = 1, nome = "IPVA", valorCentavos = 365_000, periodicidade = Periodicidade.ANUAL, proximoVencimento = LocalDate.of(2027, 1, 10)),
         ),
         metas = listOf(Meta("2026-09", 400_000), Meta("2026-10", 500_000)),
+        kmPessoais = listOf(
+            KmPessoal(id = 1, data = d12, km = 35.5, observacao = "Mercado"),
+            KmPessoal(id = 2, data = d13, km = 12.0),
+        ),
         depreciacaoPorKmCentavos = 25,
     )
 }

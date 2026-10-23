@@ -23,13 +23,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.motoristafinanceiro.data.model.Abastecimento
+import br.com.motoristafinanceiro.data.model.KmPessoal
 import br.com.motoristafinanceiro.data.model.Manutencao
 import br.com.motoristafinanceiro.domain.AlertaManutencao
+import br.com.motoristafinanceiro.domain.ConferenciaKm
 import br.com.motoristafinanceiro.domain.Odometro
 import br.com.motoristafinanceiro.domain.ResumoVeiculo
 import br.com.motoristafinanceiro.domain.StatusAlerta
@@ -51,18 +54,22 @@ import java.time.format.DateTimeFormatter
 
 private val formatoData = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
+/** Tag da lista da tela, para os testes rolarem até as seções de baixo. */
+const val TAG_LISTA_VEICULO = "lista-veiculo"
+
 @Composable
 fun VeiculoScreen(
     onEditarAbastecimento: (Long) -> Unit,
     onEditarManutencao: (Long) -> Unit,
     onNovoAbastecimento: () -> Unit,
     onNovaManutencao: () -> Unit,
+    onEditarKmPessoal: (Long) -> Unit = {},
     vm: VeiculoViewModel = viewModel(factory = VeiculoViewModel.Factory),
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
 
     LazyColumn(
-        Modifier.fillMaxSize(),
+        Modifier.fillMaxSize().testTag(TAG_LISTA_VEICULO),
         contentPadding = PaddingValues(start = MargemTela, end = MargemTela, top = 20.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -75,6 +82,8 @@ fun VeiculoScreen(
                 BotaoRegistro("Manutenção", Icones.Chave, onNovaManutencao, Modifier.weight(1f))
             }
         }
+
+        state.conferencia?.let { c -> item(key = "conferencia") { CartaoConferencia(c) } }
 
         if (state.alertas.isNotEmpty()) {
             item(key = "rotulo-alertas") { RotuloSecao("Próximas manutenções", Modifier.padding(horizontal = 4.dp)) }
@@ -100,6 +109,34 @@ fun VeiculoScreen(
                 ListaEmCartao(state.abastecimentos) { a -> LinhaAbastecimento(a) { onEditarAbastecimento(a.id) } }
             }
         }
+
+        item(key = "rotulo-pessoal") { RotuloSecao("Uso pessoal", Modifier.padding(horizontal = 4.dp)) }
+        item(key = "pessoal") {
+            if (state.kmPessoais.isEmpty()) {
+                Vazio("Lance os km fora do trabalho pelo +, em Km pessoal: entram no custo por km e no odômetro.")
+            } else {
+                ListaEmCartao(state.kmPessoais) { k -> LinhaKmPessoal(k) { onEditarKmPessoal(k.id) } }
+            }
+        }
+    }
+}
+
+/** Km do odômetro × km lançados entre duas leituras. */
+@Composable
+private fun CartaoConferencia(c: ConferenciaKm) {
+    val esquema = MaterialTheme.colorScheme
+    val texto = textoConferencia(c)
+    Cartao(espacamento = 10.dp, borda = if (texto.atencao) esquema.tertiary.copy(alpha = 0.45f) else esquema.outlineVariant) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(texto.titulo, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f).padding(end = 8.dp))
+            Selo(
+                texto.selo,
+                if (texto.atencao) esquema.tertiary else esquema.secondary,
+                if (texto.atencao) esquema.tertiaryContainer else esquema.secondaryContainer,
+            )
+        }
+        BarraProgresso(c.percentualLancado.coerceIn(0, 100) / 100f, if (texto.atencao) esquema.tertiary else esquema.secondary)
+        Text(texto.detalhe, style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp), color = esquema.onSurfaceVariant)
     }
 }
 
@@ -234,6 +271,16 @@ private fun LinhaManutencao(m: Manutencao, onClick: () -> Unit) {
         m.intervaloKm?.let { "a cada " + it.formatarKm() },
     ).joinToString(" · ")
     LinhaRegistro(descricaoManutencao(m), detalhes, m.valorCentavos.formatarReais(), onClick)
+}
+
+@Composable
+private fun LinhaKmPessoal(k: KmPessoal, onClick: () -> Unit) {
+    LinhaRegistro(
+        k.data.format(formatoData),
+        k.observacao ?: "Uso pessoal",
+        k.km.paraTextoNumero() + " km",
+        onClick,
+    )
 }
 
 @Composable

@@ -43,6 +43,7 @@ import br.com.motoristafinanceiro.ui.componentes.Indicador
 import br.com.motoristafinanceiro.ui.componentes.MargemTela
 import br.com.motoristafinanceiro.ui.componentes.SeletorSegmentado
 import br.com.motoristafinanceiro.ui.componentes.TituloTela
+import br.com.motoristafinanceiro.ui.home.textoCorridas
 import br.com.motoristafinanceiro.util.formatarReais
 import java.time.YearMonth
 import kotlin.math.abs
@@ -72,14 +73,19 @@ fun AnalisesScreen(vm: AnalisesViewModel = viewModel(factory = AnalisesViewModel
 
         val t = state.total
         GradeDuasColunas(
-            listOf(
-                { m -> Indicador("Ganho bruto", t.ganhoBrutoCentavos.formatarReais(), m) },
-                { m -> Indicador("Dias trabalhados", t.diasTrabalhados.toString(), m) },
-                { m -> Indicador("Média por dia", t.mediaPorDiaCentavos?.formatarReais() ?: "—", m) },
-                { m -> Indicador("Ganho por hora", t.ganhoPorHoraCentavos?.formatarReais() ?: "—", m) },
-                { m -> Indicador("Ganho por km", t.ganhoPorKmCentavos?.formatarReais() ?: "—", m) },
-                { m -> Indicador("Lançamentos", t.lancamentos.toString(), m) },
-            )
+            buildList<@Composable (Modifier) -> Unit> {
+                add { m -> Indicador("Ganho bruto", t.ganhoBrutoCentavos.formatarReais(), m) }
+                add { m -> Indicador("Dias trabalhados", t.diasTrabalhados.toString(), m) }
+                add { m -> Indicador("Média por dia", t.mediaPorDiaCentavos?.formatarReais() ?: "—", m) }
+                add { m -> Indicador("Ganho por hora", t.ganhoPorHoraCentavos?.formatarReais() ?: "—", m) }
+                add { m -> Indicador("Ganho por km", t.ganhoPorKmCentavos?.formatarReais() ?: "—", m) }
+                add { m -> Indicador("Lançamentos", t.lancamentos.toString(), m) }
+                // Só aparecem quando algum ganho do período informa as corridas.
+                t.corridas.ganhoPorCorridaCentavos?.let { porCorrida ->
+                    add { m -> Indicador("Por corrida", porCorrida.formatarReais(), m) }
+                    add { m -> Indicador("Corridas", textoCorridas(t.corridas), m) }
+                }
+            }
         )
 
         CartaoDiasDaSemana(state.dias, state.melhorDia)
@@ -313,6 +319,7 @@ private fun LinhaPlataforma(p: DesempenhoPlataforma, percentual: Int, cor: Color
                 d.ganhoPorHoraCentavos?.let { it.formatarReais() + "/h" } ?: "sem horas",
                 if (d.lancamentos == 1) "1 lançamento" else "${d.lancamentos} lançamentos",
                 d.mediaPorLancamentoCentavos?.let { "média " + it.formatarReais() },
+                d.corridas.ganhoPorCorridaCentavos?.let { it.formatarReais() + "/corrida" },
             ).filterNotNull().joinToString(" · "),
             style = MaterialTheme.typography.bodySmall,
             color = esquema.onSurfaceVariant,
